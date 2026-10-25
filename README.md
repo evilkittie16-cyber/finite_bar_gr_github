@@ -19,8 +19,10 @@ Self-contained manuscript, analytical verification suite, and 3D $25 \times 25 \
 
 ## Quickstart & Reproducing All Benchmarks
 
-### 1. Install Dependencies
+### 1. Clone & Install Dependencies
 ```bash
+git clone https://github.com/evilkittie16-cyber/finite_bar_gr_github.git
+cd finite_bar_gr_github
 pip install -r requirements.txt
 ```
 
