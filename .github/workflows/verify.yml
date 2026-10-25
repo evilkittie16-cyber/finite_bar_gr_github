@@ -1,0 +1,31 @@
+name: Verify Finite-Bar Discrete GR Benchmarks
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run 7 Core Analytical & Numerical GR Benchmarks
+        run: python verify_core_finite_bar_gr.py
+
+      - name: Run 3D 25x25x25 Isotropic Lattice Freezing-Core Simulator
+        run: python simulate_3d_18pt_freezing_core.py

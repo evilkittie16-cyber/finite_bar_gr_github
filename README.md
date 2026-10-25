@@ -1,6 +1,11 @@
 # Finite-Bar Discrete General Relativity: A Nonsingular Black Hole Model
 
+[![Verify Finite-Bar Discrete GR Benchmarks](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml/badge.svg)](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Self-contained manuscript, analytical verification suite, and 3D $25 \times 25 \times 25$ (`15,625-cell`) isotropic lattice simulator for the **spherically symmetric Painlevé–Gullstrand / Misner–Sharp reduction and scalar wave sector** of Finite-Bar Discrete General Relativity.
+
+![Finite-Bar Discrete GR Summary](figures/finite_bar_gr_summary.png)
 
 ---
 
@@ -13,7 +18,9 @@ Self-contained manuscript, analytical verification suite, and 3D $25 \times 25 \
 | [`verify_core_finite_bar_gr_results.json`](verify_core_finite_bar_gr_results.json) | Pre-computed JSON benchmark output from `verify_core_finite_bar_gr.py`. |
 | [`simulate_3d_18pt_freezing_core.py`](simulate_3d_18pt_freezing_core.py) | Shortcut-free 3D $25 \times 25 \times 25$ (`15,625-cell`) lattice wave simulator comparing uncapped inner-horizon pile-up against local Stefan cell freezing across 6-point cubic, 18-neighbor isotropic, and 27-point isotropic stencils. |
 | [`simulate_3d_18pt_freezing_core_results.json`](simulate_3d_18pt_freezing_core_results.json) | Pre-computed JSON simulation output from `simulate_3d_18pt_freezing_core.py`. |
-| [`requirements.txt`](requirements.txt) | Python dependencies (`numpy>=1.20.0`). |
+| [`generate_figures.py`](generate_figures.py) | Reproducible figure generation script that produces the 4-panel summary plot [`figures/finite_bar_gr_summary.png`](figures/finite_bar_gr_summary.png). |
+| [`CITATION.cff`](CITATION.cff) & [`LICENSE`](LICENSE) | Standard academic citation metadata and MIT open-source license. |
+| [`requirements.txt`](requirements.txt) | Python dependencies (`numpy>=1.20.0`, `matplotlib>=3.5.0`). |
 
 ---
 
@@ -42,6 +49,11 @@ python simulate_3d_18pt_freezing_core.py
 Expected console confirmation:
 ```text
 ALL 3D 18-PT & 27-PT LATTICE SIMULATOR CHECKS PASSED: True
+```
+
+### 4. Regenerate the 4-Panel Summary Figure
+```bash
+python generate_figures.py
 ```
 
 ---

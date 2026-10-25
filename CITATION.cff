@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this model, manuscript, or 3D lattice simulation code in your research, please cite it as below."
+title: "Finite-Bar Discrete General Relativity: A Nonsingular Black Hole Model"
+abstract: "Spherically symmetric Painlevé-Gullstrand / Misner-Sharp reduction and canonical scalar wave sector of a nonsingular Planck-scale 3D lattice extension of General Relativity with 18- and 27-point isotropic stencils, skew-symmetric summation-by-parts river advection, Cayley symplectic evolution, and Neumann link-decoupled Stefan core accretion."
+authors:
+  - name: "evilkittie16-cyber"
+repository-code: "https://github.com/evilkittie16-cyber/finite_bar_gr_github"
+url: "https://github.com/evilkittie16-cyber/finite_bar_gr_github"
+license: MIT
+date-released: "2026-10-25"
+keywords:
+  - general-relativity
+  - regular-black-holes
+  - painleve-gullstrand
+  - lattice-gravity
+  - summation-by-parts
+  - isotropic-stencil
