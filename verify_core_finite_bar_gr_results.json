@@ -1,0 +1,82 @@
+{
+  "test_1_equivalence_principle_and_gr_bending": {
+    "passed": true,
+    "max_conformal_weight_identity_err": 3.3306690738754696e-16,
+    "isotropic_1PN_coeff_raw_at_r1000": 2.0017509970744474,
+    "isotropic_1PN_coeff_after_exact_2PN_subtraction": 2.0000009970744475,
+    "painleve_gullstrand_1PN_coeff_raw_at_r1000": 2.004008016031511,
+    "painleve_gullstrand_1PN_coeff_after_exact_2PN_subtraction": 2.000008016031511,
+    "expected_1915_GR_coefficient": 2.0,
+    "einstein_1911_time_only_coefficient": 1.0
+  },
+  "test_2_spherical_core_and_three_zones": {
+    "passed": true,
+    "R_core_mass_dependent": 2.154434690031884,
+    "outside_GR_max_error": 0.0,
+    "V_at_r0": -3.4811916252095836,
+    "force_at_r0": -2.220446049250313e-08,
+    "J_at_r0": -0.0,
+    "abs_J_zone3_core": 0.4291736630780973,
+    "abs_J_zone2_trap_supersonic": 1.5450251870811502,
+    "abs_J_zone1_outside": 0.48171613568181093
+  },
+  "test_3_eighteen_point_sphere_isotropy": {
+    "passed": true,
+    "stencil_18_second_moment": 2.0,
+    "stencil_18_fourth_order_sphere_cross_coeff": 2.0,
+    "stencil_18_advection_1_over_4ell_norm": 1.0,
+    "stencil_18_sixth_order_body_diag_residual": -12.0,
+    "stencil_27_second_moment": 2.0,
+    "stencil_27_fourth_order_sphere_cross_coeff": 2.0,
+    "stencil_27_advection_1_over_4ell_norm": 1.0,
+    "stencil_27_sixth_order_body_diag_residual": 0.0,
+    "target_exact_sphere_coeff": 2.0
+  },
+  "test_4_horizon_crossing_and_energy_conservation": {
+    "passed": true,
+    "max_dormant_cell_activity": 0.0,
+    "relative_energy_drift_200_steps": 9.169516927424641e-15,
+    "wave_finite_across_horizon_and_center": true
+  },
+  "test_5_surface_freezing_and_horizon_vise": {
+    "passed": true,
+    "v_bounce_subcritical_star_escapes": 0.2062994740159002,
+    "v_bounce_with_wave_dM_trapped_negative": -0.14017542509913805,
+    "initial_R_core": 2.0,
+    "final_R_core_after_5_waves": 2.7144176165949063,
+    "final_r_s_after_5_waves": 5.0,
+    "part1_eq59_r2_core_identity_error": 3.3306690738754696e-16
+  },
+  "test_6_quantum_route_preserves_gr": {
+    "passed": true,
+    "canonical_commutator_drift_200_steps": 4.121708483190903e-14,
+    "ehrenfest_quantum_vs_classical_GR_diff": 0.0,
+    "superposition_branch_isotropic_1PN_coeffs": [
+      2.0000009970744475,
+      2.0000016870161272
+    ],
+    "superposition_branch_PG_1PN_coeffs": [
+      2.000008016031511,
+      2.000013555243028
+    ],
+    "superposition_max_1PN_err_after_2PN": 1.3555243028040564e-05,
+    "horizon_cut_entanglement_entropy_S": 1.1099023388407945
+  },
+  "test_7_observational_and_buchdahl_stress_tests": {
+    "passed": true,
+    "fermi_lat_linear_model_delay_s": 0.0929346625,
+    "fermi_lat_our_18pt_group_velocity_delay_s": 1.8530936416658285e-19,
+    "fermi_lat_upper_bound_s": 0.8,
+    "axis_vs_diagonal_anisotropy_31GeV": 2.6656281148658848e-74,
+    "river_core_constant_tension_error": 8.881784197001252e-16,
+    "strong_energy_condition_ratio_negative": -2.0,
+    "smooth_hayward_p_r_and_p_theta_finite_everywhere": true,
+    "eht_photon_sphere_GR_error": 0.0,
+    "supersonic_thickness_at_2Mcrit": 1.4801579002102536,
+    "supersonic_thickness_at_remnant_Mcrit_sharp": 0.0,
+    "peak_J_over_c_at_remnant_Mcrit_sharp": 1.0,
+    "peak_J_over_c_at_remnant_Mcrit_smooth_hayward": 1.0,
+    "smooth_hayward_extremal_horizon_radius_over_ell": 1.7320508075688772
+  },
+  "ALL_CORE_GR_TESTS_PASSED": true
+}
