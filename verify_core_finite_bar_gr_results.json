@@ -1025,9 +1025,88 @@
       },
       "module_13_passed": true,
       "all_passed": true
+    },
+    "module_14_non_gr_grid_mechanisms": {
+      "module": "Module 14: Non-GR Grid Mechanisms Audit (Hooke/Eshelby, Kroner Disclinations, Poisson+Bernoulli, Sakharov One-Loop, Regge Variational)",
+      "test_48_3d_18pt_hooke_eshelby_inclusion_vs_gravity": {
+        "passed": true,
+        "N": 64,
+        "aniso_elastostatic_k1_eq_k2_18pt": 0.00010184295835119042,
+        "aniso_elastostatic_axial_only_6pt": 1.4680568655228632,
+        "cL_over_cT_isotropic_truss": 1.7319595485016004,
+        "cL_over_cT_exact_sqrt3": 1.7320508075688772,
+        "eshelby_u_r_power_law_slope": -1.9878100865488693,
+        "eshelby_eps_rr_power_law_slope": -3.2341722411185385,
+        "gravity_required_power_law_slope": -1.0,
+        "max_linearised_einstein_curvature_from_elastic_displacement": 3.4867201822690444e-20
+      },
+      "test_49_kroner_crystalline_disclination_incompatibility_3d": {
+        "passed": true,
+        "N": 48,
+        "max_eta_norm": 0.07669635095409999,
+        "max_diff_kroner_eta_vs_linearised_3d_einstein_G3": 3.8163916471489756e-17,
+        "max_disclination_continuity_violation_div_eta": 4.171561688618781e-18,
+        "disclination_spatial_strain_power_law_slope": -1.0087664330544754,
+        "spatial_light_bending_factor_vs_newtonian": 1.0,
+        "full_gr_light_bending_factor_vs_newtonian": 2.0
+      },
+      "test_50_18pt_poisson_bernoulli_condensate_and_biharmonic_uv": {
+        "passed": true,
+        "N": 48,
+        "mean_3d_greens_anisotropy_18pt": 0.00104781736175885,
+        "mean_3d_greens_anisotropy_6pt": 0.02713458563755177,
+        "isotropy_improvement_18pt_over_6pt": 25.896293216600338,
+        "extracted_monopole_charge_A_eff_18pt": 0.9986133613579903,
+        "bernoulli_pg_1pn_deflection_over_newtonian": 1.9972267227159806,
+        "biharmonic_finite_origin_potential": 0.7715981355379333,
+        "unregularised_to_biharmonic_origin_ratio": 5.085816546301474,
+        "bopp_podolsky_small_r_kretschmann_slope": -2.0019103645222303,
+        "hayward_de_sitter_small_r_kretschmann_slope": 1.9999999034902234
+      },
+      "test_51_sakharov_one_loop_zero_point_induced_gravity_18pt": {
+        "passed": true,
+        "N_bz": 48,
+        "N_3d_spectral": 24,
+        "dimensionless_vacuum_energy_18pt": 0.9887049610023161,
+        "dimensionless_vacuum_energy_6pt": 1.1938011583852608,
+        "sakharov_c1_coefficient_18pt": 0.007009096955230271,
+        "induced_ell_over_ell_P_per_sqrt_N": 0.5935618249564236,
+        "E_zp_flat_lattice_3d": 0.9887023986138972,
+        "delta_E_zp_tt_wave_eps_005": 0.0002047432020282347,
+        "delta_E_zp_tt_wave_eps_010": 0.0008189723760124723,
+        "tt_wave_quadratic_scaling_ratio": 3.9999978895491415,
+        "induced_tt_curvature_stiffness": 0.16379456162258774
+      },
+      "test_52_simplicial_regge_schlafli_and_variational_stationarity": {
+        "passed": true,
+        "kuhn_body_diagonal_dihedral_angle_rad": 1.0471975511965972,
+        "kuhn_body_diagonal_exact_pi_over_3": 1.0471975511965976,
+        "flat_space_6_tetrahedra_deficit_angle": 3.552713678800501e-15,
+        "max_schlafli_identity_residual_3d_tetrahedron": 3.277272453416913e-09,
+        "N_list": [
+          50,
+          100,
+          200
+        ],
+        "errors_A": [
+          5.1429545912273596e-05,
+          1.2945793234808853e-05,
+          3.2470906027711128e-06
+        ],
+        "errors_a": [
+          8.797063940541112e-05,
+          2.206708477468399e-05,
+          5.522796857500982e-06
+        ],
+        "convergence_order_A": 1.9952638215407945,
+        "convergence_order_a": 1.9984250839981075,
+        "max_variational_grad_norm": 6.938893903907228e-11,
+        "max_jacobson_area_deficit_error": 4.838349427327415e-06
+      },
+      "module_14_passed": true
     }
   },
-  "number_of_module_tests": 47,
+  "number_of_module_tests": 52,
   "ALL_MODULE_NUMERICAL_CHECKS_PASSED": true,
   "ALL_NUMERICAL_CHECKS_PASSED": true,
   "CLAIMS_AUDIT": [
@@ -1150,6 +1229,11 @@
       "claim": "3D 18-point rank-6 strain reconstruction & Regge-Wheeler potential on the discretized background",
       "verdict": "PARTLY SUPPORTED (rank-6 kinematics genuine; TT/Bianchi checks by construction; RW spin factor 1-s^2=-3 is continuum input)",
       "note": "Module 13 (Tests 46-47): (1) GENUINE: a 6-bar cubic truss has rank 3 < 6 (blind to off-diagonal x-shear), whereas the 6 axial + 12 face-diagonal bars have full rank 6 and reconstruct any symmetric 3x3 h_ij to 6.7e-16 (kinematic only; the evolution does not use the bars). (2) The scalar 18-pt vs 6-pt dispersion anisotropy ratio at the single wavenumber |k|ell = pi/4 is 65x (k-dependent; not gravity-specific). (3) BY CONSTRUCTION: TT trace/divergence, Cayley energy, delta G^0_0 = 0, and the real-space contracted Bianchi / gauge identities with Delta = sum_k D_k D_k hold for ANY commuting difference operators; the ~0.105 'mixed' anomaly only measures Delta_18 != sum_k D_k D_k, sum_k D_k D_k has spurious zone-boundary zero modes, and the evolution itself uses Delta_18. (4) The continuum Regge-Wheeler formula (input spin factor 1 - s^2 = -3) on the discretized background matches the exact barrier to 7.1e-5, which measures the accuracy of the discretized f = a/A only."
+    },
+    {
+      "claim": "Non-GR grid mechanisms for how mass deforms the lattice without assuming G_munu upfront (Hooke/Eshelby, Kroner disclinations, Poisson+Bernoulli, Sakharov one-loop, Regge variational)",
+      "verdict": "TESTED & COMPARED (Hooke fails as 1/r^3; Kroner, Poisson+Bernoulli, Sakharov & Regge each supply a specific link with distinct limits)",
+      "note": "Module 14 (Tests 48-52): (1) Pure Hooke's-law 3D 18-pt spring relaxation (Test 48) is elastostatically isotropic at O(q^2) when k_1 = k_2 (aniso 1.0e-4 vs 1.47 for 6-pt; c_L/c_T = sqrt(3)), but a spherical inclusion gives Eshelby u_r ~ 1/r^2 and strain eps_rr ~ 1/r^3 (slope -3.23) with identically zero linearised Riemann curvature (3.5e-20), proving gravity cannot be an elastic node displacement in flat space. (2) Kroner crystalline disclination theory (Test 49) proves eta_ij = eps_ikl eps_jmn D_k D_m eps_ln == G^(3)_ij[2 eps] to 3.8e-17 and D_i eta_ij = 0 to 4.2e-18, giving a 1/r spatial strain (slope -1.009) from wedge-disclination density, but static 3D disclinations alone leave g_00 undetermined (1.0x Newtonian light bending). (3) Native 3D 18-pt Poisson + Bernoulli free-fall (Test 50) reduces Green's function anisotropy 25.9x vs 6-pt and generates the exact Painleve-Gullstrand Schwarzschild metric (1.997x light bending) for spherical mass, while 4th-order Bopp-Podolsky regularisation leaves a K ~ 1/r^2 tidal singularity (slope -2.002) and scalar flow lacks Kerr frame-dragging and spin-2 waves. (4) Sakharov one-loop zero-point energy on the 18-pt Brillouin zone (Test 51) induces positive TT curvature stiffness (+0.1638, quadratic ratio 4.0000) with ell / ell_P_ind = 0.594 sqrt(N_fields), but carries an unsubtracted O(hbar c / ell^4) vacuum energy (0.989) requiring bare cosmological-constant cancellation. (5) Simplicial Regge calculus (Test 52) satisfies the 3D tetrahedral Schlafli identity to 3.3e-9 and recovers both A(R) and a(R) at O(1/N^2) (p = 2.00, err 3.2e-6) by numerical variational stationarity dS_Regge/d(a,A) = 0, matching Jacobson's entanglement area deficit."
     }
   ]
 }

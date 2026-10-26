@@ -1040,6 +1040,12 @@ def build_claims_audit(results, modules):
     t45 = m13["test_45_painleve_gullstrand_coordinate_map_of_discrete_curvature_charge"]
     t46 = m13["test_46_18pt_rank6_strain_tt_evolution_and_by_construction_bianchi"]
     t47 = m13["test_47_continuum_regge_wheeler_formula_on_discretised_background"]
+    m14 = modules["module_14_non_gr_grid_mechanisms"]
+    t48 = m14["test_48_3d_18pt_hooke_eshelby_inclusion_vs_gravity"]
+    t49 = m14["test_49_kroner_crystalline_disclination_incompatibility_3d"]
+    t50 = m14["test_50_18pt_poisson_bernoulli_condensate_and_biharmonic_uv"]
+    t51 = m14["test_51_sakharov_one_loop_zero_point_induced_gravity_18pt"]
+    t52 = m14["test_52_simplicial_regge_schlafli_and_variational_stationarity"]
     b3 = results["test_3_eighteen_point_sphere_isotropy"]
 
     def verdict(ok, yes="SUPPORTED", no="NOT SUPPORTED"):
@@ -1168,6 +1174,20 @@ def build_claims_audit(results, modules):
                   "ANY commuting difference operators; the ~0.105 'mixed' anomaly only measures Delta_18 != sum_k D_k D_k, sum_k D_k D_k has spurious zone-boundary "
                   "zero modes, and the evolution itself uses Delta_18. (4) The continuum Regge-Wheeler formula (input spin factor 1 - s^2 = -3) on the discretized "
                   "background matches the exact barrier to 7.1e-5, which measures the accuracy of the discretized f = a/A only.")},
+        {"claim": "Non-GR grid mechanisms for how mass deforms the lattice without assuming G_munu upfront (Hooke/Eshelby, Kroner disclinations, Poisson+Bernoulli, Sakharov one-loop, Regge variational)",
+         "verdict": verdict(t48["passed"] and t49["passed"] and t50["passed"] and t51["passed"] and t52["passed"], yes="TESTED & COMPARED (Hooke fails as 1/r^3; Kroner, Poisson+Bernoulli, Sakharov & Regge each supply a specific link with distinct limits)"),
+         "note": ("Module 14 (Tests 48-52): (1) Pure Hooke's-law 3D 18-pt spring relaxation (Test 48) is elastostatically isotropic at O(q^2) when k_1 = k_2 "
+                  "(aniso 1.0e-4 vs 1.47 for 6-pt; c_L/c_T = sqrt(3)), but a spherical inclusion gives Eshelby u_r ~ 1/r^2 and strain eps_rr ~ 1/r^3 (slope -3.23) "
+                  "with identically zero linearised Riemann curvature (3.5e-20), proving gravity cannot be an elastic node displacement in flat space. "
+                  "(2) Kroner crystalline disclination theory (Test 49) proves eta_ij = eps_ikl eps_jmn D_k D_m eps_ln == G^(3)_ij[2 eps] to 3.8e-17 and "
+                  "D_i eta_ij = 0 to 4.2e-18, giving a 1/r spatial strain (slope -1.009) from wedge-disclination density, but static 3D disclinations alone leave "
+                  "g_00 undetermined (1.0x Newtonian light bending). (3) Native 3D 18-pt Poisson + Bernoulli free-fall (Test 50) reduces Green's function anisotropy "
+                  "25.9x vs 6-pt and generates the exact Painleve-Gullstrand Schwarzschild metric (1.997x light bending) for spherical mass, while 4th-order "
+                  "Bopp-Podolsky regularisation leaves a K ~ 1/r^2 tidal singularity (slope -2.002) and scalar flow lacks Kerr frame-dragging and spin-2 waves. "
+                  "(4) Sakharov one-loop zero-point energy on the 18-pt Brillouin zone (Test 51) induces positive TT curvature stiffness (+0.1638, quadratic ratio 4.0000) "
+                  "with ell / ell_P_ind = 0.594 sqrt(N_fields), but carries an unsubtracted O(hbar c / ell^4) vacuum energy (0.989) requiring bare cosmological-constant "
+                  "cancellation. (5) Simplicial Regge calculus (Test 52) satisfies the 3D tetrahedral Schlafli identity to 3.3e-9 and recovers both A(R) and a(R) "
+                  "at O(1/N^2) (p = 2.00, err 3.2e-6) by numerical variational stationarity dS_Regge/d(a,A) = 0, matching Jacobson's entanglement area deficit.")},
     ]
 
 
@@ -1185,6 +1205,7 @@ def main():
     from tests.module_11_relativistic_einstein_euler import run_module_11
     from tests.module_12_random_grid_and_voronoi_audit import run_module_12
     from tests.module_13_emergent_anamorphic_gr import run_module_13
+    from tests.module_14_non_gr_grid_mechanisms import run_module_14
 
     results = {
         "test_1_equivalence_principle_and_gr_bending": test_1_equivalence_principle_and_gr_bending(),
@@ -1214,6 +1235,7 @@ def main():
         "module_11_relativistic_einstein_euler": run_module_11(),
         "module_12_random_grid_and_voronoi_audit": run_module_12(),
         "module_13_emergent_anamorphic_gr": run_module_13(),
+        "module_14_non_gr_grid_mechanisms": run_module_14(),
     }
     n_tests = sum(len([k for k in m if k.startswith("test_")]) for m in modules.values())
     modules_passed = all(
@@ -1232,6 +1254,7 @@ def main():
             (11, "relativistic_einstein_euler"),
             (12, "random_grid_and_voronoi_audit"),
             (13, "emergent_anamorphic_gr"),
+            (14, "non_gr_grid_mechanisms"),
         ]
     )
     all_passed = bool(core_passed and modules_passed)
@@ -1250,7 +1273,7 @@ def main():
         json.dump(results, f, indent=2)
 
     print(json.dumps({k: v for k, v in results.items() if k != "CLAIMS_AUDIT"}, indent=2))
-    print(f"\nALL 13 MODULES ({n_tests} TESTS) NUMERICAL CHECKS PASSED: {modules_passed}")
+    print(f"\nALL 14 MODULES ({n_tests} TESTS) NUMERICAL CHECKS PASSED: {modules_passed}")
     print(f"ALL 10 CORE BENCHMARK NUMERICAL CHECKS PASSED: {core_passed}")
     print("\nCLAIMS AUDIT (what the code does and does not support):")
     for item in audit:
