@@ -104,7 +104,7 @@ def test_05_kretschmann_curvature_bound_and_cusp_removal():
     K_schwarz_far = float(12.0 * (r_s**2) / (r_far**6))
     far_field_rel_diff = abs(K_far - K_schwarz_far) / K_schwarz_far
 
-    # Discrete 3D core C^2 cusp elimination check: inside the frozen core r <= R_core,
+    # Discrete 3D core C^2 cusp check: inside a uniformly saturated region r <= R_core,
     # rho_i = rho_max is constant, so the 27-point discrete gradient and Laplacian vanish identically
     n_grid = 11
     coords = np.arange(n_grid) - (n_grid // 2)

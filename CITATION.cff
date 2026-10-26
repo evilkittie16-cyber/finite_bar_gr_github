@@ -1,17 +1,18 @@
 cff-version: 1.2.0
-message: "If you use this model, manuscript, or 3D lattice simulation code in your research, please cite it as below."
-title: "Finite-Bar Discrete General Relativity: A Nonsingular Black Hole Model"
-abstract: "Spherically symmetric Painlevé-Gullstrand / Misner-Sharp reduction and canonical scalar wave sector of a nonsingular Planck-scale 3D lattice extension of General Relativity with 18- and 27-point isotropic stencils, skew-symmetric summation-by-parts river advection, Cayley symplectic evolution, and Neumann link-decoupled Stefan core accretion."
+message: "If you use this manuscript or code in your research, please cite it as below."
+title: "Finite-Bar Discrete General Relativity: Lattice Waves on a Planck-Density (Hayward) Black Hole"
+abstract: "Scalar test field on a Planck-spaced cubic lattice propagating on a fixed Painleve-Gullstrand / Hayward regular black-hole background, with 18- and 27-point isotropic stencils, a skew-symmetric summation-by-parts Killing Hamiltonian, Cayley symplectic evolution, and a phenomenological local saturation rule. Includes a verification suite with a claims audit: GR is recovered outside the horizon by construction; the inner Cauchy horizon remains; local saturation moves inner-horizon blueshift into core mass rather than removing it; which interior completion the lattice rule selects remains open."
 authors:
   - name: "evilkittie16-cyber"
 repository-code: "https://github.com/evilkittie16-cyber/finite_bar_gr_github"
 url: "https://github.com/evilkittie16-cyber/finite_bar_gr_github"
 license: MIT
-date-released: "2026-10-25"
+date-released: "2026-10-26"
 keywords:
   - general-relativity
   - regular-black-holes
   - painleve-gullstrand
-  - lattice-gravity
+  - lattice-field-theory
   - summation-by-parts
   - isotropic-stencil
+  - mass-inflation

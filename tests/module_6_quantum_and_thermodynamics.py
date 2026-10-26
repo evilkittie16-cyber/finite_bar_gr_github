@@ -1,5 +1,7 @@
 """
-Module 6: Quantum Operator Unitarity & Remnant Thermodynamics Tests (Sections 4.5 & 5.2)
+Module 6: Linear Quantum Evolution & Hayward Remnant Thermodynamics Tests (Sections 4.5 & 5.2)
+(The linear lattice evolution is unitary; the saturation damping step is NOT. The remnant thermodynamics
+ is that of Hayward's 2006 metric and requires the inner horizon to exist.)
 ========================================================================================
 Tests:
   Test 16: Heisenberg Commutator, Ehrenfest Trajectory, & Horizon Entanglement Test (Benchmark 6)

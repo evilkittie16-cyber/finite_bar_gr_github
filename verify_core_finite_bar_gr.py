@@ -4,14 +4,14 @@ verify_core_finite_bar_gr.py
 Clean, self-contained verification of the Finite-Bar Discrete General Relativity
 (GR) Black Hole Model documented in proof_corrected.md.
 
-Tests:
-  1. Local Flatness (Equivalence Principle, c_local = 1 cell / 1 local tick)
-     & Global 1915 GR Light Bending (the 1 + 1 = 2 factor from time reaction + spatial/river tension).
-  2. 3D Spherical / Finite-Bar Core (r^3 / r = r^2 inside r < l, exact GR outside r >= l,
-     and the 3 zones of the Hamilton-Lisle / Hayward / Simpson-Visser river flow J(r)).
-  3. 18-Point Isotropic Grid Stencil (1/3 * 6 Cube + 1/6 * 12 FCC Spheres -> exact 4th-order sphere).
-  4. Event-Driven Horizon Crossing & Global Noether Energy Conservation (dH/dt = 0,
-     with dormant empty cells having H_i = 0 and dPhi_i/dt = 0).
+Ten core benchmarks plus the 9-module / 29-test suite in tests/.
+
+How to read the output:
+  * "passed" flags check NUMERICAL CORRECTNESS and ALGEBRAIC IDENTITIES (conservation, symplecticity,
+    stability, finiteness, closed-form formulas). They do not by themselves validate the physics claims.
+  * The CLAIMS AUDIT printed at the end states, claim by claim, whether the code SUPPORTS, does NOT
+    SUPPORT, or has NOT TESTED each headline claim of the manuscript. Several original claims are not
+    supported; that is reported deliberately.
 """
 
 import json
@@ -160,7 +160,10 @@ def test_3_eighteen_point_sphere_isotropy():
       - O(ell^2) axial moment M_2 == 2.0 for both stencils,
       - O(ell^4) sphere cross-term 6 * M_220 / M_400 == 2.0 for both stencils,
       - 3D advection operator M_ij 1/(4*ell) unit normalization == 1.0 for both stencils,
-      - O(ell^6) 3-axis body-diagonal error (360 * W_corner - 12) == 0.0 for the 27-point stencil!
+      - O(ell^6): the coefficient of the single monomial kx^2 ky^2 kz^2 vanishes for the 27-point stencil
+        (360 W_corner - 12 = 0), but the sixth-order symbol is still anisotropic. Its directional ratios
+        axis : face-diagonal : body-diagonal are 1 : 3/2 : 11/9 (18-pt) and 1 : 3/2 : 5/3 (27-pt), so the
+        27-pt stencil has the LARGER sixth-order directional spread.
     """
     # 6 Cube Face neighbors: (+/-1, 0, 0), (0, +/-1, 0), (0, 0, +/-1)
     faces = [(1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1)]
@@ -195,11 +198,20 @@ def test_3_eighteen_point_sphere_isotropy():
         m_xxyyzz = sum(W_corner * (d[0]**2)*(d[1]**2)*(d[2]**2) for d in corners)
         cross_4th = float(6.0 * m_xxyy / m_xxxx)
         adv_norm = float(0.25 * 2.0 * m_xx)
-        body_diag_6th_err = float(90.0 * m_xxyyzz / m_xxxx - 12.0)
-        return float(m_xx), cross_4th, adv_norm, body_diag_6th_err
+        body_diag_monomial_coeff = float(90.0 * m_xxyyzz / m_xxxx - 12.0)
+        all_d = [(d, W_face) for d in faces] + [(d, W_edge) for d in edges] + [(d, W_corner) for d in corners]
 
-    m_xx_18, cross_18, adv_18, err6_18 = check_stencil(1.0 / 3.0, 1.0 / 6.0, 0.0)
-    m_xx_27, cross_27, adv_27, err6_27 = check_stencil(7.0 / 15.0, 1.0 / 10.0, 1.0 / 30.0)
+        def p6(n):
+            n = np.array(n, dtype=float) / np.linalg.norm(n)
+            return sum(w * float(np.dot(n, d)) ** 6 for d, w in all_d)
+
+        ratios = (p6((1, 1, 0)) / p6((1, 0, 0)), p6((1, 1, 1)) / p6((1, 0, 0)))
+        return float(m_xx), cross_4th, adv_norm, body_diag_monomial_coeff, ratios
+
+    m_xx_18, cross_18, adv_18, err6_18, ratios_18 = check_stencil(1.0 / 3.0, 1.0 / 6.0, 0.0)
+    m_xx_27, cross_27, adv_27, err6_27, ratios_27 = check_stencil(7.0 / 15.0, 1.0 / 10.0, 1.0 / 30.0)
+    spread_18 = max(1.0, *ratios_18) - min(1.0, *ratios_18)
+    spread_27 = max(1.0, *ratios_27) - min(1.0, *ratios_27)
 
     passed = (
         abs(m_xx_18 - 2.0) < 1e-15
@@ -209,17 +221,23 @@ def test_3_eighteen_point_sphere_isotropy():
         and abs(cross_27 - 2.0) < 1e-15
         and abs(adv_27 - 1.0) < 1e-15
         and abs(err6_27) < 1e-15
+        and abs(ratios_18[0] - 1.5) < 1e-12 and abs(ratios_18[1] - 11.0 / 9.0) < 1e-12
+        and abs(ratios_27[0] - 1.5) < 1e-12 and abs(ratios_27[1] - 5.0 / 3.0) < 1e-12
     )
     return {
         "passed": bool(passed),
         "stencil_18_second_moment": m_xx_18,
         "stencil_18_fourth_order_sphere_cross_coeff": cross_18,
         "stencil_18_advection_1_over_4ell_norm": adv_18,
-        "stencil_18_sixth_order_body_diag_residual": err6_18,
+        "stencil_18_kx2ky2kz2_monomial_coeff": err6_18,
+        "stencil_18_sixth_order_ratios_face_body_over_axis": list(ratios_18),
+        "stencil_18_sixth_order_directional_spread": spread_18,
         "stencil_27_second_moment": m_xx_27,
         "stencil_27_fourth_order_sphere_cross_coeff": cross_27,
         "stencil_27_advection_1_over_4ell_norm": adv_27,
-        "stencil_27_sixth_order_body_diag_residual": err6_27,
+        "stencil_27_kx2ky2kz2_monomial_coeff": err6_27,
+        "stencil_27_sixth_order_ratios_face_body_over_axis": list(ratios_27),
+        "stencil_27_sixth_order_directional_spread": spread_27,
         "target_exact_sphere_coeff": 2.0,
     }
 
@@ -228,9 +246,10 @@ def test_4_horizon_crossing_and_energy_conservation():
     """
     Test 4:
     Evolves a wave packet across the event horizon (r = r_s) and through the center (r = 0)
-    using the canonical transpose-paired Hamiltonian H(Phi, Pi):
+    using the canonical Killing Hamiltonian H(Phi, Pi) on a FIXED background (softened toy profile
+    J = c (r/r~) sqrt(r_s/r~), periodic 1D domain):
       - Checks that dormant empty cells have H_i = 0 and dPhi_i/dt = 0 (zero processing when nothing happens).
-      - Checks that total energy dH/dt = 0 is conserved to machine precision across outside + horizon + inside.
+      - Checks that the Killing energy is conserved to round-off by the Cayley map (fixed background only).
       - Checks that the wave stays 100% finite through the inner boundary r_- and center r = 0.
     """
     N = 120
@@ -254,8 +273,8 @@ def test_4_horizon_crossing_and_energy_conservation():
         L_K[i, i] += 2.0 * K0 / (ell**2)
         L_K[i, ip] -= K0 / (ell**2)
         L_K[i, im] -= K0 / (ell**2)
-        M[i, ip] = J[i] / (2.0 * ell)
-        M[i, im] = -J[i] / (2.0 * ell)
+        M[i, ip] = 0.5 * (J[i] + J[ip]) / (2.0 * ell)
+        M[i, im] = -0.5 * (J[i] + J[im]) / (2.0 * ell)
 
     # 1. Check that dormant cells (outside the wave packet) have zero activity (dPhi/dt = 0, dPi/dt = 0, H_i = 0)
     phi0 = np.zeros(N)
@@ -265,21 +284,21 @@ def test_4_horizon_crossing_and_energy_conservation():
     phi0[mask] = np.exp(-((r[mask] - 8.0) ** 2) / 0.8) * np.cos(2.0 * (r[mask] - 8.0))
     pi0[mask] = -a[mask] * np.sin(2.0 * (r[mask] - 8.0)) * np.exp(-((r[mask] - 8.0) ** 2) / 0.8)
 
-    dphi_dt_0 = (pi0 / a) + M @ phi0
-    dpi_dt_0 = -(L_K @ phi0) - (M.T @ pi0)
+    dphi_dt_0 = (pi0 / a) - (M @ phi0)
+    dpi_dt_0 = -(L_K @ phi0) + (M.T @ pi0)
     dormant_region = np.abs(r + 8.0) < 3.0  # empty region far from packet
     max_dormant_activity = float(np.max(np.abs(dphi_dt_0[dormant_region])) + np.max(np.abs(dpi_dt_0[dormant_region])))
 
-    # 2. Verify exact canonical energy conservation dH/dt = <dH/dPhi, dPhi/dt> + <dH/dPi, dPi/dt> = 0
+    # 2. Verify exact canonical Killing energy conservation dH/dt = <dH/dPhi, dPhi/dt> + <dH/dPi, dPi/dt> = 0
     # Evolve with symplectic midpoint (Crank-Nicolson) integrator for 200 steps as wave crosses horizon
     def hamiltonian(phi, pi):
-        return float(0.5 * np.sum((pi**2) / a) + np.sum(pi * (M @ phi)) + 0.5 * float(phi @ (L_K @ phi)))
+        return float(0.5 * np.sum((pi**2) / a) - np.sum(pi * (M @ phi)) + 0.5 * float(phi @ (L_K @ phi)))
 
     H_initial = hamiltonian(phi0, pi0)
     dt = 0.02
-    # Combined state z = [phi, pi], dz/dt = F z
+    # Combined state z = [phi, pi], dz/dt = F z with black-hole PG generator F = [[-M, A_inv], [-L_K, M.T]]
     A_inv = np.diag(1.0 / a)
-    F_mat = np.block([[M, A_inv], [-L_K, -M.T]])
+    F_mat = np.block([[-M, A_inv], [-L_K, M.T]])
     I_2N = np.eye(2 * N)
     step_mat = np.linalg.solve(I_2N - 0.5 * dt * F_mat, I_2N + 0.5 * dt * F_mat)
 
@@ -301,28 +320,22 @@ def test_4_horizon_crossing_and_energy_conservation():
     }
 
 
-def test_5_surface_freezing_and_horizon_vise():
+def test_5_trapped_region_and_core_scale():
     """
-    Test 5:
-    Works out the frozen-core surface accretion ('new ice forming on a frozen core')
-    directly from the existing toy-model equations (Sections 1.2, 2.1, 4.1, and 4.2):
-      - Cell saturation density rho_max gives frozen core radius R_core(M) = (3M / (4*pi*rho_max))^(1/3) ~ M^(1/3).
-      - Outer event horizon grows linearly: r_s(M) = 2GM / c^2 ~ M^1 (3x faster fractional growth).
-      - At the black hole threshold (r_s = R_core), before a wave packet of energy dH = dM*c^2 arrives,
-        a bounced wave (+c) at R_core has v_bounce = c * (1 - sqrt(r_s / R_core)) = 0.
-      - When the wave packet (dM > 0) arrives, r_s steps outward to r_s(M + dM) > R_core(M),
-        making v_bounce(R_core) = c * (1 - sqrt(r_s_new / R_core)) < 0 (trapped in place on the surface!).
-      - Simulates a wave hitting a frozen core boundary on the 1D radial grid with reflecting floor at R_core
-        and verifies that 100% of the wave energy stays trapped inside the horizon and steps R_core outward
-        while capping cell density at rho_max (eliminating Visser's r_- blowup).
+    Test 5 (replaces the former 'surface freezing & horizon vise' benchmark):
+    - R_core(M) = (3M / (4 pi rho_max))^(1/3) = (r_s ell^2)^(1/3) grows like M^(1/3), r_s like M.
+    - Inside the trapped region r_- < r < r_+ of the Hayward profile the outgoing characteristic speed
+      c + J(r) is negative: any outward-moving signal (including one reflected at R_core) moves inward.
+      This holds for the background mass alone; no 'horizon vise' step r_s(M) -> r_s(M + dM) is needed.
+    - A worldline held at fixed r inside r_+ has g_tt = -(c^2 - J^2) > 0, i.e. it is spacelike.
+      A static 'frozen surface' at R_core < r_+ is therefore not a possible physical object; a transition
+      at R_core can only be a spacelike (instantaneous) layer.
+    - The sub-critical case (r_s < R_core) has c + J(R_core) > 0: a reflected signal escapes.
     """
     G = 1.0
     c = 1.0
     ell = 1.0
-    # Choose rho_max so that at M_crit = 1.0, R_core(M_crit) = r_s(M_crit) = 2.0
-    M_crit = 1.0
-    r_s_crit = 2.0 * G * M_crit / (c**2)  # 2.0
-    rho_max = 3.0 * M_crit / (4.0 * np.pi * (r_s_crit**3))
+    rho_max = 3.0 * c**2 / (8.0 * np.pi * G * ell**2)
 
     def R_core_of_M(M_val):
         return float((3.0 * M_val / (4.0 * np.pi * rho_max)) ** (1.0 / 3.0))
@@ -330,49 +343,35 @@ def test_5_surface_freezing_and_horizon_vise():
     def r_s_of_M(M_val):
         return float(2.0 * G * M_val / (c**2))
 
-    # 1. Sub-critical star (M = 0.5 < M_crit): bounced wave (+c) at R_core has v_bounce > 0 (escapes!)
-    M_sub = 0.5
-    v_bounce_sub = c * (1.0 - np.sqrt(r_s_of_M(M_sub) / R_core_of_M(M_sub)))
+    M_vals = np.array([1.0, 8.0, 64.0])
+    scaling_R = float(np.polyfit(np.log(M_vals), np.log([R_core_of_M(m) for m in M_vals]), 1)[0])
+    identity_err = max(abs(R_core_of_M(m) - (r_s_of_M(m) * ell**2) ** (1.0 / 3.0)) for m in M_vals)
 
-    # 2. Critical core (M = 1.0) hit by an infalling wave of energy dH = dM * c^2 (dM = 0.3):
-    #    Before wave: r_s = R_core = 2.0 -> v_bounce = 0.0
-    #    With wave energy dM: r_s_new = 2.6 > R_core_old = 2.0 -> v_bounce < 0 (trapped on surface!)
-    dM = 0.3
-    R_old = R_core_of_M(M_crit)
-    r_s_new = r_s_of_M(M_crit + dM)
-    v_bounce_trapped = float(c * (1.0 - np.sqrt(r_s_new / R_old)))
+    M_sub = 0.3  # r_s = 0.6 < R_core
+    v_plus_sub = float(c * (1.0 - np.sqrt(r_s_of_M(M_sub) / R_core_of_M(M_sub))))
 
-    # 3. Step-by-step accretion of 5 wave packets onto the frozen core:
-    #    Verify that after each packet saturates the boundary layer at rho_max,
-    #    R_core grows as M^(1/3), r_s grows as M^1, and enclosed mass inside r <= R_core
-    #    is automatically M(r) = M * (r / R_core)^3 (our exact Part I Eq. 59!).
-    M_current = M_crit
-    for _ in range(5):
-        M_current += dM
-        R_current = R_core_of_M(M_current)
-        r_s_current = r_s_of_M(M_current)
-
-    # Check Part I Eq. 59 identity inside the newly grown frozen core at r = 0.5 * R_current:
-    r_test = 0.5 * R_current
-    M_enclosed_from_frozen_shells = (4.0 / 3.0) * np.pi * (r_test**3) * rho_max
-    metric_term_frozen = 2.0 * G * M_enclosed_from_frozen_shells / ((c**2) * r_test)
-    metric_term_part1_eq59 = (r_s_current / (R_current**3)) * (r_test**2)
-    eq59_match_err = float(abs(metric_term_frozen - metric_term_part1_eq59))
+    r_s = 20.0
+    roots = np.sort(np.real(np.roots([1.0, -r_s, 0.0, r_s * ell**2])))
+    r_minus, r_plus = roots[1], roots[2]
+    rr = np.linspace(r_minus, r_plus, 4002)[1:-1]
+    J = -c * np.sqrt(r_s * rr**2 / (rr**3 + r_s * ell**2))
+    max_v_plus = float(np.max(c + J))
+    min_gtt = float(np.min(J**2 - c**2))
 
     passed = (
-        v_bounce_sub > 0.0
-        and v_bounce_trapped < 0.0
-        and r_s_current > R_current
-        and eq59_match_err < 1e-15
+        abs(scaling_R - 1.0 / 3.0) < 1e-12
+        and identity_err < 1e-12
+        and v_plus_sub > 0.0
+        and max_v_plus < 0.0
+        and min_gtt > 0.0
     )
     return {
         "passed": bool(passed),
-        "v_bounce_subcritical_star_escapes": float(v_bounce_sub),
-        "v_bounce_with_wave_dM_trapped_negative": v_bounce_trapped,
-        "initial_R_core": R_old,
-        "final_R_core_after_5_waves": R_current,
-        "final_r_s_after_5_waves": r_s_current,
-        "part1_eq59_r2_core_identity_error": eq59_match_err,
+        "R_core_mass_scaling_exponent": scaling_R,
+        "R_core_identity_error": float(identity_err),
+        "subcritical_outgoing_speed_at_R_core": v_plus_sub,
+        "max_outgoing_speed_in_trapped_region": max_v_plus,
+        "min_gtt_static_worldline_in_trapped_region_spacelike_if_positive": min_gtt,
     }
 
 
@@ -383,15 +382,16 @@ def test_6_quantum_route_preserves_gr():
       1. Canonical Operator Quantization: [Phi_hat_i, Pi_hat_j] = i * hbar * delta_{ij}
          with symplectic/unitary Heisenberg evolution dO/dt = (1 / i*hbar) [O, H_hat].
          Verifies that the canonical commutation relations J_symp = [[0, I], [-I, 0]]
-         are preserved across 200 horizon-crossing steps (unitarity / information conservation).
-      2. Ehrenfest's Theorem (1927): Verifies that the quantum expectation trajectory
-         (<Phi_hat(t)>, <Pi_hat(t)>) is 100% identical (0.0 change) to the classical GR wave.
+         are preserved across 200 horizon-crossing steps (unitarity of the LINEAR evolution only).
+      2. Ehrenfest's Theorem (1927): for a linear system the quantum expectation trajectory equals
+         the classical one by construction (a tautology, kept for completeness).
       3. Quantum Branch Superposition (Feynman 1957 / Bose-Marletto-Vedral 2017 / Christodoulou-Rovelli 2019):
          For a superposition |Psi> = alpha |M_0, miss> + beta |M_0 + dM, hit>, verifies that:
            - The local speed operator c_local_hat = sqrt(K_hat * a_hat^-1) * sqrt(a_hat * K_hat^-1) = I
              equals 1.0 in EVERY quantum branch (Equivalence Principle preserved in superposition!),
            - Each branch preserves the exact 1915 GR 2.0 light-bending factor,
-           - The 'hit' branch traps the bounced wave at R_core (v_bounce < 0) even when |beta|^2 is small.
+           (The lattice is linear here, so this is guaranteed; it says nothing about the non-unitary
+            saturation step, which is not part of this benchmark.)
       4. Horizon Link Entanglement (Bombelli-Koul-Lee-Sorkin 1986 / Srednicki 1993):
          Computes the exact Gaussian quantum ground-state entanglement entropy across a boundary cut
          from the lattice spring couplings K_ij * (Phi_hat_i - Phi_hat_j)^2, showing it is finite and non-zero.
@@ -415,11 +415,11 @@ def test_6_quantum_route_preserves_gr():
         L_K[i, i] += 2.0 * K0 / (ell**2)
         L_K[i, ip] -= K0 / (ell**2)
         L_K[i, im] -= K0 / (ell**2)
-        M_mat[i, ip] = J[i] / (2.0 * ell)
-        M_mat[i, im] = -J[i] / (2.0 * ell)
+        M_mat[i, ip] = 0.5 * (J[i] + J[ip]) / (2.0 * ell)
+        M_mat[i, im] = -0.5 * (J[i] + J[im]) / (2.0 * ell)
 
     A_inv = np.diag(1.0 / a)
-    F_mat = np.block([[M_mat, A_inv], [-L_K, -M_mat.T]])
+    F_mat = np.block([[-M_mat, A_inv], [-L_K, M_mat.T]])
     dt = 0.02
     I_2N = np.eye(2 * N)
     # Heisenberg operator propagator S: z_hat(t + dt) = S @ z_hat(t)
@@ -525,14 +525,17 @@ def test_7_observational_and_buchdahl_stress_tests():
            -> dt = 1.85e-19 s (19 orders of magnitude safe!) and 4th-order O((ell_P / lambda)^4)
            ~ 2.67e-74 directional anisotropy.
       2. Buchdahl's Theorem (1959), Strong Energy Condition Violation, & Smooth Hayward p_theta:
-         - In our Painleve-Gullstrand River metric (-g_tt * g_rr = 1), the de Sitter core has
-           constant radial tension p_r = -rho_max * c^2, which violates the Strong Energy Condition
-           (rho_max*c^2 + 3*p_r = -2*rho_max*c^2 < 0) and bypasses both Buchdahl's (9/8)*r_s limit
-           and Penrose's (1965) singularity theorem.
+         - In the Painleve-Gullstrand metric (-g_tt * g_rr = 1), the de Sitter core has constant
+           radial tension p_r = -rho_max * c^2, which violates the Strong Energy Condition
+           (rho_max*c^2 + 3*p_r = -2*rho_max*c^2 < 0). This is NOT what avoids Penrose (1965):
+           Penrose's theorem uses the Null Energy Condition, which the Hayward core satisfies;
+           Hayward-type metrics avoid it through their inner (Cauchy) horizon. Buchdahl's bound
+           applies to static isotropic stars with R > r_s and does not constrain a core inside r_+.
          - Furthermore, for the smooth Hayward profile 2GM(r)/(c^2 r) = r_s r^2 / (r^3 + R_core^3),
            both radial pressure p_r(r) and tangential pressure p_theta(r) = p_r + (r/2)*dp_r/dr
            are smooth and strictly finite everywhere without a Dirac delta jump!
-      3. EHT Photon Sphere (r_ph = 1.5 * r_s) & Remnant Shut-Off (r_s(M_crit) = R_core(M_crit)).
+      3. Photon sphere of the Hayward metric (root of r f'(r) = 2 f(r)) vs 1.5 r_s, and the
+         remnant thresholds of the sharp (r_s = R_core) and smooth Hayward (r_s = 3 sqrt(3)/2 ell) cores.
     """
     # 1. Fermi-LAT GRB 090510 check (using packet GROUP VELOCITY v_g = d(omega)/dk)
     ell_P = 1.616255e-35       # Planck length (m)
@@ -574,9 +577,22 @@ def test_7_observational_and_buchdahl_stress_tests():
         and abs(p_theta_at_R_core - 0.125) < 1e-15
     )
 
-    # 3. EHT Photon Ring (r_ph = 1.5 * r_s) and Shadow Radius b = (3*sqrt(3)/2)*r_s
-    r_ph = 1.5 * r_s
-    eht_photon_sphere_err = 0.0 if (r_ph > R_core) else 1.0
+    # 3. Photon sphere of the Hayward metric f = 1 - r_s r^2/(r^3 + R_core^3): solve r f'(r) - 2 f(r) = 0
+    def _f(rv):
+        return 1.0 - r_s * rv**2 / (rv**3 + R_core**3)
+
+    def _g(rv, eps=1e-6):
+        return rv * (_f(rv + eps) - _f(rv - eps)) / (2.0 * eps) - 2.0 * _f(rv)
+
+    lo_ph, hi_ph = 1.2 * r_s, 1.8 * r_s
+    for _ in range(80):
+        mid_ph = 0.5 * (lo_ph + hi_ph)
+        if _g(lo_ph) * _g(mid_ph) <= 0.0:
+            hi_ph = mid_ph
+        else:
+            lo_ph = mid_ph
+    r_ph = 0.5 * (lo_ph + hi_ph)
+    eht_photon_sphere_err = float(abs(r_ph - 1.5 * r_s) / (1.5 * r_s))
 
     # 4. End of Hawking Evaporation: Automatic Remnant Shut-Off at M_crit (where r_s(M_crit) = R_core(M_crit))
     G_val = 1.0
@@ -609,7 +625,7 @@ def test_7_observational_and_buchdahl_stress_tests():
         and max_buchdahl_free_err < 1e-14
         and sec_combination_over_rho_c2 < 0.0
         and smooth_hayward_pressures_finite
-        and eht_photon_sphere_err == 0.0
+        and eht_photon_sphere_err < 1e-2
         and peak_J_above_crit > 1.0
         and dr_sup_above > 0.0
         and abs(peak_J_at_remnant - 1.0) < 1e-15
@@ -626,7 +642,8 @@ def test_7_observational_and_buchdahl_stress_tests():
         "river_core_constant_tension_error": max_buchdahl_free_err,
         "strong_energy_condition_ratio_negative": sec_combination_over_rho_c2,
         "smooth_hayward_p_r_and_p_theta_finite_everywhere": smooth_hayward_pressures_finite,
-        "eht_photon_sphere_GR_error": eht_photon_sphere_err,
+        "photon_sphere_radius_over_rs_hayward": float(r_ph / r_s),
+        "photon_sphere_relative_shift_from_1p5_rs": eht_photon_sphere_err,
         "supersonic_thickness_at_2Mcrit": dr_sup_above,
         "supersonic_thickness_at_remnant_Mcrit_sharp": dr_sup_remnant,
         "peak_J_over_c_at_remnant_Mcrit_sharp": peak_J_at_remnant,
@@ -722,9 +739,11 @@ def test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical():
       for an ASYMMETRIC, OFF-CENTER (non-spherical) 3D wave packet:
         d/dt sum_{i in Omega} E_i^local == - sum_{i in Omega, j not in Omega} F_{ij}
       where the antisymmetric link energy flux is:
-        F_{ij} = 0.5 * K_{ij} * (Phi_i - Phi_j) * (Pi_i/a_i + Pi_j/a_j) + M_{ij} * (Pi_i/a_i) * (Pi_j/a_j) == -F_{ji}
-    - Proves that local hyperbolic radial momentum-flux updates dM/dt = -oint S . dA are
-      exact to machine precision (< 1e-14) on the 27-point lattice without assuming spherical symmetry.
+        F_ij = 0.5 K_ij (Phi_i - Phi_j)(dPhi_i + dPhi_j)
+               + 0.5 D_ij (dPhi_i Pi_j + Pi_i dPhi_j - Phi_i dPi_j - dPi_i Phi_j) == -F_ji
+      (Killing-energy flux of the PG lattice Hamiltonian, D_ij skew).
+    - This is an exact identity of any lattice Hamiltonian with symmetric K and skew D; it is a check
+      of the implementation, not a model of non-spherical gravity.
     """
     n_grid = 13
     ell = 1.0
@@ -765,53 +784,83 @@ def test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical():
     pi = (0.9 - 0.5 * Y + 0.2 * X * Z) * np.exp(-(dist_off**2) / 2.8)
     u = pi / a_grid
 
-    # Compute dphi/dt and dpi/dt under the co-moving equations
-    dphi = u
-    lap = np.zeros_like(phi)
-    m_u = np.zeros_like(phi)
+    # Compute dphi/dt and dpi/dt under the true Painleve-Gullstrand Hamiltonian equations:
+    #   dphi/dt = u - D_J phi,   dpi/dt = -L_K phi - D_J pi
+    lap_phi = np.zeros_like(phi)
+    d_phi_adv = np.zeros_like(phi)
+    d_pi_adv = np.zeros_like(pi)
     for dx, dy, dz, w in offsets:
         phi_nb = np.roll(phi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
-        u_nb = np.roll(u, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        pi_nb = np.roll(pi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         Jx_nb = np.roll(Jx, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         Jy_nb = np.roll(Jy, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         Jz_nb = np.roll(Jz, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
 
-        lap += w * (phi - phi_nb)
+        lap_phi += w * (phi - phi_nb)
         J_dot_d = 0.5 * ((Jx + Jx_nb) * dx + (Jy + Jy_nb) * dy + (Jz + Jz_nb) * dz)
-        m_u += 0.25 * w * J_dot_d * u_nb
+        D_ij = 0.25 * w * J_dot_d
+        d_phi_adv += D_ij * phi_nb
+        d_pi_adv += D_ij * pi_nb
 
-    dpi = -lap - m_u
+    dphi = u - d_phi_adv
+    dpi = -lap_phi - d_pi_adv
 
-    # Exact rate of change dE_i^local / dt in every cell i
-    dE_local_dt = u * dpi
+    # Exact rate of change dE_i^Killing / dt of the cell Killing energy:
+    #   E_i^Killing = 0.5 * u_i * pi_i - 0.5 * pi_i * (D_J phi)_i + 0.5 * phi_i * (D_J pi)_i
+    #                 + 0.25 * sum_j K_ij (phi_i - phi_j)^2
+    d_dphi_adv = np.zeros_like(phi)
+    d_dpi_adv = np.zeros_like(pi)
+    for dx, dy, dz, w in offsets:
+        dphi_nb = np.roll(dphi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        dpi_nb = np.roll(dpi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jx_nb = np.roll(Jx, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jy_nb = np.roll(Jy, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jz_nb = np.roll(Jz, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        J_dot_d = 0.5 * ((Jx + Jx_nb) * dx + (Jy + Jy_nb) * dy + (Jz + Jz_nb) * dz)
+        D_ij = 0.25 * w * J_dot_d
+        d_dphi_adv += D_ij * dphi_nb
+        d_dpi_adv += D_ij * dpi_nb
+
+    dE_killing_dt = (
+        u * dpi
+        - 0.5 * (dpi * d_phi_adv + pi * d_dphi_adv)
+        + 0.5 * (dphi * d_pi_adv + phi * d_dpi_adv)
+    )
     for dx, dy, dz, w in offsets:
         phi_nb = np.roll(phi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         dphi_nb = np.roll(dphi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
-        dE_local_dt += 0.5 * w * (phi - phi_nb) * (dphi - dphi_nb)
+        dE_killing_dt += 0.5 * w * (phi - phi_nb) * (dphi - dphi_nb)
 
     # Test Gauss-Poynting surface flux theorem across spherical control volume R <= 3.2 * ell
     omega_mask = R <= 3.2
-    volume_rate_of_change = float(np.sum(dE_local_dt[omega_mask]))
+    volume_rate_of_change = float(np.sum(dE_killing_dt[omega_mask]))
 
-    # Surface flux sum_{i in Omega, j not in Omega} F_{ij}
+    # Exact antisymmetric link Killing energy flux F_{ij}^Killing = -F_{ji}^Killing:
+    #   F_{ij}^Killing = 0.5 * K_{ij} * (phi_i - phi_j) * (dphi_i + dphi_j)
+    #                    + 0.5 * D_{ij} * (dphi_i * pi_j + pi_i * dphi_j - phi_i * dpi_j - dpi_i * phi_j)
     boundary_flux_out = 0.0
     max_link_antisymmetry_err = 0.0
     for dx, dy, dz, w in offsets:
         phi_nb = np.roll(phi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
-        u_nb = np.roll(u, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        pi_nb = np.roll(pi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        dphi_nb = np.roll(dphi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        dpi_nb = np.roll(dpi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         Jx_nb = np.roll(Jx, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         Jy_nb = np.roll(Jy, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         Jz_nb = np.roll(Jz, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
         omega_nb = np.roll(omega_mask, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
 
         J_dot_d = 0.5 * ((Jx + Jx_nb) * dx + (Jy + Jy_nb) * dy + (Jz + Jz_nb) * dz)
-        M_ij = 0.25 * w * J_dot_d
-        F_ij = 0.5 * w * (phi - phi_nb) * (u + u_nb) + M_ij * u * u_nb
+        D_ij = 0.25 * w * J_dot_d
+        F_ij = (
+            0.5 * w * (phi - phi_nb) * (dphi + dphi_nb)
+            + 0.5 * D_ij * (dphi * pi_nb + pi * dphi_nb - phi * dpi_nb - dpi * phi_nb)
+        )
 
-        # Check F_{ij} == -F_{ji} by rolling reverse link (-dx, -dy, -dz)
+        # Check F_{ij} == -F_{ji}
         F_ji_rolled = (
-            0.5 * w * (phi_nb - phi) * (u_nb + u)
-            - M_ij * u_nb * u
+            0.5 * w * (phi_nb - phi) * (dphi_nb + dphi)
+            - 0.5 * D_ij * (dphi_nb * pi + pi_nb * dphi - phi_nb * dpi - dpi_nb * phi)
         )
         max_link_antisymmetry_err = max(
             max_link_antisymmetry_err, float(np.max(np.abs(F_ij + F_ji_rolled)))
@@ -839,12 +888,14 @@ def test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere():
       black hole flow (Kerr-Doran river + azimuthal whirlpool):
         J(x,y,z) = J_r(r) r_hat + J_phi(r, theta) phi_hat
       with J_r(r) = -c * sqrt(r_s r^2 / (r^3 + r_s ell^2 + a_spin^2 r))
-      and  J_phi(r,theta) = c * (a_spin r_s r sin(theta)) / (r^3 + r_s ell^2 + a_spin^2 r).
+      and  |J_phi| = |J_r| a_spin r sin(theta) / (r^2 + ell^2).
+    - CAVEAT: this is an ad-hoc rotating flow on flat spatial slices. It is NOT the Kerr metric (Kerr does
+      not admit a flat-slice 'river' form; Doran slices are not flat). Results test the numerics only.
     - Verifies:
       1. Existence of an equatorial ergosphere where |J| = sqrt(J_r^2 + J_phi^2) > c outside
          the radial horizon (|J_r| < c), while the origin remains regular (|J(0)| = 0).
       2. Exact skew-symmetry M^T = -M (< 1e-15) of the 3D 27-point operator with spin.
-      3. Machine-precision symplectic Cayley energy conservation dH_wave/dt = 0 (< 1e-14)
+      3. Round-off-level Cayley conservation of the Killing energy (< 1e-13)
          across 50 spinning ergosphere steps and non-zero Lense-Thirring frame-dragging shift.
     """
     n_grid = 9
@@ -918,10 +969,10 @@ def test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere():
 
     skew_err = float(np.max(np.abs(M_spin + M_spin.T)))
 
-    # Symplectic Cayley evolution over 50 steps
+    # Symplectic Cayley evolution over 50 steps with black-hole PG generator F = [[-M_spin, I], [-L_K, M_spin.T]]
     F = np.block([
-        [M_spin, np.eye(n_cells)],
-        [-L_K, -M_spin.T],
+        [-M_spin, np.eye(n_cells)],
+        [-L_K, M_spin.T],
     ])
     dt = 0.04
     I_2n = np.eye(2 * n_cells)
@@ -935,7 +986,7 @@ def test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere():
     def calc_H(z_vec):
         p = z_vec[:n_cells]
         q = z_vec[n_cells:]
-        return float(0.5 * (q @ q) + (q @ (M_spin @ p)) + 0.5 * (p @ (L_K @ p)))
+        return float(0.5 * (q @ q) - (q @ (M_spin @ p)) + 0.5 * (p @ (L_K @ p)))
 
     H0 = calc_H(z)
     max_H_drift = 0.0
@@ -965,6 +1016,82 @@ def test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere():
     }
 
 
+def build_claims_audit(results, modules):
+    """Claim-by-claim verdicts derived from the computed results (not hard-coded PASS flags)."""
+    m4 = modules["module_4_horizon_and_freezing"]
+    t9 = m4["test_09_hayward_river_profile_horizons_and_core_scale"]
+    t12 = m4["test_12_trapped_region_outgoing_characteristics"]
+    t13 = m4["test_13_inner_horizon_blueshift_and_saturation_cap"]
+    m8 = modules["module_8_theory_extensions_and_stress_limits"]
+    t25 = m8["test_25_postulated_completions_comparison_and_entropy_bound"]
+    m9 = modules["module_9_dynamical_collapse"]
+    t27 = m9["test_27_how_can_the_cap_be_enforced_homogeneous"]
+    t28 = m9["test_28_local_cell_energy_cap_cannot_prevent_singularity"]
+    t29 = m9["test_29_curvature_cap_bounce_and_shell_crossing"]
+    b3 = results["test_3_eighteen_point_sphere_isotropy"]
+
+    def verdict(ok, yes="SUPPORTED", no="NOT SUPPORTED"):
+        return yes if ok else no
+
+    return [
+        {"claim": "Matches GR outside the horizon (1PN light bending, photon sphere, l=2 QNMs)",
+         "verdict": verdict(results["test_1_equivalence_principle_and_gr_bending"]["passed"]
+                            and modules["module_7_strong_field_and_observables"]["test_20_regge_wheeler_barrier_and_quasinormal_mode_ringdown"]["passed"]),
+         "note": "Expected by construction: the Schwarzschild/Hayward metric is an input and corrections are O(ell^2/r^2)."},
+        {"claim": "Energy-conserving, symplectic black-hole (not white-hole) wave evolution on a fixed background",
+         "verdict": verdict(m4["test_10_cayley_symplectic_and_skew_symmetric_conservation"]["passed"]),
+         "note": "Packets inside r_+ are swept inward; Killing energy conserved to round-off."},
+        {"claim": "Tree-level lattice dispersion passes the Fermi-LAT GRB 090510 bound",
+         "verdict": verdict(results["test_7_observational_and_buchdahl_stress_tests"]["passed"]),
+         "note": "Tree level only; loop-induced O(1) Lorentz violation (Collins et al. 2004) is an open problem."},
+        {"claim": "27-point stencil removes the sixth-order body-diagonal error",
+         "verdict": verdict(b3["stencil_27_sixth_order_directional_spread"] < b3["stencil_18_sixth_order_directional_spread"]),
+         "note": "Only the kx^2 ky^2 kz^2 monomial vanishes; directional spread is 0.667 (27-pt) vs 0.500 (18-pt)."},
+        {"claim": "Bounded curvature, K(0) = 24/ell^4, core scale R_core = (r_s ell^2)^(1/3)",
+         "verdict": "SUPPORTED",
+         "note": "Properties of the Hayward metric with ell = ell_P; R_core also equals the limiting-curvature radius up to 2^(-1/6)."},
+        {"claim": "The inner Cauchy horizon r_- is excised",
+         "verdict": verdict(not t9["inner_horizon_still_present_in_geometry"]),
+         "note": "r_- < R_core, but r_- is still part of the Hayward geometry; nothing removes it."},
+        {"claim": "Bounced waves are pinned on a static frozen surface at R_core",
+         "verdict": verdict(t12["min_g_tt_of_static_worldline_in_trapped_region_positive_means_spacelike"] <= 0.0),
+         "note": "Inside r_+ a fixed-r worldline is spacelike; everything moves inward anyway (c + J < 0)."},
+        {"claim": "Local saturation resolves inner-horizon mass inflation",
+         "verdict": verdict(not t13["finding_reservoir_exceeds_infalling_energy"] and t13["finding_reservoir_converged_in_h"]),
+         "note": ("The cap bounds the field's energy density by construction, but moves the blueshifted excess into "
+                  f"reservoir mass of {t13['capped_reservoir_deposit_over_E0']} x E0 for h = {t13['lattice_spacings_h']} "
+                  "(growing as h -> 0). Settling mass inflation requires backreaction, which is not modelled.")},
+        {"claim": "Singularity theorems avoided via Strong Energy Condition violation",
+         "verdict": "NOT SUPPORTED",
+         "note": "Penrose (1965) uses the NEC, which the Hayward core satisfies; it is avoided via the inner horizon (or a bounce / topology change)."},
+        {"claim": "Cold T_H = 0 remnant at r_+ = sqrt(3) ell",
+         "verdict": "SUPPORTED (conditional)",
+         "note": "Hayward 2006 result; requires the inner horizon to exist, which contradicts the excision claim."},
+        {"claim": "Quantum unitarity / information preserved",
+         "verdict": "NOT SUPPORTED",
+         "note": (f"Linear evolution is unitary, but saturation damping is not; core entropy bound falls short of S_BH by "
+                  f"{t25['bekenstein_entropy_deficit_ratio_S_BH_over_S_core']:.3g} for 1 M_sun.")},
+        {"claim": "Spin-2 (gravitational-wave) sector",
+         "verdict": "NOT SUPPORTED",
+         "note": "Test 23 is a two-component scalar toy with an ad-hoc coupling, not linearized GR."},
+        {"claim": "No post-merger echoes",
+         "verdict": "SUPPORTED (generic)",
+         "note": "True for any object whose surface lies inside r_+; not a distinguishing prediction."},
+        {"claim": "A local cell-energy cap (the rule as originally stated) prevents the singularity",
+         "verdict": verdict(not (t27["finding_pressure_cannot_enforce_cap"] or t28["finding_local_energy_cap_insufficient"])),
+         "note": ("Dynamical collapse (Module 9): the cap is reached only inside a trapped region; causal pressure cannot "
+                  "enforce it; and empty cells (energy density 0) still reach K -> infinity by Schwarzschild free fall.")},
+        {"claim": "A curvature (mean-density) cap produces a regular bounce at R_core = (r_s ell^2)^(1/3)",
+         "verdict": verdict(t29["passed"], yes="SUPPORTED (with LQC-type dynamics)"),
+         "note": ("Every shell, empty or not, bounces at exactly R_core(m); shells then cross near the bounce, so a shock "
+                  "treatment is needed to follow what comes out (V2-type).")},
+        {"claim": "The lattice saturation rule selects V1 (transition), V2 (bounce) or V3 (inner horizon)",
+         "verdict": "PARTLY ANSWERED",
+         "note": ("The rule must act on curvature, not cell energy. Repulsive enforcement gives V2, conversion to vacuum energy "
+                  "gives V1 (homogeneous case); the postulate itself does not choose. No tested mechanism produces V3.")},
+    ]
+
+
 def main():
     from tests.module_1_exterior_gr import run_module_1
     from tests.module_2_core_regularization import run_module_2
@@ -973,13 +1100,15 @@ def main():
     from tests.module_5_nonspherical_and_spin import run_module_5
     from tests.module_6_quantum_and_thermodynamics import run_module_6
     from tests.module_7_strong_field_and_observables import run_module_7
+    from tests.module_8_theory_extensions_and_stress_limits import run_module_8
+    from tests.module_9_dynamical_collapse import run_module_9
 
     results = {
         "test_1_equivalence_principle_and_gr_bending": test_1_equivalence_principle_and_gr_bending(),
         "test_2_spherical_core_and_three_zones": test_2_spherical_core_and_three_zones(),
         "test_3_eighteen_point_sphere_isotropy": test_3_eighteen_point_sphere_isotropy(),
         "test_4_horizon_crossing_and_energy_conservation": test_4_horizon_crossing_and_energy_conservation(),
-        "test_5_surface_freezing_and_horizon_vise": test_5_surface_freezing_and_horizon_vise(),
+        "test_5_trapped_region_and_core_scale": test_5_trapped_region_and_core_scale(),
         "test_6_quantum_route_preserves_gr": test_6_quantum_route_preserves_gr(),
         "test_7_observational_and_buchdahl_stress_tests": test_7_observational_and_buchdahl_stress_tests(),
         "test_8_surface_gravity_hawking_thermodynamics_and_zero_temp_remnant": test_8_surface_gravity_hawking_thermodynamics_and_zero_temp_remnant(),
@@ -996,7 +1125,10 @@ def main():
         "module_5_nonspherical_and_spin": run_module_5(),
         "module_6_quantum_and_thermodynamics": run_module_6(),
         "module_7_strong_field_and_observables": run_module_7(),
+        "module_8_theory_extensions_and_stress_limits": run_module_8(),
+        "module_9_dynamical_collapse": run_module_9(),
     }
+    n_tests = sum(len([k for k in m if k.startswith("test_")]) for m in modules.values())
     modules_passed = all(
         modules[f"module_{k}_{name}"][f"module_{k}_passed"]
         for k, name in [
@@ -1007,12 +1139,17 @@ def main():
             (5, "nonspherical_and_spin"),
             (6, "quantum_and_thermodynamics"),
             (7, "strong_field_and_observables"),
+            (8, "theory_extensions_and_stress_limits"),
+            (9, "dynamical_collapse"),
         ]
     )
     all_passed = bool(core_passed and modules_passed)
-    results["modular_21_test_suite"] = modules
-    results["ALL_7_MODULES_21_TESTS_PASSED"] = bool(modules_passed)
-    results["ALL_CORE_GR_TESTS_PASSED"] = bool(all_passed)
+    audit = build_claims_audit(results, modules)
+    results["modular_test_suite"] = modules
+    results["number_of_module_tests"] = n_tests
+    results["ALL_MODULE_NUMERICAL_CHECKS_PASSED"] = bool(modules_passed)
+    results["ALL_NUMERICAL_CHECKS_PASSED"] = bool(all_passed)
+    results["CLAIMS_AUDIT"] = audit
 
     out_path = os.path.join(
         os.path.dirname(os.path.abspath(__file__)),
@@ -1021,9 +1158,12 @@ def main():
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
 
-    print(json.dumps(results, indent=2))
-    print(f"\nALL 7 MODULES (21 TESTS) PASSED: {modules_passed}")
-    print(f"ALL CORE FINITE-BAR GR TESTS PASSED: {all_passed}")
+    print(json.dumps({k: v for k, v in results.items() if k != "CLAIMS_AUDIT"}, indent=2))
+    print(f"\nALL 9 MODULES ({n_tests} TESTS) NUMERICAL CHECKS PASSED: {modules_passed}")
+    print(f"ALL 10 CORE BENCHMARK NUMERICAL CHECKS PASSED: {core_passed}")
+    print("\nCLAIMS AUDIT (what the code does and does not support):")
+    for item in audit:
+        print(f"  [{item['verdict']}] {item['claim']}\n      -> {item['note']}")
 
 
 if __name__ == "__main__":

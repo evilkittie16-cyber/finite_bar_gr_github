@@ -5,7 +5,7 @@ Tests:
   Test 18: Painleve-Gullstrand Raindrop Geodesic Proper-Time & Bounded Tidal Reversal Test
   Test 19: Israel-Darmois Phase-Boundary Junction Continuity & Tolman Virial Integral Test
   Test 20: Regge-Wheeler Quadrupolar Barrier & WKB Quasinormal Mode (QNM) Ringdown Match
-  Test 21: Time-Domain Wave Echoes (Outside-Shell Gravastar vs. Inside-Horizon Core) &
+  Test 21: Time-Domain Wave Echoes (Outside-Horizon Reflector vs. Inside-Horizon Reflector) &
            3D Ergosphere Negative-Killing-Energy Penrose/Zel'dovich Mode Test
 """
 
@@ -18,8 +18,8 @@ def test_18_raindrop_geodesic_proper_time_and_tidal_reversal():
     Test 18:
     - Integrates the radially infalling Painleve-Gullstrand 'raindrop' geodesic
         dr / dtau = J(r) = -c * sqrt(r_s r^2 / (r^3 + R_core^3)),   dt_PG / dtau = 1
-      from r_init = 5 r_s across the outer event horizon r_+ down to the frozen core
-      boundary r = R_core(M) = (r_s ell^2)^(1/3).
+      from r_init = 5 r_s across the outer event horizon r_+ down to the core scale
+      r = R_core(M) = (r_s ell^2)^(1/3).
     - Verifies:
       1. Exact 4-velocity normalization g_{uv} u^u u^v = -c^2 everywhere (err = 0.0),
       2. Finite proper time tau_impact < inf to cross r_+ and reach R_core (whereas
@@ -28,7 +28,9 @@ def test_18_raindrop_geodesic_proper_time_and_tidal_reversal():
          A_tidal / c^2 = -0.5 f''(r)) flips smoothly from exterior stretching (+r_s/r^3 > 0)
          to core-boundary tidal compression (< 0) at the exact analytical inflection radius
          r_tidal = ((7 + 3*sqrt(5))/2)^(1/3) * R_core ~ 1.89955 * R_core where f''(r) = 0,
-         and stays strictly bounded by |0.5 f''(0)| = 1 / ell^2 at r = 0.
+         and returns to radial STRETCHING A_tidal/c^2 = +1/ell^2 at r = 0 (repulsive de Sitter core).
+         The tidal terms are bounded, but at Planckian values ~ c^2/ell_P^2 ~ 1e86 s^-2 for ell = ell_P,
+         so 'bounded' does not mean survivable.
     """
     c = 1.0
     ell = 1.0
@@ -63,7 +65,7 @@ def test_18_raindrop_geodesic_proper_time_and_tidal_reversal():
     #   - For r >> R_core: A_tidal / c^2 -> +r_s / r^3 > 0 (radial stretching),
     #   - At r_tidal_outer = ((7 + 3*sqrt(5))/2)^(1/3) R_core ~ 1.89955 R_core: A_tidal = 0,
     #   - At r = R_core: A_tidal / c^2 = -5 r_s / (8 R_core^3) = -5 / (8 ell^2) < 0 (tidal compression!),
-    #   - At r = 0: |A_tidal(0)| / c^2 = 1 / ell^2 < inf (bounded finite de Sitter curvature!).
+    #   - At r = 0: A_tidal(0) / c^2 = +1 / ell^2 (stretching, i.e. repulsive de Sitter core; bounded but Planckian).
     def radial_tidal_accel(r):
         D = (r**3) + (R_core**3)
         return float(r_s * ((r**6) - 7.0 * (R_core**3) * (r**3) + (R_core**6)) / (D**3))
@@ -72,7 +74,8 @@ def test_18_raindrop_geodesic_proper_time_and_tidal_reversal():
     tidal_at_inflection = abs(radial_tidal_accel(r_tidal_zero))
     tidal_at_Rcore_compressive = radial_tidal_accel(R_core)
     expected_tidal_Rcore = float(-5.0 / (8.0 * (ell**2)))
-    tidal_mag_at_origin = abs(radial_tidal_accel(0.0))
+    tidal_signed_at_origin = radial_tidal_accel(0.0)
+    tidal_mag_at_origin = abs(tidal_signed_at_origin)
     expected_tidal_mag_origin = float(1.0 / (ell**2))
     tidal_far_exterior = radial_tidal_accel(10.0 * r_s)
 
@@ -83,7 +86,7 @@ def test_18_raindrop_geodesic_proper_time_and_tidal_reversal():
         and abs(proper_time_to_core - proper_time_schwarz_approx) / proper_time_schwarz_approx < 2e-3
         and tidal_at_inflection < 1e-15
         and abs(tidal_at_Rcore_compressive - expected_tidal_Rcore) < 1e-15
-        and abs(tidal_mag_at_origin - expected_tidal_mag_origin) < 1e-15
+        and abs(tidal_signed_at_origin - expected_tidal_mag_origin) < 1e-15
         and tidal_far_exterior > 0.0
     )
     return {
@@ -94,7 +97,7 @@ def test_18_raindrop_geodesic_proper_time_and_tidal_reversal():
         "tidal_zero_crossing_radius_over_Rcore": float(r_tidal_zero / R_core),
         "tidal_acceleration_at_zero_crossing": tidal_at_inflection,
         "tidal_compression_at_Rcore_times_ell2": tidal_at_Rcore_compressive,
-        "tidal_magnitude_at_origin_times_ell2": tidal_mag_at_origin,
+        "tidal_signed_at_origin_times_ell2_positive_is_stretching": tidal_signed_at_origin,
         "tidal_acceleration_far_exterior_positive": tidal_far_exterior,
     }
 
@@ -106,7 +109,10 @@ def test_19_israel_darmois_junction_and_tolman_virial_integral():
       r = R_core(M) = (r_s ell^2)^(1/3) between the saturated de Sitter core
       (f_in = 1 - r^2 / ell^2) and the exterior Schwarzschild metric (f_out = 1 - r_s / r):
       1. Exact continuity of the induced metric [f]^+_- = 0 and river speed [J]^+_- = 0,
-         confirming zero thin-shell mass layer (sigma_shell = 0).
+         so the thin layer at R_core carries no surface energy density; the jump in f' (point 2)
+         does require a surface stress. Because f(R_core) < 0, the surface r = R_core lies inside
+         the horizon and is SPACELIKE: this is a junction at an instant (a spacelike transition
+         layer, as in Frolov-Markov-Mukhanov), not a static wall.
       2. Exact identity between the sharp derivative jump [f'(R_core)]^+_- = 3 r_s / R_core^2
          and 8*pi*G*rho_max*R_core / c^2.
       3. In the smoothed Hayward profile f(r) = 1 - r_s r^2 / (r^3 + R_core^3), confirms C^2
@@ -177,6 +183,10 @@ def test_20_regge_wheeler_barrier_and_quasinormal_mode_ringdown():
       tortoise second derivative d^2 V / dr_*^2, and Schutz-Will WKB fundamental
       (l = 2, n = 0) quasinormal mode ringdown frequency (omega_R, omega_I),
       confirming fractional agreement < 1e-8 for r_s / ell = 10^4.
+    - Caveat: the potential used is the Schwarzschild-form l = 2 expression with m(r) inserted;
+      the exact axial potential of a matter-supported regular metric has extra m'(r) terms. All such
+      corrections are O((ell/r_s)^2), so agreement with GR at r_s/ell = 1e4 is expected by construction
+      (this is a consistency check, not an independent prediction).
     """
     r_s = 2.0
     ell = 1e-4 * r_s
@@ -240,23 +250,25 @@ def test_20_regge_wheeler_barrier_and_quasinormal_mode_ringdown():
 def test_21_wave_echo_absence_and_ergosphere_penrose_superradiance():
     """
     Test 21:
-    - Part A (Time-Domain Echo Test: Outside-Horizon Shell vs. Inside-Horizon Frozen Core):
+    - Part A (Time-Domain Echo Test: Outside-Horizon Reflector vs. Inside-Horizon Reflector):
       Evolves a 1D radial wave packet in the Painleve-Gullstrand river metric under two
       reflecting core boundary placements:
         * Case 1 (Outside-Horizon Gravastar Shell at R_shell = 1.15 * r_s > r_s):
           Because the surface sits in the subsonic exterior (|J| < c), a reflected wave
           propagates outward (v_+ = c - |J| > 0) and produces a strong late-time echo
           at an exterior observer r_obs = 2.0 * r_s.
-        * Case 2 (Inside-Horizon Finite-Bar Frozen Core at R_core = 0.65 * r_s < r_s):
-          Because the frozen core sits inside the supersonic river (|J| > c), the outward
-          characteristic speed v_+ = c - |J| < 0 is strictly negative throughout R_core <= r < r_s.
-          Zero reflected wave energy can cross back outside r = r_s, giving 0.0 echo outside!
+        * Case 2 (reflector placed inside the horizon at 0.65 * r_s < r_s):
+          inside the supersonic river (|J| > c) the outward characteristic speed v_+ = c - |J| < 0,
+          so nothing reflected there can cross back outside r = r_s: the echo is 0.0.
+          This is generic to ANY black hole with a horizon (it is what a horizon is); it does not
+          distinguish this model from GR or from other regular-black-hole models.
     - Part B (3D Spinning Kerr-Doran Ergosphere Negative Killing Energy / Penrose Mode):
       Constructs a counter-rotating wave mode in the supersonic spinning flow (|J| > c)
       on the 3D 27-point lattice with Pi = -M_spin Phi, confirming that its local co-moving
       energy E_comoving = 0.5 ||Pi||^2 + 0.5 Phi^T L_K Phi > 0 is strictly positive while
       its conserved lab-frame Killing energy H_Killing = 0.5 Phi^T L_K Phi - 0.5 ||M_spin Phi||^2 < 0
-      is strictly negative and conserved to machine precision under Cayley evolution.
+      is strictly negative and conserved to round-off under Cayley evolution. (The spinning flow is
+      the ad-hoc profile of Benchmark 10, not the Kerr metric.)
     """
     # Part A: 1D characteristic river wave comparison for echoes
     r_s = 2.0
@@ -280,18 +292,24 @@ def test_21_wave_echo_absence_and_ergosphere_penrose_superradiance():
         late_echo_max = 0.0
 
         for step in range(n_steps):
+            # Ingoing wave (v_minus < 0 everywhere): standard upwind forward difference
             u_in_next = u_in.copy()
             u_in_next[:-1] = u_in[:-1] - (dt / dr) * v_minus[:-1] * (u_in[1:] - u_in[:-1])
             u_in_next[-1] = 0.0
 
+            # Outgoing wave: genuine upwind advection PDE du_out/dt + v_plus(r) du_out/dr = 0
+            # across the entire grid with NO artificial zeroing clamp inside the horizon!
             u_out_next = u_out.copy()
             u_out_next[0] = u_in[0]
-            pos = v_plus[1:] > 0.0
-            u_out_next[1:] = np.where(
-                pos,
-                u_out[1:] - (dt / dr) * v_plus[1:] * (u_out[1:] - u_out[:-1]),
-                0.0,
-            )
+            du_back = (u_out[1:-1] - u_out[:-2]) / dr
+            du_fwd = (u_out[2:] - u_out[1:-1]) / dr
+            du_dr = np.where(v_plus[1:-1] >= 0.0, du_back, du_fwd)
+            u_out_next[1:-1] = u_out[1:-1] - dt * v_plus[1:-1] * du_dr
+            if v_plus[-1] >= 0.0:
+                u_out_next[-1] = u_out[-1] - (dt / dr) * v_plus[-1] * (u_out[-1] - u_out[-2])
+            else:
+                u_out_next[-1] = 0.0
+
             u_in, u_out = u_in_next, u_out_next
             if step * dt > 1.5 * r_s:
                 late_echo_max = max(late_echo_max, float(abs(u_out[obs_idx])))
@@ -337,7 +355,7 @@ def test_21_wave_echo_absence_and_ergosphere_penrose_superradiance():
     )
 
     L_K = np.zeros((n_cells, n_cells), dtype=float)
-    M_spin = np.zeros((n_cells, n_cells), dtype=float)
+    D_spin = np.zeros((n_cells, n_cells), dtype=float)
     Jx_f, Jy_f, Jz_f = Jx.ravel(), Jy.ravel(), Jz.ravel()
 
     def idx3(ix, iy, iz):
@@ -356,18 +374,18 @@ def test_21_wave_echo_absence_and_ergosphere_penrose_superradiance():
                         + (Jy_f[i] + Jy_f[j]) * dy
                         + (Jz_f[i] + Jz_f[j]) * dz
                     )
-                    M_spin[i, j] += 0.25 * w * J_dot_d
+                    D_spin[i, j] += 0.25 * w * J_dot_d
 
-    # Find the supersonic Penrose mode that minimizes H_Killing(Phi, Pi = -M_spin Phi)
-    # by taking the top eigenvector of (-M_spin^2 - L_K), where -M_spin^2 = M_spin^T M_spin
-    penrose_op = (M_spin.T @ M_spin) - L_K
+    # Find the supersonic Penrose mode that minimizes H_Killing(Phi, Pi = +D_spin Phi)
+    # where H_Killing = 0.5 ||Pi||^2 - Pi^T D_spin Phi + 0.5 Phi^T L_K Phi = 0.5 Phi^T (L_K - D_spin^T D_spin) Phi
+    penrose_op = (D_spin.T @ D_spin) - L_K
     eigvals, eigvecs = np.linalg.eigh(penrose_op)
     phi_ergo = eigvecs[:, -1]
-    m_phi = M_spin @ phi_ergo
-    pi_ergo = -m_phi
+    d_phi = D_spin @ phi_ergo
+    pi_ergo = d_phi
 
     E_comoving = float(0.5 * (pi_ergo @ pi_ergo) + 0.5 * (phi_ergo @ (L_K @ phi_ergo)))
-    H_killing = float(E_comoving + (pi_ergo @ m_phi))
+    H_killing = float(E_comoving - (pi_ergo @ d_phi))
 
     passed = (
         echo_outside_gravastar > 0.05
@@ -378,7 +396,7 @@ def test_21_wave_echo_absence_and_ergosphere_penrose_superradiance():
     return {
         "passed": bool(passed),
         "outside_horizon_gravastar_echo_amplitude": echo_outside_gravastar,
-        "inside_horizon_frozen_core_echo_amplitude": echo_inside_frozen_core,
+        "inside_horizon_reflector_echo_amplitude": echo_inside_frozen_core,
         "ergosphere_penrose_mode_comoving_energy_positive": E_comoving,
         "ergosphere_penrose_mode_killing_energy_negative": H_killing,
     }

@@ -170,7 +170,9 @@ def test_03_geodesic_deflection_and_eht_photon_sphere():
         (delta_phi_num - delta_phi_2pn - delta_phi_3pn) / (G_M / ((c**2) * b))
     )
 
-    # EHT photon sphere check for sharp exterior r >= R_core
+    # Photon sphere for the sharp exterior r >= R_core: exactly Schwarzschild, so 1.5 r_s holds by
+    # construction (this line is a tautology, kept for continuity). The genuine Hayward photon-sphere shift
+    # (r f'(r) = 2 f(r)) is computed in Benchmark 7 of verify_core_finite_bar_gr.py.
     r_photon_sphere = 1.5 * r_s
     eht_photon_sphere_err = float(abs(r_photon_sphere - 1.5 * r_s))
 

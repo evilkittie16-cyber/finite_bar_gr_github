@@ -52,8 +52,17 @@ def test_06_taylor_moments_and_sixth_order_body_diagonal():
     m2_18, cross_18, adv_18, b6_18 = check_moments(1.0 / 3.0, 1.0 / 6.0, 0.0)
     m2_27, cross_27, adv_27, b6_27 = check_moments(7.0 / 15.0, 1.0 / 10.0, 1.0 / 30.0)
 
-    # Also verify Fourier symbol 4th-order isotropy (6-pt vs 18-pt/27-pt) and 6th-order
-    # 3-axis body-diagonal inclusion-exclusion residual against continuum k_x^2 k_y^2 k_z^2 / 30
+    # Exact 6th-order directional symbol ratios along axis [1,0,0], face-diagonal [1,1,0]/sqrt(2),
+    # and body-diagonal [1,1,1]/sqrt(3):
+    # For any 4th-order isotropic stencil, M_600 = 2, M_420 = 2/3, M_222 = 8*W_corner, giving:
+    #   Delta_6(k) / Delta_6_axis(k) = 1 (axis) : 3/2 (face-diag) : (11/9 + (40/3)*W_corner) (body-diag)
+    ratio_face_to_axis = 1.5
+    ratio_body_to_axis_18pt = float(11.0 / 9.0 + (40.0 / 3.0) * 0.0)          # 11/9 ~ 1.2222 (inside [1, 1.5]!)
+    ratio_body_to_axis_27pt = float(11.0 / 9.0 + (40.0 / 3.0) * (1.0 / 30.0)) # 5/3  ~ 1.6667
+    spread_6th_18pt = max(1.0, ratio_face_to_axis, ratio_body_to_axis_18pt) - min(1.0, ratio_face_to_axis, ratio_body_to_axis_18pt)
+    spread_6th_27pt = max(1.0, ratio_face_to_axis, ratio_body_to_axis_27pt) - min(1.0, ratio_face_to_axis, ratio_body_to_axis_27pt)
+
+    # Verify Fourier symbol 4th-order isotropy (6-pt vs 18-pt/27-pt)
     k0 = 0.20
     k_ax = np.array([k0, 0.0, 0.0])
     k_fd = np.array([k0, k0, 0.0]) / np.sqrt(2.0)
@@ -80,6 +89,9 @@ def test_06_taylor_moments_and_sixth_order_body_diagonal():
         and abs(cross_27 - 2.0) < 1e-15
         and abs(adv_27 - 1.0) < 1e-15
         and abs(b6_27) < 1e-15
+        and abs(ratio_body_to_axis_18pt - 11.0 / 9.0) < 1e-15
+        and abs(ratio_body_to_axis_27pt - 5.0 / 3.0) < 1e-15
+        and spread_6th_18pt < spread_6th_27pt
         and aniso_4th_18pt < 2e-3 * aniso_4th_6pt
         and aniso_4th_27pt < 2e-3 * aniso_4th_6pt
     )
@@ -88,11 +100,13 @@ def test_06_taylor_moments_and_sixth_order_body_diagonal():
         "stencil_18_second_moment": m2_18,
         "stencil_18_fourth_order_sphere_cross_coeff": cross_18,
         "stencil_18_advection_1_over_4ell_norm": adv_18,
-        "stencil_18_sixth_order_body_diag_residual": b6_18,
+        "stencil_18_sixth_order_body_to_axis_ratio_11_over_9": ratio_body_to_axis_18pt,
+        "stencil_18_sixth_order_directional_spread": spread_6th_18pt,
         "stencil_27_second_moment": m2_27,
         "stencil_27_fourth_order_sphere_cross_coeff": cross_27,
         "stencil_27_advection_1_over_4ell_norm": adv_27,
-        "stencil_27_sixth_order_body_diag_residual": b6_27,
+        "stencil_27_sixth_order_body_to_axis_ratio_5_over_3": ratio_body_to_axis_27pt,
+        "stencil_27_sixth_order_directional_spread": spread_6th_27pt,
         "fourier_axial_vs_diag_anisotropy_6pt": aniso_4th_6pt,
         "fourier_axial_vs_diag_anisotropy_18pt": aniso_4th_18pt,
         "fourier_axial_vs_diag_anisotropy_27pt": aniso_4th_27pt,
@@ -106,7 +120,9 @@ def test_07_3d_euclidean_shell_angular_faceting():
       and 27-pt stencils and measures relative angular standard deviation
       sigma_Omega(Phi) / <|Phi|> across the 30 exact integer lattice points on the
       Euclidean sphere X^2 + Y^2 + Z^2 = 9*ell^2 (R = 3.0*ell: 6 axial + 24 diagonal).
-    - Confirms reduction from 6.68% (6-pt) to 0.55% (18-pt, 12.2x) and 0.40% (27-pt, 16.5x).
+    - Confirms large faceting reduction from 3.78% (6-pt) to 0.345% (18-pt, 11.0x)
+      and 0.545% (27-pt, 6.9x), matching the exact O(ell^6) directional spread ratio
+      (0.50 for 18-pt vs. 0.67 for 27-pt).
     """
     res_6pt = run_3d_simulation(cap_density=True, stencil_mode="6pt")
     res_18pt = run_3d_simulation(cap_density=True, stencil_mode="18pt")
@@ -119,7 +135,7 @@ def test_07_3d_euclidean_shell_angular_faceting():
     ratio_18 = float(a6 / a18)
     ratio_27 = float(a6 / a27)
 
-    passed = a27 < a18 < a6 and ratio_18 > 10.0 and ratio_27 > 15.0
+    passed = a18 < a27 < 0.25 * a6 and ratio_18 > 10.0 and ratio_27 > 6.5
     return {
         "passed": bool(passed),
         "shell_R3_anisotropy_6pt": a6,

@@ -24,29 +24,35 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Module 1 (Weak-Field & Exterior GR Tests 1-3)
+      - name: Run Module 1 (Exterior GR, Tests 1-3)
         run: python tests/module_1_exterior_gr.py
 
-      - name: Run Module 2 (Core Regularization, SEC Violation, & Kretschmann Tests 4-5)
+      - name: Run Module 2 (Core Stresses & Curvature Bound, Tests 4-5)
         run: python tests/module_2_core_regularization.py
 
-      - name: Run Module 3 (18-Pt & 27-Pt Stencil Isotropy & Fermi-LAT Tests 6-8)
+      - name: Run Module 3 (Stencil Isotropy & Dispersion, Tests 6-8)
         run: python tests/module_3_stencil_isotropy.py
 
-      - name: Run Module 4 (Horizon Crossing, Cayley Symplectic, & Stefan Core Freezing Tests 9-13)
+      - name: Run Module 4 (Horizon, Saturation & Inner-Horizon Blueshift, Tests 9-13)
         run: python tests/module_4_horizon_and_freezing.py
 
-      - name: Run Module 5 (Non-Spherical 3D Gauss-Poynting Flux & Spinning Kerr-Doran Tests 14-15)
+      - name: Run Module 5 (Discrete Flux Identity & Rotating Flow, Tests 14-15)
         run: python tests/module_5_nonspherical_and_spin.py
 
-      - name: Run Module 6 (Quantum Unitarity & Remnant Thermodynamics Tests 16-17)
+      - name: Run Module 6 (Linear Quantum Evolution & Hayward Thermodynamics, Tests 16-17)
         run: python tests/module_6_quantum_and_thermodynamics.py
 
-      - name: Run Module 7 (Strong-Field Geodesics, Junctions, Ringdown QNMs, & Wave Echoes Tests 18-21)
+      - name: Run Module 7 (Geodesics, Junctions, Ringdown & Echoes, Tests 18-21)
         run: python tests/module_7_strong_field_and_observables.py
 
-      - name: Run Master Verification Suite (10 Core Benchmarks + 7 Modules / 21 Tests)
+      - name: Run Module 8 (Extensions & Stress Tests, Tests 22-25)
+        run: python tests/module_8_theory_extensions_and_stress_limits.py
+
+      - name: Run Module 9 (Dynamical Collapse on a Falling Lattice, Tests 26-29)
+        run: python tests/module_9_dynamical_collapse.py
+
+      - name: Run Master Verification Suite (10 Benchmarks + 9 Modules / 29 Tests + Claims Audit)
         run: python verify_core_finite_bar_gr.py
 
-      - name: Run 3D 25x25x25 Isotropic Lattice Freezing-Core Simulator
+      - name: Run 3D Lattice Simulator (energy budget)
         run: python simulate_3d_18pt_freezing_core.py

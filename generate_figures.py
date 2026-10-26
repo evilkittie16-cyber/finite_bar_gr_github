@@ -1,14 +1,15 @@
 """
 generate_figures.py
 ===================
-Generates the 6-panel publication summary figure (figures/finite_bar_gr_summary.png)
-for the Finite-Bar Discrete General Relativity Nonsingular Black Hole Model:
-  Panel (a): Unified Painleve-Gullstrand River Velocity |J(r)|/c & Inner Cauchy Horizon Excision
-  Panel (b): Smooth Hayward Radial & Tangential Core Stress Profiles p_r(r) and p_theta(r)
-  Panel (c): 3D 25x25x25 Lattice Spherical Shell Isotropy on R = 3.0*ell (6-Pt vs. 18-Pt vs. 27-Pt)
-  Panel (d): Exact Total Energy Conservation H_total = H_wave + H_core During 3D Cell Freezing
-  Panel (e): Hawking Temperature T_H(r_+) Peak at r_+ = 3*ell & Zero-Temperature Remnant at r_+ = sqrt(3)*ell
-  Panel (f): 3D Spinning Kerr-Doran Whirlpool + River Equatorial Ergosphere (|J| > c > |J_r|)
+Generates the 6-panel summary figure (figures/finite_bar_gr_summary.png). All panels are computed from the
+current code; nothing is typed in by hand.
+
+  Panel (a): Hayward river speed |J(r)|/c with both horizons r_- and r_+ and the core scale R_core
+  Panel (b): Hayward core stresses: SEC violated, NEC satisfied
+  Panel (c): 3D shell faceting on R = 3 ell for the 6-pt, 18-pt and 27-pt stencils (from the simulator)
+  Panel (d): Inner-horizon blueshift vs lattice spacing, and the reservoir deposit a saturation cap creates
+  Panel (e): Hayward surface gravity / Hawking temperature (requires the inner horizon)
+  Panel (f): 3D Killing-energy budget of a capped run: what is conserved and what is not
 """
 
 import os
@@ -17,274 +18,133 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from simulate_3d_18pt_freezing_core import (
-    build_27pt_offsets_and_weights,
-    compute_cell_energies,
-    compute_gravity_from_cells,
-    apply_3d_18pt_laplacian,
-    apply_3d_18pt_river_shift,
-    saturate_cells_locally_18pt,
-)
-
-
-def capture_3d_energy_history(n_grid=25, n_steps=80, dt=0.025):
-    """Runs the 27-point 3D 25x25x25 freezing-core simulation and records step-by-step energies."""
-    offsets = build_27pt_offsets_and_weights()
-    coords = np.arange(n_grid) - (n_grid // 2)
-    X, Y, Z = np.meshgrid(coords, coords, coords, indexing="ij")
-    R2 = X**2 + Y**2 + Z**2
-    R = np.sqrt(R2)
-
-    G = 0.0085
-    c = 1.0
-    ell = 1.0
-    E_max_ceiling = 2.60
-
-    active_mask = np.ones((n_grid, n_grid, n_grid), dtype=bool)
-    E_frozen = np.zeros((n_grid, n_grid, n_grid), dtype=float)
-    seed_core = R <= 1.8
-    active_mask[seed_core] = False
-    E_frozen[seed_core] = E_max_ceiling
-
-    M_seed = float(np.sum(E_frozen)) / (c**2)
-    r_s_seed = 2.0 * G * M_seed / (c**2)
-    r_tilde = np.sqrt(R**2 + (1.8**2))
-    a_grid = 1.0 + 0.2 * (r_s_seed / r_tilde)
-
-    phi = np.zeros((n_grid, n_grid, n_grid), dtype=float)
-    pi = np.zeros((n_grid, n_grid, n_grid), dtype=float)
-    shell_mask = active_mask & (R >= 2.1) & (R <= 5.2)
-    phi[shell_mask] = 1.35 * np.exp(-((R[shell_mask] - 3.4) ** 2) / 0.7)
-    pi[shell_mask] = 1.75 * a_grid[shell_mask] * np.exp(-((R[shell_mask] - 3.4) ** 2) / 0.7)
-
-    E_cells = compute_cell_energies(phi, pi, a_grid, offsets, active_mask)
-
-    t_hist = [0.0]
-    e_wave_hist = [float(np.sum(E_cells))]
-    e_core_hist = [float(np.sum(E_frozen))]
-    e_tot_hist = [float(np.sum(E_cells) + np.sum(E_frozen))]
-    n_core_hist = [int(np.sum(~active_mask))]
-
-    for step in range(1, n_steps + 1):
-        E_wave_now = compute_cell_energies(phi, pi, a_grid, offsets, active_mask)
-        Jx, Jy, Jz, _ = compute_gravity_from_cells(E_frozen + E_wave_now, R, X, Y, Z, G=G, c=c, ell=ell)
-
-        def rhs(phi_s, pi_s):
-            u_vel = np.where(active_mask, pi_s / a_grid, 0.0)
-            dphi = u_vel
-            river_force = apply_3d_18pt_river_shift(u_vel, Jx, Jy, Jz, offsets, active_mask, transpose=False)
-            dpi = -apply_3d_18pt_laplacian(phi_s, offsets, active_mask) - river_force
-            return np.where(active_mask, dphi, 0.0), np.where(active_mask, dpi, 0.0)
-
-        k1_phi, k1_pi = rhs(phi, pi)
-        k2_phi, k2_pi = rhs(phi + 0.5 * dt * k1_phi, pi + 0.5 * dt * k1_pi)
-        k3_phi, k3_pi = rhs(phi + 0.5 * dt * k2_phi, pi + 0.5 * dt * k2_pi)
-        k4_phi, k4_pi = rhs(phi + dt * k3_phi, pi + dt * k3_pi)
-
-        phi = phi + (dt / 6.0) * (k1_phi + 2.0 * k2_phi + 2.0 * k3_phi + k4_phi)
-        pi = pi + (dt / 6.0) * (k1_pi + 2.0 * k2_pi + 2.0 * k3_pi + k4_pi)
-
-        E_cells = saturate_cells_locally_18pt(phi, pi, a_grid, E_frozen, active_mask, offsets, E_max_ceiling)
-
-        w_sum = float(np.sum(E_cells))
-        c_sum = float(np.sum(E_frozen))
-        t_hist.append(step * dt)
-        e_wave_hist.append(w_sum)
-        e_core_hist.append(c_sum)
-        e_tot_hist.append(w_sum + c_sum)
-        n_core_hist.append(int(np.sum(~active_mask)))
-
-    return np.array(t_hist), np.array(e_wave_hist), np.array(e_core_hist), np.array(e_tot_hist), np.array(n_core_hist)
+from simulate_3d_18pt_freezing_core import run_3d_simulation
+from pg_wave_1d import run_inner_horizon_packet, hayward_horizons
 
 
 def main():
     out_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "figures")
     os.makedirs(out_dir, exist_ok=True)
-
-    plt.rcParams.update({
-        "font.size": 9.5,
-        "axes.titlesize": 10.5,
-        "axes.labelsize": 9.5,
-        "figure.facecolor": "white",
-    })
-
-    fig, axes = plt.subplots(3, 2, figsize=(13.5, 13.5), dpi=200)
-
-    # -------------------------------------------------------------------------
-    # Panel (a): Unified River Velocity |J(r)|/c & Inner Cauchy Horizon Excision
-    # -------------------------------------------------------------------------
-    ax = axes[0, 0]
+    plt.rcParams.update({"font.size": 9.5, "axes.titlesize": 10.5, "axes.labelsize": 9.5, "figure.facecolor": "white"})
+    fig, axes = plt.subplots(3, 2, figsize=(13.5, 13.5), dpi=150)
     ell = 1.0
+
+    # (a) Hayward river profile and horizons
+    ax = axes[0, 0]
     r = np.linspace(0.0, 12.0, 600)
     r_s_bh = 8.0
-    R_core_bh = (r_s_bh * ell**2) ** (1.0 / 3.0)  # 2.0 * ell
+    R_core_bh = (r_s_bh * ell**2) ** (1.0 / 3.0)
     J_bh = np.sqrt((r_s_bh * r**2) / (r**3 + r_s_bh * ell**2))
-
-    r_s_crit = 1.5 * np.sqrt(3.0) * ell  # ~ 2.598 * ell
+    r_s_crit = 1.5 * np.sqrt(3.0) * ell
     J_crit = np.sqrt((r_s_crit * r**2) / (r**3 + r_s_crit * ell**2))
-
-    J_schwarz = np.sqrt(r_s_bh / np.maximum(r, 0.25))
-
-    ax.plot(r, J_schwarz, "--", color="#888888", lw=1.4, label=r"Classical Schwarzschild $\sqrt{r_s/r} \to \infty$")
-    ax.plot(r, J_bh, "-", color="#1f77b4", lw=2.3, label=rf"Unified Hayward River ($r_s = 8\ell, R_{{\mathrm{{core}}}} = 2\ell$)")
-    ax.plot(r, J_crit, "-.", color="#2ca02c", lw=2.0, label=rf"Critical Remnant ($r_{{s,\mathrm{{crit}}}} = \frac{{3\sqrt{{3}}}}{{2}}\ell \approx 2.60\ell$)")
-    ax.axhline(1.0, color="#d62728", ls=":", lw=1.4, label=r"Horizon Threshold $|J(r)|/c = 1$")
-    ax.axvspan(0.0, R_core_bh, color="#1f77b4", alpha=0.13, label=rf"Frozen Core ($r \leq R_{{\mathrm{{core}}}} = 2\ell$, excises $r_-$)")
-
+    r_m, r_p, _, _ = hayward_horizons(r_s_bh, ell)
+    ax.plot(r, np.sqrt(r_s_bh / np.maximum(r, 0.25)), "--", color="#888888", lw=1.4, label=r"Schwarzschild $\sqrt{r_s/r}$")
+    ax.plot(r, J_bh, "-", color="#1f77b4", lw=2.3, label=r"Hayward ($r_s = 8\ell$)")
+    ax.plot(r, J_crit, "-.", color="#2ca02c", lw=2.0, label=r"Extremal remnant ($r_s = \frac{3\sqrt{3}}{2}\ell$)")
+    ax.axhline(1.0, color="#d62728", ls=":", lw=1.4, label=r"$|J| = c$")
+    ax.axvline(r_m, color="#9467bd", lw=1.3, label=rf"inner horizon $r_- = {r_m:.2f}\ell$ (still present)")
+    ax.axvline(r_p, color="#d62728", lw=1.3, label=rf"outer horizon $r_+ = {r_p:.2f}\ell$")
+    ax.axvline(R_core_bh, color="#1f77b4", ls="--", lw=1.0, label=rf"core scale $R_{{core}} = {R_core_bh:.1f}\ell$")
+    ax.axvspan(r_m, r_p, color="#d62728", alpha=0.07, label=r"trapped region ($c + J < 0$)")
     ax.set_xlim(0.0, 12.0)
     ax.set_ylim(0.0, 2.2)
-    ax.set_xlabel(r"Radius $r / \ell$")
-    ax.set_ylabel(r"Inward River Speed $|J(r)| / c$")
-    ax.set_title(r"(a) Unified River Profile $|J(r)|/c$ & Inner Horizon Excision")
-    ax.legend(loc="upper right", fontsize=8.0, framealpha=0.92)
+    ax.set_xlabel(r"$r/\ell$")
+    ax.set_ylabel(r"$|J(r)|/c$")
+    ax.set_title("(a) Hayward river profile: both horizons remain")
+    ax.legend(loc="upper right", fontsize=7.6, framealpha=0.92)
     ax.grid(True, alpha=0.25)
 
-    # -------------------------------------------------------------------------
-    # Panel (b): Smooth Hayward Core Stress Profiles p_r(r) and p_theta(r)
-    # -------------------------------------------------------------------------
+    # (b) stresses
     ax = axes[0, 1]
-    x = np.linspace(0.0, 2.5, 500)  # r / R_core
-    rho_ratio = 1.0 / ((x**3 + 1.0) ** 2)
-    p_r_ratio = -rho_ratio
-    p_theta_ratio = (2.0 * x**3 - 1.0) / ((x**3 + 1.0) ** 3)
-    sec_ratio = rho_ratio + p_r_ratio + 2.0 * p_theta_ratio
-
-    ax.plot(x, p_r_ratio, "-", color="#1f77b4", lw=2.2, label=r"Radial Tension $p_r(r) / (\rho_{\max}c^2) = -\rho/\rho_{\max}$")
-    ax.plot(x, p_theta_ratio, "-", color="#ff7f0e", lw=2.2, label=r"Tangential Stress $p_\theta(r) / (\rho_{\max}c^2)$")
-    ax.plot(x, sec_ratio, "--", color="#9467bd", lw=1.8, label=r"SEC Combination $(\rho c^2 + p_r + 2p_\theta)/(\rho_{\max}c^2)$")
+    x = np.linspace(0.0, 2.5, 500)
+    rho = 1.0 / ((x**3 + 1.0) ** 2)
+    p_r = -rho
+    p_t = (2.0 * x**3 - 1.0) / ((x**3 + 1.0) ** 3)
+    ax.plot(x, p_r, "-", color="#1f77b4", lw=2.2, label=r"$p_r/(\rho_{\max}c^2)$")
+    ax.plot(x, p_t, "-", color="#ff7f0e", lw=2.2, label=r"$p_\theta/(\rho_{\max}c^2)$")
+    ax.plot(x, rho + p_r + 2 * p_t, "--", color="#9467bd", lw=1.8, label=r"SEC: $\rho c^2 + p_r + 2p_\theta$ (violated)")
+    ax.plot(x, rho + p_t, ":", color="#2ca02c", lw=2.0, label=r"NEC: $\rho c^2 + p_\theta \geq 0$ (satisfied)")
     ax.axhline(0.0, color="black", lw=0.9, alpha=0.6)
-    ax.axvline(2.0 ** (-1.0 / 3.0), color="#ff7f0e", ls=":", lw=1.3, label=r"$p_\theta = 0$ at $r = 2^{-1/3}R_{\mathrm{core}} \approx 0.794 R_{\mathrm{core}}$")
-    ax.axvline(1.0, color="#2ca02c", ls="--", lw=1.3, label=r"Core Surface $r = R_{\mathrm{core}}$ ($p_\theta = +\frac{1}{8}\rho_{\max}c^2$)")
-
+    ax.axvline(1.0, color="#888888", ls="--", lw=1.0)
     ax.set_xlim(0.0, 2.5)
-    ax.set_ylim(-2.1, 0.45)
-    ax.set_xlabel(r"Normalized Core Radius $r / R_{\mathrm{core}}(M)$")
-    ax.set_ylabel(r"Normalized Stress / Pressure $[ \rho_{\max} c^2 ]$")
-    ax.set_title(r"(b) SEC Violation & Smooth Tangential Stress $p_\theta(r)$")
+    ax.set_ylim(-2.1, 0.6)
+    ax.set_xlabel(r"$r / R_{core}$")
+    ax.set_ylabel(r"stress $[\rho_{\max} c^2]$")
+    ax.set_title("(b) Hayward core: SEC violated, NEC satisfied")
     ax.legend(loc="lower right", fontsize=8.0, framealpha=0.92)
     ax.grid(True, alpha=0.25)
 
-    # -------------------------------------------------------------------------
-    # Panel (c): 3D Spherical Shell Faceting Reduction (6-Pt vs. 18-Pt vs. 27-Pt)
-    # -------------------------------------------------------------------------
+    # (c) faceting from the simulator
     ax = axes[1, 0]
-    stencils = ["6-Point\nSimple Cubic", "18-Neighbor\nIsotropic (FCC)", "27-Point Full\nIsotropic (FCC+BCC)"]
-    anisotropy_pct = [6.683, 0.548, 0.404]
-    colors = ["#d62728", "#1f77b4", "#2ca02c"]
-    bars = ax.bar(stencils, anisotropy_pct, color=colors, width=0.52, edgecolor="black", linewidth=0.8)
-
-    for bar, val in zip(bars, anisotropy_pct):
-        ax.text(
-            bar.get_x() + bar.get_width() / 2.0,
-            val + 0.18,
-            f"{val:.2f}%",
-            ha="center",
-            va="bottom",
-            fontweight="bold",
-            fontsize=9.2,
-        )
-
-    ax.annotate(
-        "12.2x reduction",
-        xy=(1, 1.05),
-        xytext=(0.55, 3.6),
-        arrowprops=dict(arrowstyle="->", color="#1f77b4", lw=1.5),
-        fontsize=8.8,
-        fontweight="bold",
-        color="#1f77b4",
-    )
-    ax.annotate(
-        "16.5x reduction",
-        xy=(2, 0.90),
-        xytext=(1.35, 2.6),
-        arrowprops=dict(arrowstyle="->", color="#2ca02c", lw=1.5),
-        fontsize=8.8,
-        fontweight="bold",
-        color="#2ca02c",
-    )
-
-    ax.set_ylim(0.0, 7.8)
-    ax.set_ylabel(r"Shell Angular Anisotropy $\sigma_\Omega(\Phi)/\langle|\Phi|\rangle$ [%]")
-    ax.set_title(r"(c) 3D $25^3$ Grid Spherical Shell Faceting on $R = 3.0\ell$ ($X^2+Y^2+Z^2=9$)")
+    runs = {m: run_3d_simulation(cap_density=True, stencil_mode=m) for m in ("6pt", "18pt", "27pt")}
+    vals = [100.0 * runs[m]["shell_R3_axial_vs_diagonal_rel_anisotropy"] for m in ("6pt", "18pt", "27pt")]
+    bars = ax.bar(["6-point", "18-neighbor", "27-point"], vals, color=["#d62728", "#1f77b4", "#2ca02c"],
+                  width=0.52, edgecolor="black", linewidth=0.8)
+    for bar, v in zip(bars, vals):
+        ax.text(bar.get_x() + bar.get_width() / 2.0, v * 1.03 + 0.05, f"{v:.2f}%", ha="center", va="bottom", fontsize=9)
+    ax.set_ylim(0.0, max(vals) * 1.2)
+    ax.set_ylabel(r"shell anisotropy $\sigma_\Omega(\Phi)/\langle|\Phi|\rangle$ [%]")
+    ax.set_title(r"(c) 3D shell faceting on $R = 3\ell$ (18-pt best; 27-pt has larger 6th-order spread)")
     ax.grid(True, axis="y", alpha=0.25)
 
-    # -------------------------------------------------------------------------
-    # Panel (d): Exact Total Energy Conservation During 3D Cell Freezing
-    # -------------------------------------------------------------------------
+    # (d) inner-horizon blueshift vs resolution and reservoir deposit
     ax = axes[1, 1]
-    t_hist, e_wave, e_core, e_tot, n_core = capture_3d_energy_history()
+    hs = np.array([0.04, 0.02, 0.01])
+    unc = [run_inner_horizon_packet(h, T=40.0) for h in hs]
+    cap = [run_inner_horizon_packet(h, T=40.0, cap_factor=2.0) for h in hs]
+    peaks = [u["max_comoving_energy_near_r_minus_over_E0"] for u in unc]
+    res = [c["reservoir_comoving_energy_over_E0"] for c in cap]
+    ax.loglog(1.0 / hs, peaks, "o-", color="#d62728", lw=2.0, label=r"uncapped: peak comoving energy near $r_-$ / $E_0$")
+    ax.loglog(1.0 / hs, res, "s-", color="#1f77b4", lw=2.0, label=r"capped: energy dumped into reservoir / $E_0$")
+    ax.loglog(1.0 / hs, peaks[0] * (0.04 / hs), ":", color="#d62728", lw=1.0, label=r"$\propto 1/h$")
+    ax.axhline(1.0, color="black", lw=0.8, ls="--", label=r"initial packet energy $E_0$")
+    ax.set_xlabel(r"resolution $\ell/h$")
+    ax.set_ylabel(r"energy / $E_0$")
+    ax.set_title("(d) Inner-horizon blueshift: the cap moves it into the reservoir")
+    ax.legend(loc="upper left", fontsize=7.8, framealpha=0.92)
+    ax.grid(True, which="both", alpha=0.25)
 
-    ax.plot(t_hist, e_tot, "-", color="black", lw=2.4, label=rf"Total Energy $H_{{\mathrm{{total}}}} = H_{{\mathrm{{wave}}}} + H_{{\mathrm{{core}}}}$ (drift $= 1.4\times 10^{{-8}}$)")
-    ax.plot(t_hist, e_wave, "--", color="#1f77b4", lw=2.0, label=r"Active Wave Energy $H_{\mathrm{wave}}(t) = \sum_{\mathrm{active}} E_i^{\mathrm{local}}$")
-    ax.plot(t_hist, e_core, "-.", color="#d62728", lw=2.0, label=rf"Frozen Core Energy $H_{{\mathrm{{core}}}}(t)$ ($N_{{\mathrm{{cube}}}}: {n_core[0]} \to {n_core[-1]}$ cells)")
-
-    ax.set_xlim(t_hist[0], t_hist[-1])
-    ax.set_ylim(0.0, max(e_tot) * 1.12)
-    ax.set_xlabel(r"Proper Free-Fall Time $t / \Delta t_{\min}$")
-    ax.set_ylabel(r"Lattice Energy (Natural Grid Units)")
-    ax.set_title(r"(d) Exact 3D $25\times 25\times 25$ Matter + Core Energy Conservation")
-    ax.legend(loc="center right", fontsize=8.0, framealpha=0.92)
-    ax.grid(True, alpha=0.25)
-
-    # -------------------------------------------------------------------------
-    # Panel (e): Surface Gravity / Hawking Temperature & Zero-Temp Remnant
-    # -------------------------------------------------------------------------
+    # (e) Hawking temperature
     ax = axes[2, 0]
-    r_p = np.linspace(np.sqrt(3.0), 12.0, 500)
-    kappa_reg = (1.0 / (2.0 * r_p)) * (1.0 - 3.0 / (r_p**2))
-    r_p_cl = np.linspace(0.8, 12.0, 500)
-    kappa_cl = 1.0 / (2.0 * r_p_cl)
-
-    ax.plot(r_p_cl, kappa_cl, "--", color="#888888", lw=1.5, label=r"Classical Hawking $\kappa_{\mathrm{GR}} = \frac{c^2}{2r_+} \to \infty$")
-    ax.plot(r_p, kappa_reg, "-", color="#d62728", lw=2.3, label=r"Finite-Bar / Hayward $\kappa(r_+) = \frac{c^2}{2r_+}\left(1 - \frac{3\ell^2}{r_+^2}\right)$")
-    ax.axvline(3.0, color="#1f77b4", ls=":", lw=1.4, label=r"Peak Temperature $r_{+,\mathrm{peak}} = 3\ell$ ($C_M = \frac{dM}{dT_H}$ flips sign)")
-    ax.axvline(np.sqrt(3.0), color="#2ca02c", ls="-.", lw=1.5, label=r"Cold Remnant $r_+ = \sqrt{3}\ell$ ($T_H = 0, M_{\mathrm{crit}} \approx 1.30 m_P$)")
-    ax.axvspan(np.sqrt(3.0), 3.0, color="#2ca02c", alpha=0.11, label=r"Stable Cooling Regime ($C_M > 0$)")
-
+    r_pl = np.linspace(np.sqrt(3.0), 12.0, 500)
+    kappa_reg = (1.0 / (2.0 * r_pl)) * (1.0 - 3.0 / (r_pl**2))
+    r_cl = np.linspace(0.8, 12.0, 500)
+    ax.plot(r_cl, 1.0 / (2.0 * r_cl), "--", color="#888888", lw=1.5, label=r"Schwarzschild $c^2/2r_+$")
+    ax.plot(r_pl, kappa_reg, "-", color="#d62728", lw=2.3, label=r"Hayward $\frac{c^2}{2r_+}(1 - 3\ell^2/r_+^2)$")
+    ax.axvline(3.0, color="#1f77b4", ls=":", lw=1.4, label=r"peak at $r_+ = 3\ell$")
+    ax.axvline(np.sqrt(3.0), color="#2ca02c", ls="-.", lw=1.5, label=r"$T_H = 0$ at $r_+ = r_- = \sqrt{3}\ell$")
     ax.set_xlim(0.8, 12.0)
     ax.set_ylim(0.0, 0.25)
-    ax.set_xlabel(r"Outer Horizon Radius $r_+ / \ell$")
-    ax.set_ylabel(r"Surface Gravity $\kappa(r_+) / (c^2/\ell) \propto T_H$")
-    ax.set_title(r"(e) Hawking Temperature Peak ($r_+ = 3\ell$) & Cold Remnant ($T_H = 0$)")
+    ax.set_xlabel(r"$r_+/\ell$")
+    ax.set_ylabel(r"$\kappa(r_+)/(c^2/\ell) \propto T_H$")
+    ax.set_title("(e) Hayward temperature: the cold remnant needs the inner horizon")
     ax.legend(loc="upper right", fontsize=7.9, framealpha=0.92)
     ax.grid(True, alpha=0.25)
 
-    # -------------------------------------------------------------------------
-    # Panel (f): 3D Spinning Kerr-Doran Whirlpool + River Ergosphere
-    # -------------------------------------------------------------------------
+    # (f) 3D energy budget
     ax = axes[2, 1]
-    r_k = np.linspace(0.0, 10.0, 500)
-    r_s_k = 6.0
-    a_sp = 0.85 * (0.5 * r_s_k)  # high spin a/M = 0.85
-    denom_k = (r_k**3) + r_s_k * (ell**2) + (a_sp**2) * r_k
-    J_r_k = np.sqrt(np.divide(r_s_k * (r_k**2), denom_k, out=np.zeros_like(r_k), where=denom_k > 1e-12))
-    J_phi_k = J_r_k * (a_sp * r_k) / (r_k**2 + ell**2)
-    J_tot_k = np.sqrt(J_r_k**2 + J_phi_k**2)
-
-    ax.plot(r_k, J_tot_k, "-", color="#9467bd", lw=2.3, label=r"Total Equatorial Flow $|\mathbf{J}|/c = \sqrt{J_r^2 + J_\phi^2}/c$")
-    ax.plot(r_k, J_r_k, "--", color="#1f77b4", lw=2.0, label=r"Radial River Inflow $|J_r(r)|/c$")
-    ax.plot(r_k, J_phi_k, "-.", color="#ff7f0e", lw=1.8, label=r"Regularized Whirlpool $|J_\phi(r,\pi/2)|/c \to 0$ at $r=0$")
-    ax.axhline(1.0, color="#d62728", ls=":", lw=1.4, label=r"Light Speed Threshold $|\mathbf{J}|/c = 1$")
-
-    ergo_mask = (J_tot_k >= 1.0) & (J_r_k <= 1.0) & (r_k > 2.5)
-    if np.any(ergo_mask):
-        r_ergo_min = float(np.min(r_k[ergo_mask]))
-        r_ergo_max = float(np.max(r_k[ergo_mask]))
-        ax.axvspan(r_ergo_min, r_ergo_max, color="#9467bd", alpha=0.15, label=rf"Equatorial Ergosphere ($|\mathbf{{J}}| > c > |J_r|$)")
-
-    ax.set_xlim(0.0, 10.0)
-    ax.set_ylim(0.0, 1.65)
-    ax.set_xlabel(r"Equatorial Radius $r / \ell$")
-    ax.set_ylabel(r"Flow Speed / $c$")
-    ax.set_title(r"(f) 3D Kerr–Doran Whirlpool + River Flow & Equatorial Ergosphere")
-    ax.legend(loc="upper right", fontsize=7.9, framealpha=0.92)
+    run = run_3d_simulation(cap_density=True, stencil_mode="18pt", record_history=True)
+    hist = run["history"]
+    t = np.array(hist["t"])
+    H0 = hist["H_killing"][0]
+    ax.plot(t, np.array(hist["H_killing"]) / H0, "-", color="black", lw=2.2, label=r"field Killing energy $H(t)/H(0)$")
+    ax.plot(t, 1.0 + np.array(hist["bg_change"]) / H0, "--", color="#ff7f0e", lw=1.8,
+            label=r"$1 +$ change from ad-hoc self-gravity updates")
+    ax.plot(t, 1.0 - np.array(hist["removed_by_damping"]) / H0, "-.", color="#1f77b4", lw=1.8,
+            label=r"$1 -$ removed by saturation damping")
+    ax.plot(t, (H0 + np.array(hist["bg_change"]) - np.array(hist["removed_by_damping"])) / H0, ":", color="#2ca02c",
+            lw=2.4, label=rf"budget $H(0) + \Delta_{{bg}} - \Delta_{{damp}}$ (closes to {run['killing_budget_closure_residual']:.0e})")
+    ax.set_xlabel(r"$t/\Delta t_{\min}$")
+    ax.set_ylabel("relative Killing energy")
+    ax.set_title("(f) 3D capped run: energy budget (not conserved; terms shown)")
+    ax.legend(loc="lower left", fontsize=7.8, framealpha=0.92)
     ax.grid(True, alpha=0.25)
 
     plt.tight_layout(pad=1.7)
     out_file = os.path.join(out_dir, "finite_bar_gr_summary.png")
-    plt.savefig(out_file, dpi=200)
+    plt.savefig(out_file, dpi=150)
     plt.close(fig)
-    print(f"Saved 6-panel publication summary figure to: {out_file}")
+    print(f"Saved 6-panel summary figure to: {out_file}")
 
 
 if __name__ == "__main__":
