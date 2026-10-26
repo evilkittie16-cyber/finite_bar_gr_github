@@ -3,7 +3,7 @@
 [![Verify Finite-Bar Discrete GR Benchmarks](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml/badge.svg)](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Self-contained manuscript, **6-Module / 17-Test independent verification suite** (plus the 10-benchmark master runner), and 3D $25 \times 25 \times 25$ (`15,625-cell`) isotropic lattice simulator for the **Painlevé–Gullstrand / Misner–Sharp reduction and canonical scalar wave sector** of Finite-Bar Discrete General Relativity.
+Self-contained manuscript, **7-Module / 21-Test independent verification suite** (plus the 10-benchmark master runner), and 3D $25 \times 25 \times 25$ (`15,625-cell`) isotropic lattice simulator for the **Painlevé–Gullstrand / Misner–Sharp reduction and canonical scalar wave sector** of Finite-Bar Discrete General Relativity.
 
 ![Finite-Bar Discrete GR Summary](figures/finite_bar_gr_summary.png)
 
@@ -14,9 +14,9 @@ Self-contained manuscript, **6-Module / 17-Test independent verification suite**
 | File | Description |
 | :--- | :--- |
 | [`proof_corrected.md`](proof_corrected.md) | Complete mathematical manuscript covering the Planck-scale UV lattice postulates ($\ell = \ell_P, \Delta t_{\min} = t_P, \rho_{\max} = \frac{3c^2}{8\pi G\ell^2}$), 2PN/3PN weak-field isotropic & Painlevé–Gullstrand gauge match, de Sitter / Hayward core unification ($R_{\text{core}}(M) = (r_s\ell^2)^{1/3}, K(0) = \frac{24}{\ell^4}$), 18-neighbor & 27-point isotropic 3D stencils, skew-symmetric summation-by-parts (SBP) river Hamiltonian ($M_{ij} = -M_{ji}$), Cayley symplectic evolution, Neumann link-decoupled Stefan core accretion, discrete Gauss–Poynting flux conservation, Hawking specific-heat reversal ($C_M > 0$ below $r_+ = 3\ell$) & zero-temperature remnant ($T_H(\sqrt{3}\ell) = 0$), and 3D Kerr–Doran spinning whirlpool+river ergosphere propagation. |
-| [`tests/`](tests/) | **6 independent verification modules (`17 tests`)** covering every analytical and numerical claim in Sections 1–6 (each runnable standalone or via `verify_core_finite_bar_gr.py`). |
-| [`verify_core_finite_bar_gr.py`](verify_core_finite_bar_gr.py) | Master verification runner executing all 10 core benchmarks and all 6 modules (`17 tests`) and exporting [`verify_core_finite_bar_gr_results.json`](verify_core_finite_bar_gr_results.json). |
-| [`verify_core_finite_bar_gr_results.json`](verify_core_finite_bar_gr_results.json) | Pre-computed JSON output from `verify_core_finite_bar_gr.py` (all 10 benchmarks + 6 modules / 17 tests). |
+| [`tests/`](tests/) | **7 independent verification modules (`21 tests`)** covering every analytical and numerical claim in Sections 1–6 (each runnable standalone or via `verify_core_finite_bar_gr.py`). |
+| [`verify_core_finite_bar_gr.py`](verify_core_finite_bar_gr.py) | Master verification runner executing all 10 core benchmarks and all 7 modules (`21 tests`) and exporting [`verify_core_finite_bar_gr_results.json`](verify_core_finite_bar_gr_results.json). |
+| [`verify_core_finite_bar_gr_results.json`](verify_core_finite_bar_gr_results.json) | Pre-computed JSON output from `verify_core_finite_bar_gr.py` (all 10 benchmarks + 7 modules / 21 tests). |
 | [`simulate_3d_18pt_freezing_core.py`](simulate_3d_18pt_freezing_core.py) | Shortcut-free 3D $25 \times 25 \times 25$ (`15,625-cell`) lattice wave simulator comparing uncapped inner-horizon pile-up against local Stefan cell freezing across 6-point cubic, 18-neighbor isotropic, and 27-point isotropic stencils. |
 | [`simulate_3d_18pt_freezing_core_results.json`](simulate_3d_18pt_freezing_core_results.json) | Pre-computed JSON simulation output from `simulate_3d_18pt_freezing_core.py`. |
 | [`generate_figures.py`](generate_figures.py) | Reproducible figure generation script that produces the 6-panel summary plot [`figures/finite_bar_gr_summary.png`](figures/finite_bar_gr_summary.png). |
@@ -34,24 +34,25 @@ cd finite_bar_gr_github
 pip install -r requirements.txt
 ```
 
-### 2. Run Individual Verification Modules (Modules 1–6, Tests 1–17)
+### 2. Run Individual Verification Modules (Modules 1–7, Tests 1–21)
 Each theoretical pillar can be verified independently:
 ```bash
-python tests/module_1_exterior_gr.py               # Module 1 (Tests 1-3): Weak-Field & Exterior GR
-python tests/module_2_core_regularization.py       # Module 2 (Tests 4-5): Core Regularization, SEC, & Kretschmann Bound
-python tests/module_3_stencil_isotropy.py          # Module 3 (Tests 6-8): 18/27-Pt Isotropy & Fermi-LAT Dispersion
-python tests/module_4_horizon_and_freezing.py      # Module 4 (Tests 9-13): Horizon Crossing, Cayley, & Stefan Freezing
-python tests/module_5_nonspherical_and_spin.py     # Module 5 (Tests 14-15): 3D Gauss-Poynting Flux & Spinning Kerr-Doran
-python tests/module_6_quantum_and_thermodynamics.py # Module 6 (Tests 16-17): Quantum Unitarity & Remnant Thermodynamics
+python tests/module_1_exterior_gr.py                    # Module 1 (Tests 1-3): Weak-Field & Exterior GR
+python tests/module_2_core_regularization.py            # Module 2 (Tests 4-5): Core Regularization, SEC, & Kretschmann Bound
+python tests/module_3_stencil_isotropy.py               # Module 3 (Tests 6-8): 18/27-Pt Isotropy & Fermi-LAT Dispersion
+python tests/module_4_horizon_and_freezing.py           # Module 4 (Tests 9-13): Horizon Crossing, Cayley, & Stefan Freezing
+python tests/module_5_nonspherical_and_spin.py          # Module 5 (Tests 14-15): 3D Gauss-Poynting Flux & Spinning Kerr-Doran
+python tests/module_6_quantum_and_thermodynamics.py      # Module 6 (Tests 16-17): Quantum Unitarity & Remnant Thermodynamics
+python tests/module_7_strong_field_and_observables.py    # Module 7 (Tests 18-21): Raindrop Geodesics, Israel Junctions, QNMs, & Echoes
 ```
 
-### 3. Run the Master Verification Runner (All 10 Benchmarks + All 6 Modules / 17 Tests)
+### 3. Run the Master Verification Runner (All 10 Benchmarks + All 7 Modules / 21 Tests)
 ```bash
 python verify_core_finite_bar_gr.py
 ```
 Expected console confirmation:
 ```text
-ALL 6 MODULES (17 TESTS) PASSED: True
+ALL 7 MODULES (21 TESTS) PASSED: True
 ALL CORE FINITE-BAR GR TESTS PASSED: True
 ```
 
@@ -71,7 +72,7 @@ python generate_figures.py
 
 ---
 
-## The 6-Module, 17-Test Verification Architecture
+## The 7-Module, 21-Test Verification Architecture
 
 ### Module 1: Weak-Field & Exterior General Relativity Tests ([`tests/module_1_exterior_gr.py`](tests/module_1_exterior_gr.py))
 *Goal: Prove the discrete lattice reproduces standard 1915 General Relativity outside the black hole ($r \gg R_{\text{core}}$).*
@@ -125,3 +126,13 @@ python generate_figures.py
 | :--- | :--- | :--- |
 | **Test 16: Heisenberg Commutator, Ehrenfest, & Entanglement** | Verifies $[\hat{\Phi}_i(t), \hat{\Pi}_j(t)] = i\hbar\delta_{ij}$ over 200 horizon steps, Ehrenfest equivalence, branch superposition $2.0000$ bending, and Gaussian entanglement entropy $S_{\text{ent}} > 0$. | **PASSED** (`commutator drift = 4.12e-14`; Ehrenfest diff `0.0`; $S_{\text{ent}} = 1.110$) |
 | **Test 17: Hawking Surface Gravity, Specific Heat Flip, & First Law** | Verifies $\kappa(r_+) = \frac{c^2}{2r_+}(1 - 3\ell^2/r_+^2)$, peak $T_H$ at $r_+ = 3.0\ell$ ($C_M > 0$ below $3\ell$), $T_H(\sqrt{3}\ell) = 0$, and $c^2 dM = T_H dS_{\text{reg}}$. | **PASSED** ($\kappa$ identity `err = 2.78e-17`; $\kappa(\sqrt{3}\ell) = 0$; First Law `residual = 2.22e-16`) |
+
+### Module 7: Strong-Field Geodesics, Junction Conditions, Ringdown QNMs, & Wave Echoes ([`tests/module_7_strong_field_and_observables.py`](tests/module_7_strong_field_and_observables.py))
+*Goal: Prove infalling observers experience bounded tidal compression rather than spaghettification, verify exact Israel–Darmois junction continuity and Tolman virial balance, confirm LIGO ringdown quasinormal modes match 1915 GR, and demonstrate zero post-merger echoes alongside ergosphere Penrose negative Killing energy.*
+
+| Test | What is Verified in Code | Result |
+| :--- | :--- | :--- |
+| **Test 18: Painlevé–Gullstrand Raindrop Geodesic & Bounded Tidal Reversal** | Integrates $\frac{dr}{d\tau} = J(r)$ from $5\,r_s$ across $r_+$ to $R_{\text{core}}$ and evaluates radial geodesic deviation $\mathcal{A}_{\text{tidal}}/c^2 = -\frac{1}{2}f''(r)$. | **PASSED** ($g_{\mu\nu}u^\mu u^\nu = -c^2$ `err = 0.0`; finite $\tau_{\text{core}} = 200.89$; tidal stretching vanishes at $r_{\text{tidal}} = \left(\frac{7+3\sqrt{5}}{2}\right)^{1/3}R_{\text{core}} \approx 1.89955\,R_{\text{core}}$, flips to compression $-\frac{5}{8\ell^2}$ at $R_{\text{core}}$, and is bounded by $\frac{1}{\ell^2}$ at $r = 0$) |
+| **Test 19: Israel–Darmois Phase-Boundary Junction & Tolman Virial Integral** | Verifies $[f]^+_- = 0, [J]^+_- = 0$ ($\sigma_{\text{shell}} = 0$) and $[f']^+_- = \frac{8\pi G\rho_{\max}}{c^2}R_{\text{core}}$ at $r = R_{\text{core}}(M) = (r_s\ell^2)^{1/3}$, plus the 3D Tolman virial integral $\int_0^\infty 4\pi r^2(p_\theta - p_r)\,dr = \frac{3}{2}M c^2$. | **PASSED** ($[f]^+_- = 0.0$, $[J]^+_- = 4.44\times 10^{-16}$, $[f']^+_-$ `err = 0.0`, Tolman virial integral `rel err = 5.80e-15`) |
+| **Test 20: Regge–Wheeler $\ell = 2$ Barrier & WKB Quasinormal Mode Ringdown** | Evaluates the $\ell = 2$ Regge–Wheeler potential $V_{\text{RW}}(r) = f(r)\left(\frac{6}{r^2} - \frac{6GM(r)}{c^2 r^3}\right)$ and Schutz–Will WKB fundamental ringdown frequency $(\omega_R, \omega_I)$ against 1915 Schwarzschild GR. | **PASSED** ($r_{\text{peak}} = 1.6403882\,r_s$; relative QNM shift $\Delta\omega_R/\omega_R = 1.93\times 10^{-9}$, $\Delta\omega_I/\omega_I = 4.64\times 10^{-9}$ at $r_s/\ell = 10^4$) |
+| **Test 21: Time-Domain Wave-Echo Absence & Ergosphere Penrose Superradiance** | Evolves a radial wave packet reflecting off an outside-horizon shell ($R_{\text{shell}} = 1.15\,r_s > r_s$) vs. our inside-horizon frozen core ($R_{\text{core}} = 0.65\,r_s < r_s$), and constructs a negative-Killing-energy Penrose mode on the 3D 27-pt spinning lattice. | **PASSED** (Outside-horizon shell echo $= 0.0707 > 0$ vs. inside-horizon frozen core echo $= \mathbf{0.0}$; ergosphere Penrose mode has $E_{\text{comoving}} = +0.00645 > 0$ and $H_{\text{Killing}} = -0.00624 < 0$) |

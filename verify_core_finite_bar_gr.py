@@ -972,6 +972,7 @@ def main():
     from tests.module_4_horizon_and_freezing import run_module_4
     from tests.module_5_nonspherical_and_spin import run_module_5
     from tests.module_6_quantum_and_thermodynamics import run_module_6
+    from tests.module_7_strong_field_and_observables import run_module_7
 
     results = {
         "test_1_equivalence_principle_and_gr_bending": test_1_equivalence_principle_and_gr_bending(),
@@ -994,6 +995,7 @@ def main():
         "module_4_horizon_and_freezing": run_module_4(),
         "module_5_nonspherical_and_spin": run_module_5(),
         "module_6_quantum_and_thermodynamics": run_module_6(),
+        "module_7_strong_field_and_observables": run_module_7(),
     }
     modules_passed = all(
         modules[f"module_{k}_{name}"][f"module_{k}_passed"]
@@ -1004,11 +1006,12 @@ def main():
             (4, "horizon_and_freezing"),
             (5, "nonspherical_and_spin"),
             (6, "quantum_and_thermodynamics"),
+            (7, "strong_field_and_observables"),
         ]
     )
     all_passed = bool(core_passed and modules_passed)
-    results["modular_17_test_suite"] = modules
-    results["ALL_6_MODULES_17_TESTS_PASSED"] = bool(modules_passed)
+    results["modular_21_test_suite"] = modules
+    results["ALL_7_MODULES_21_TESTS_PASSED"] = bool(modules_passed)
     results["ALL_CORE_GR_TESTS_PASSED"] = bool(all_passed)
 
     out_path = os.path.join(
@@ -1019,7 +1022,7 @@ def main():
         json.dump(results, f, indent=2)
 
     print(json.dumps(results, indent=2))
-    print(f"\nALL 6 MODULES (17 TESTS) PASSED: {modules_passed}")
+    print(f"\nALL 7 MODULES (21 TESTS) PASSED: {modules_passed}")
     print(f"ALL CORE FINITE-BAR GR TESTS PASSED: {all_passed}")
 
 

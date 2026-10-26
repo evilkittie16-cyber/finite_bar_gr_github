@@ -104,7 +104,7 @@
     "symplectic_cayley_energy_drift_50steps": 6.451515520750494e-15,
     "lense_thirring_azimuthal_frame_drag_y_shift": -0.20598893815259722
   },
-  "modular_17_test_suite": {
+  "modular_21_test_suite": {
     "module_1_exterior_gr": {
       "test_01_dual_gauge_refractive_index_and_light_bending": {
         "passed": true,
@@ -285,8 +285,49 @@
         "remnant_entropy_S_reg_at_sqrt3_ell": -3.139081648207769e-15
       },
       "module_6_passed": true
+    },
+    "module_7_strong_field_and_observables": {
+      "test_18_raindrop_geodesic_proper_time_and_tidal_reversal": {
+        "passed": true,
+        "four_velocity_norm_error": 0.0,
+        "proper_time_from_5rs_to_Rcore": 200.88978709465533,
+        "schwarzschild_proper_time_reference": 200.5794513083144,
+        "tidal_zero_crossing_radius_over_Rcore": 1.8995476269516545,
+        "tidal_acceleration_at_zero_crossing": 4.120055080684046e-17,
+        "tidal_compression_at_Rcore_times_ell2": -0.625,
+        "tidal_magnitude_at_origin_times_ell2": 1.0,
+        "tidal_acceleration_far_exterior_positive": 1.3717232957908944e-06
+      },
+      "test_19_israel_darmois_junction_and_tolman_virial_integral": {
+        "passed": true,
+        "induced_metric_jump_at_Rcore": 0.0,
+        "river_velocity_jump_at_Rcore": 4.440892098500626e-16,
+        "sharp_extrinsic_derivative_jump_error": 0.0,
+        "tolman_anisotropy_virial_integral": 7.5000000000000435,
+        "expected_3_halves_Mc2": 7.5,
+        "tolman_virial_relative_error": 5.8027656753741514e-15
+      },
+      "test_20_regge_wheeler_barrier_and_quasinormal_mode_ringdown": {
+        "passed": true,
+        "r_peak_over_rs_GR": 1.6403882032022075,
+        "r_peak_over_rs_finite_bar": 1.6403881946707577,
+        "qnm_omega_R_times_rs_GR": 0.7976992118445339,
+        "qnm_omega_R_times_rs_finite_bar": 0.797699213381751,
+        "qnm_omega_I_times_rs_GR": 0.17657076286042672,
+        "qnm_omega_I_times_rs_finite_bar": 0.17657076204086472,
+        "relative_QNM_frequency_shift_at_rs_1e4_ell": 1.9270636206469472e-09,
+        "relative_QNM_damping_shift_at_rs_1e4_ell": 4.6415498711131415e-09
+      },
+      "test_21_wave_echo_absence_and_ergosphere_penrose_superradiance": {
+        "passed": true,
+        "outside_horizon_gravastar_echo_amplitude": 0.07071354393106688,
+        "inside_horizon_frozen_core_echo_amplitude": 0.0,
+        "ergosphere_penrose_mode_comoving_energy_positive": 0.006452042666279165,
+        "ergosphere_penrose_mode_killing_energy_negative": -0.0062425738565883085
+      },
+      "module_7_passed": true
     }
   },
-  "ALL_6_MODULES_17_TESTS_PASSED": true,
+  "ALL_7_MODULES_21_TESTS_PASSED": true,
   "ALL_CORE_GR_TESTS_PASSED": true
 }

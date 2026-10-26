@@ -42,7 +42,10 @@ jobs:
       - name: Run Module 6 (Quantum Unitarity & Remnant Thermodynamics Tests 16-17)
         run: python tests/module_6_quantum_and_thermodynamics.py
 
-      - name: Run Master Verification Suite (10 Core Benchmarks + 6 Modules / 17 Tests)
+      - name: Run Module 7 (Strong-Field Geodesics, Junctions, Ringdown QNMs, & Wave Echoes Tests 18-21)
+        run: python tests/module_7_strong_field_and_observables.py
+
+      - name: Run Master Verification Suite (10 Core Benchmarks + 7 Modules / 21 Tests)
         run: python verify_core_finite_bar_gr.py
 
       - name: Run 3D 25x25x25 Isotropic Lattice Freezing-Core Simulator
