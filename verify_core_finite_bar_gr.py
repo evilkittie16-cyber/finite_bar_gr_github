@@ -1189,22 +1189,27 @@ def build_claims_audit(results, modules):
                   "Bopp-Podolsky regularisation leaves a K ~ 1/r^2 tidal singularity (slope -2.002) and scalar flow lacks Kerr frame-dragging and spin-2 waves. "
                   "(4) Sakharov one-loop zero-point energy on the 18-pt Brillouin zone (Test 51) induces positive TT curvature stiffness (+0.1638, quadratic ratio 4.0000) "
                   "with ell / ell_P_ind = 0.594 sqrt(N_fields), but carries an unsubtracted O(hbar c / ell^4) vacuum energy (0.989) requiring bare cosmological-constant "
-                  "cancellation. (5) Simplicial Regge calculus (Test 52) satisfies the 3D tetrahedral Schlafli identity to 3.3e-9 and recovers both A(R) and a(R) "
-                  "at O(1/N^2) (p = 2.00, err 3.2e-6) by numerical variational stationarity dS_Regge/d(a,A) = 0, matching Jacobson's entanglement area deficit.")},
-        {"claim": "Simplicial Regge + Compact Holonomy foundation (Outcome 5): core bounce as Bragg reflection, variational interior star & de Sitter core, and 3D Kuhn diffeomorphism gauge invariance vs spin-2 waves",
-         "verdict": verdict(t53["passed"] and t54["passed"] and t55["passed"], yes="SUPPORTED (derived from numerical Regge & holonomy action gradients without hardcoding analytical Einstein/TOV differential equations; compact sin^2(ell*beta) holonomy and Regge action are the explicit discrete postulates)"),
-         "note": ("Module 14 (Tests 53-55): (1) Replacing the unbounded continuum extrinsic curvature beta^2 with the compact dihedral plaquette holonomy "
-                  "sin^2(ell*beta)/ell^2 in the canonical Hamiltonian H_hol(v, beta) and integrating Hamilton's equations purely by numerical finite differences "
-                  "(dv/dtau = +dH/dbeta, dbeta/dtau = -dH/dv) bounces a collapsing dust shell at R_core = (2Gm*ell^2/c^2)^(1/3) (rel err 1.5e-7) and "
-                  "rho_max = 3c^2/(8*pi*G*ell^2) (rel err 4.4e-7) via Bragg reflection dR/dtau ~ sin(2*theta_plaq) = 0 at the dihedral Brillouin-zone boundary "
-                  "theta_plaq = -pi/2, whereas unbounded beta^2 collapses to v -> 0 (Test 53). (2) Coupling the radial Regge action S_Regge to the Schutz-Brown "
-                  "relativistic fluid action L_fluid = 4*pi*R^2*rho_0*c^2*A*(a_surf - a) and solving numerical variational stationarity dS_total/d(a_s, A_v) = 0 "
-                  "recovers both the regular de Sitter Planck core (p_A = 2.01, p_a = 1.99, err 1.0e-5) and Schwarzschild's 1916 constant-density interior star "
-                  "(p_A = 2.01, p_p = 1.99, err_A 5.4e-6, err_a 7.4e-6, err_p 5.2e-5 at N=200) without hardcoding TOV differential equations (Test 54). "
-                  "(3) On a 3D periodic Kuhn simplicial complex (L=4: 384 tetrahedra, 448 edges built from the 18-pt axial + face-diagonal bars plus body diagonals), "
-                  "S_Regge^3D = sum_e ell_e * delta_e is invariant under arbitrary 3D vertex coordinate displacements u_i (deficit 3.6e-15, action shift 1.2e-13, "
-                  "vertex force 6.5e-9 vs Hooke force 0.406), proving exact discrete 3D diffeomorphism gauge invariance, while responding quadratically "
-                  "(ratio = 4.0025, max deficit 0.0338 rad) to incompatible 3D transverse-traceless spin-2 metric waves h_xy(z) = eps*cos(2*pi*z/L) (Test 55).")},
+                  "cancellation. (5) Simplicial Regge calculus (Test 52) satisfies the 3D tetrahedral Schlafli identity to 3.3e-9; separately, numerical "
+                  "stationarity of a discretised minisuperspace Einstein-Hilbert action (1/2 reduced sqrt(-g) R; not a simplicial Regge action) recovers A(R) and "
+                  "a(R) at O(1/N^2) (p = 2.00, err 3.2e-6), so the Einstein equations are reproduced by construction of the action. The 1 - 1/A^2 = r_s/R "
+                  "'Jacobson area deficit' check is the Schwarzschild g_rr identity.")},
+        {"claim": "Outcome 5 pieces (Tests 53-55): polymerised-holonomy bounce, variational interior star & de Sitter region, 3D Kuhn Regge gauge zero modes and static TT curvature",
+         "verdict": verdict(t53["passed"] and t54["passed"] and t55["passed"], yes="PARTLY SUPPORTED (numerics correct; Tests 53-54 are continuum effective-LQC / minisuperspace Einstein-Hilbert computations with postulated inputs, not a lattice derivation of GR; Test 55 is genuine 3D Euclidean Regge calculus, static only)"),
+         "note": ("Module 14 (Tests 53-55), after independent symbolic/numerical audit: (1) Test 53: with the POSTULATED effective-LQC substitution beta^2 -> "
+                  "sin^2(ell*beta)/ell^2, Hamilton's equations (finite-difference gradients) reproduce the Module 9 V2 law (Rdot/R)^2 = (2Gm/R^3)(1 - 2Gm ell^2/R^3) "
+                  "(residual 5.2e-8) and reach R_core = (2Gm ell^2)^(1/3) (1.5e-7, dt-limited) at ell*beta = -pi/2. R_core and rho_max follow algebraically from "
+                  "sin^2 <= 1 and are fixed by the chosen normalisation (4 sin^2(ell*beta/2)/ell^2 gives rho_max 4x larger); 'Bragg reflection' is an analogy "
+                  "(H periodic in beta). Standard effective LQC (Ashtekar-Pawlowski-Singh 2006; Kelly-Santacruz-Wilson-Ewing 2020). "
+                  "(2) Test 54: the action L = -2a(R/A)' + a(A + 1/A) is exactly 1/2 of the reduced sqrt(-g) R (verified symbolically: EL equations = "
+                  "-R^2 A G^t_t, -R^2 a G^r_r); it is a discretised minisuperspace Einstein-Hilbert action, not simplicial Regge, so its stationary points are "
+                  "Einstein's equations by construction. Matter = kappa sqrt(-g) p (Schutz 1970) with p = -rho_max (de Sitter) or incompressible p(a) = "
+                  "rho_0(a_surf/a - 1) (input EOS). O(1/N^2): de Sitter (R <= 0.8 ell only; static patch ends at R = ell) err_A 1.0e-5, err_a 6.2e-6; "
+                  "1916 star (compaction 0.5, outer BC a(R_star) = a_surf only) err_A 5.4e-6, err_a 1.1e-5, err_p 7.4e-5, orders 2.01/2.00/2.00. "
+                  "(3) Test 55: periodic Kuhn complex (384 tets, 448 edges, vertex degree 14 - not the 18-pt stencil). Finite vertex shifts of flat space "
+                  "leave deficits (3.6e-15) and S (1.2e-13) unchanged; on a curved TT background the same shifts change S (6.3e-6), i.e. exact gauge "
+                  "symmetry only around flat space (Bahr-Dittrich). A static TT deformation h_xy = eps cos(2 pi z/L) gives Delta S_Regge / [(1/2) int sqrt(g) R] "
+                  "= 0.950, 0.987, 0.997 for L = 4, 8, 16 (order 2.0): the 3D Regge action reproduces the continuum spatial curvature action. 3D Euclidean, "
+                  "no time evolution: not a gravitational-wave or 3+1D result. The Regge vertex force (6.5e-9 vs Hooke 0.406) follows from flatness.")},
     ]
 
 

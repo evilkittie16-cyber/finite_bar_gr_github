@@ -678,6 +678,34 @@ def _tetrahedron_dihedral_angles_from_lengths(L_mat: np.ndarray) -> np.ndarray:
     return theta_mat
 
 
+_TET_PAIRS = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+
+
+def _tetrahedron_dihedral_angles_batch(L_pairs: np.ndarray) -> np.ndarray:
+    """
+    Vectorised version of `_tetrahedron_dihedral_angles_from_lengths` for many tetrahedra.
+    L_pairs has shape (T, 6) with edge lengths ordered as _TET_PAIRS; returns (T, 6) interior
+    dihedral angles along the same edges. Uses cofactor ratios C_rs / sqrt(C_rr C_ss) of the
+    Cayley-Menger matrix via C = det(M) inv(M)^T (agrees with the loop version to ~1e-16).
+    """
+    nT = L_pairs.shape[0]
+    M = np.ones((nT, 5, 5), dtype=float)
+    M[:, 0, 0] = 0.0
+    for i in range(4):
+        M[:, i + 1, i + 1] = 0.0
+    for k, (p, q) in enumerate(_TET_PAIRS):
+        M[:, p + 1, q + 1] = L_pairs[:, k] ** 2
+        M[:, q + 1, p + 1] = L_pairs[:, k] ** 2
+    inv = np.linalg.inv(M)
+    sgn = np.sign(np.linalg.det(M))
+    out = np.zeros((nT, 6), dtype=float)
+    for k, (p, q) in enumerate(_TET_PAIRS):
+        r, s = sorted({0, 1, 2, 3} - {p, q})
+        c = sgn * inv[:, s + 1, r + 1] / np.sqrt(inv[:, r + 1, r + 1] * inv[:, s + 1, s + 1])
+        out[:, k] = np.arccos(np.clip(c, -1.0, 1.0))
+    return out
+
+
 def audit_simplicial_regge_variational_and_jacobson_deficit(
     N_list=(50, 100, 200),
     r_s: float = 1.0,
@@ -880,34 +908,30 @@ def audit_simplicial_regge_variational_and_jacobson_deficit(
 # ============================================================================
 def audit_bounded_holonomy_regge_core_bounce(m: float = 5.0, ell: float = 1.0) -> dict:
     """
-    Derive the Planck density cap rho_max = 3 c^2 / (8 pi G ell^2) and core bounce radius
-    R_core = (2 G m ell^2 / c^2)^{1/3} directly from Hamilton's canonical equations of a
-    periodic trigonometric plaquette / dihedral holonomy Hamiltonian (with NO analytical
-    bounce radius or effective-LQC ODE hardcoded):
+    Hamiltonian origin of the bounce at R_core = (2 G m ell^2 / c^2)^{1/3} from the POSTULATED
+    compact ("polymerised") curvature term sin^2(ell beta)/ell^2, integrated with Hamilton's
+    equations evaluated by numerical finite differences (G = c = 1).
 
-    In canonical Darboux coordinates:
-        v = R^3 / (3 G)   (proper shell volume variable, dv = R^2 dR / G),
-        beta = b / R      (conjugate extrinsic dihedral curvature per unit radius, {v, beta} = 1),
-    the dihedral parallel-transport angle around a Planck plaquette of area ell^2 is:
-        theta_plaq = ell * beta.
-    Replacing the unbounded continuum quadratic curvature (theta_plaq / ell)^2 = beta^2 with the
-    compact SU(2)/SO(3) plaquette trace sin^2(theta_plaq) / ell^2 = sin^2(ell * beta) / ell^2
-    yields the compact holonomy Hamiltonian:
-        H_hol(v, beta) = (3 v / (2 ell^2)) * sin^2(ell * beta) - m.
+    Canonical pair: v = R^3 / (3 G), beta conjugate ({v, beta} = 1). The continuum dust-ball
+    (Oppenheimer-Snyder / Friedmann) constraint is H_cont = (3/2) v beta^2 - m = 0. Replacing
+    beta^2 -> sin^2(ell beta)/ell^2 (the effective-LQC holonomy substitution of Ashtekar, Pawlowski &
+    Singh 2006; Kelly, Santacruz & Wilson-Ewing 2020) gives
+        H_hol(v, beta) = (3 v / (2 ell^2)) sin^2(ell beta) - m.
 
-    We integrate (v(tau), beta(tau)) purely using numerical central finite differences of H_hol(v, beta):
-        dv / dtau = + dH_hol / dbeta,
-        dbeta / dtau = - dH_hol / dv,
-    and verify that:
-      1. As the shell falls inward, theta_plaq(tau) = ell * beta(tau) decreases monotonically
-         to the gravitational Brillouin-zone boundary theta_plaq = -pi / 2, where the radial
-         group velocity dR/dtau = (R / (2 ell)) sin(2 theta_plaq) vanishes (Bragg reflection in
-         extrinsic-curvature space!) and reverses sign onto the outgoing bounce branch.
-      2. At the numerically integrated turning point, R_min matches (2 G m ell^2)^{1/3} to < 1e-9,
-         mean density bar_rho_max = m / ((4/3) pi R_min^3) matches rho_max = 3 / (8 pi ell^2) to < 1e-9,
-         and theta_plaq(tau_bounce) matches -pi / 2 to < 1e-5.
-      3. By contrast, integrating the unbounded continuum Hamiltonian H_cont(v, beta) = (3/2) v beta^2 - m
-         with the exact same numerical Hamilton solver hits v -> 0 (R -> 0 singularity) in finite time.
+    HONEST SCOPE:
+      * R_min^3 = 2 G m ell^2 and rho_max = 3 / (8 pi G ell^2) follow ALGEBRAICALLY from H_hol = 0 and
+        sin^2 <= 1; they are fixed by the chosen normalisation of the polymerisation (e.g.
+        4 sin^2(ell beta / 2)/ell^2, which also -> beta^2 as ell -> 0, gives rho_max 4x larger).
+        The numerical integration only confirms that the trajectory actually reaches that bound.
+      * Hamilton's equations give (Rdot/R)^2 = (2Gm/R^3)(1 - 2Gm ell^2/R^3): exactly the effective-LQC
+        law imposed per shell in Module 9 (V2). This test supplies its Hamiltonian origin; it is not
+        a new bounce mechanism and it is a continuum ODE in tau (no lattice spatial structure enters).
+      * "Bragg reflection" is an analogy: H_hol is periodic in beta with period pi/ell, and
+        dv/dtau = (3v/(2 ell)) sin(2 ell beta) vanishes at the edge ell*beta = -pi/2 of that zone.
+
+    Checks: R_min and rho_max vs. the algebraic values (limited by dt sampling of the turning point),
+    theta_plaq at the bounce vs -pi/2, Hamiltonian-constraint drift, the effective-Friedmann law along
+    the numerical trajectory, and collapse to v -> 0 for the unbounded H_cont.
     """
     R0 = 8.0
     v0 = (R0 ** 3) / 3.0
@@ -957,11 +981,22 @@ def audit_bounded_holonomy_regge_core_bounce(m: float = 5.0, ell: float = 1.0) -
     v_min = v0
     theta_at_bounce = ell * b_curr
     max_H_drift = 0.0
+    max_friedmann_residual = 0.0
+    R_core_cubed = 2.0 * m * (ell ** 2)
 
     for _ in range(12000):
         v_prev, b_prev = v_curr, b_curr
         v_curr, b_curr = rk4_step(v_curr, b_curr, dt)
         max_H_drift = max(max_H_drift, abs(H_hol(v_curr, b_curr)))
+        # Effective-Friedmann check along the numerical trajectory:
+        # (Rdot/R)^2 = (vdot / (3 v))^2 vs (2 m / R^3) (1 - 2 m ell^2 / R^3)  [Module 9, V2]
+        _, dH_db_now = grad_H_hol(v_curr, b_curr)
+        R_now3 = 3.0 * v_curr
+        hubble2_num = (dH_db_now / (3.0 * v_curr)) ** 2
+        hubble2_lqc = (2.0 * m / R_now3) * (1.0 - R_core_cubed / R_now3)
+        max_friedmann_residual = max(
+            max_friedmann_residual, abs(hubble2_num - hubble2_lqc) / (2.0 * m / R_now3)
+        )
         if v_curr < v_min:
             v_min = v_curr
             theta_at_bounce = ell * b_curr
@@ -1000,7 +1035,10 @@ def audit_bounded_holonomy_regge_core_bounce(m: float = 5.0, ell: float = 1.0) -
         "brillouin_zone_half_pi_exact": -0.5 * math.pi,
         "abs_err_theta_plaq_bounce": abs(theta_at_bounce - (-0.5 * math.pi)),
         "max_hamiltonian_constraint_drift": max_H_drift,
+        "max_rel_residual_vs_module9_effective_lqc_friedmann_law": max_friedmann_residual,
         "unbounded_continuum_H_collapsed_to_singularity": collapsed_to_singularity,
+        "rho_max_set_by_polymerisation_normalisation": True,
+        "alt_normalisation_4sin2_half_rho_max_factor": 4.0,
     }
 
 
@@ -1012,14 +1050,29 @@ def audit_variational_regge_interior_star_and_desitter_core(
     N_list=(50, 100, 200),
 ) -> dict:
     """
-    Extend the pure numerical finite-difference variational stationarity dS/da_s == 0, dS/dA_v == 0
+    Extend the numerical finite-difference variational stationarity dS/da_s == 0, dS/dA_v == 0
     of Test 52 from the exterior vacuum into:
-      (A) A Planck-saturated de Sitter core (rho = rho_max = 3 c^2 / (8 pi G ell^2), p_r = -rho_max c^2)
-          where matter enters S_Regge purely through the proper volume element -int 4 pi R^2 rho_max a A dR.
-      (B) Karl Schwarzschild's (1916) constant-density interior star (compaction 2GM/(c^2 R_star) = 0.5)
-          via the Schutz-Brown relativistic fluid action L_fluid = 4 pi R^2 rho_0 c^2 A (a_surf - a).
-    In both cases, NO analytical Einstein/TOV differential equations are hardcoded: A_v and a_s are
-    found solely by zeroing the numerical finite-difference partial derivatives of the scalar action!
+      (A) a de Sitter region (rho = rho_max = 3 c^2 / (8 pi G ell^2), p_r = -rho_max c^2), and
+      (B) Karl Schwarzschild's (1916) constant-density interior star (compaction 2GM/(c^2 R_star) = 0.5).
+
+    HONEST SCOPE (verified symbolically in the audit):
+      * The geometric Lagrangian L = -2 a (R/A)' + a (A + 1/A) is exactly 1/2 of the static,
+        spherically symmetric reduction of sqrt(-g) R (up to a total derivative): its Euler-Lagrange
+        equations are -R^2 A * G^t_t and -R^2 a * G^r_r. It is a discretised minisuperspace
+        Einstein-Hilbert action on radial shells, NOT a simplicial Regge action (no deficit angles).
+        "No Einstein equations hardcoded" is true only in the sense that the action, not its field
+        equations, is coded; the stationary points are Einstein's equations by construction.
+      * Matter enters as kappa sqrt(-g) p (Schutz 1970 "pressure as Lagrangian"):
+        de Sitter: p = -rho_max  ->  -kappa R^2 rho_max a A;
+        incompressible fluid: p(a) = rho_0 (a_surf/a - 1) (Tolman redshift of the chemical potential)
+        -> kappa rho_0 R^2 A (a_surf - a). The incompressible equation of state is an input.
+      * The static de Sitter patch exists only for R < ell (A -> infinity at R = ell, the Hayward inner
+        horizon r_- ~ ell). Part A therefore resolves a region smaller than one lattice spacing with
+        dR = 0.004 ell: it is a continuum-limit consistency check, not Planck-lattice physics, and it
+        does not describe a static core of size R_core >> ell (none exists; cf. Test 34).
+      * Lapse normalisation: in Part A a(R) is fixed up to a constant (time rescaling, pure gauge);
+        in Part B a(R_star) = a_surf is imposed from exterior matching, with the half-cell offset to the
+        outer shell centre taken from the discrete A_v[N] (no exact interior solution used).
     """
     h_fd = 1e-7
 
@@ -1194,8 +1247,12 @@ def audit_variational_regge_interior_star_and_desitter_core(
         # Step inward from k = N-1 down to 0 using boundary condition a(R_star) = a_surf:
         # At outer boundary R_star, a_surf is known; solve d(L_{k-1} + L_k) / dA_v[k] == 0 inward for a_shell[k-1]!
         a_shell = np.zeros(N, dtype=float)
-        # Outer shell midpoint R_mid[-1] clock rate from 1-step Taylor of a_surf:
-        a_shell[-1] = 1.5 * a_surf - 0.5 * np.sqrt(1.0 - compaction * ((R_mid[-1] / R_star) ** 2))
+        # Boundary condition a(R_star) = a_surf (exterior Schwarzschild matching). Offset to the outer
+        # shell centre R_star - dR/2 uses the surface (p = 0) lapse gradient a'/a = (A^2 - 1)/(2R)
+        # evaluated with the DISCRETE A_v[N] (O(dR^2) one-off boundary error; no interior solution used).
+        A_surf_num = A_v[-1]
+        dlna_dR_surf = (A_surf_num ** 2 - 1.0) / (2.0 * R_star)
+        a_shell[-1] = a_surf * math.exp(-0.5 * dR * dlna_dR_surf)
         for k in range(N - 1, 0, -1):
             a_left = a_shell[k]
             for _ in range(10):
@@ -1240,12 +1297,18 @@ def audit_variational_regge_interior_star_and_desitter_core(
     p_star_A = math.log(star_errors_A[-2] / star_errors_A[-1]) / math.log(
         N_list[-1] / N_list[-2]
     )
+    p_star_a = math.log(star_errors_a[-2] / star_errors_a[-1]) / math.log(
+        N_list[-1] / N_list[-2]
+    )
     p_star_p = math.log(star_errors_p[-2] / star_errors_p[-1]) / math.log(
         N_list[-1] / N_list[-2]
     )
 
     return {
         "N_list": list(N_list),
+        "action_is_reduced_einstein_hilbert_minisuperspace_not_simplicial_regge": True,
+        "star_compaction_2GM_over_c2R": compaction,
+        "desitter_region_R_max_over_ell": R_core_max / ell,
         "desitter_core_errors_A": core_errors_A,
         "desitter_core_errors_a": core_errors_a,
         "desitter_core_order_A": p_core_A,
@@ -1254,6 +1317,7 @@ def audit_variational_regge_interior_star_and_desitter_core(
         "schwarzschild_star_errors_a": star_errors_a,
         "schwarzschild_star_errors_p": star_errors_p,
         "schwarzschild_star_order_A": p_star_A,
+        "schwarzschild_star_order_a": p_star_a,
         "schwarzschild_star_order_p": p_star_p,
     }
 
@@ -1262,6 +1326,88 @@ def audit_variational_regge_interior_star_and_desitter_core(
 # 8. Outcome 5 Piece 3: Full 3D Periodic Kuhn-Triangulated Regge Complex —
 #    Nonlinear Diffeomorphism Gauge Invariance vs. Spin-2 Curvature Stiffness
 # ============================================================================
+_KUHN_DIRS = [(1, 0, 0), (0, 1, 0), (0, 0, 1), (1, 1, 0), (1, 0, 1), (0, 1, 1), (1, 1, 1)]
+
+
+def _build_periodic_kuhn_complex(L: int):
+    """Return (tet_pairs (T,6) global edge ids ordered as _TET_PAIRS, edge base vertex (E,3), edge vector (E,3))."""
+    dir_id = {d: k for k, d in enumerate(_KUHN_DIRS)}
+    perms = [(0, 1, 2), (0, 2, 1), (1, 0, 2), (1, 2, 0), (2, 0, 1), (2, 1, 0)]
+    tets = []
+    for p0, p1, p2 in perms:
+        e0 = [0, 0, 0]
+        e0[p0] = 1
+        e1 = list(e0)
+        e1[p1] = 1
+        tets.append(((0, 0, 0), tuple(e0), tuple(e1), (1, 1, 1)))
+
+    def eid(v, d):
+        return (((v[0] % L) * L + v[1] % L) * L + v[2] % L) * 7 + dir_id[d]
+
+    tet_pairs = []
+    for ix in range(L):
+        for iy in range(L):
+            for iz in range(L):
+                for tet in tets:
+                    va = [(ix + a, iy + b, iz + c) for a, b, c in tet]
+                    tet_pairs.append([
+                        eid(va[p], (va[q][0] - va[p][0], va[q][1] - va[p][1], va[q][2] - va[p][2]))
+                        for p, q in _TET_PAIRS
+                    ])
+    n_e = 7 * L ** 3
+    base = np.zeros((n_e, 3), dtype=int)
+    dvec = np.zeros((n_e, 3), dtype=float)
+    for ix in range(L):
+        for iy in range(L):
+            for iz in range(L):
+                for d in _KUHN_DIRS:
+                    e = eid((ix, iy, iz), d)
+                    base[e] = (ix, iy, iz)
+                    dvec[e] = d
+    return np.array(tet_pairs, dtype=int), base, dvec
+
+
+def _kuhn_regge_action(lengths: np.ndarray, tet_pairs: np.ndarray):
+    th = _tetrahedron_dihedral_angles_batch(lengths[tet_pairs])
+    sums = np.zeros(lengths.size, dtype=float)
+    np.add.at(sums, tet_pairs.ravel(), th.ravel())
+    deficits = 2.0 * math.pi - sums
+    return float(np.sum(lengths * deficits)), deficits
+
+
+def _kuhn_lengths_from_metric(metric_fn, base, dvec, L, u=None):
+    """Edge lengths l^2 = dx^T g(x_mid) dx, optionally after vertex displacements u (L,L,L,3)."""
+    x0 = base.astype(float)
+    x1 = x0 + dvec
+    if u is not None:
+        j = (base + dvec.astype(int)) % L
+        x0 = x0 + u[base[:, 0], base[:, 1], base[:, 2]]
+        x1 = x1 + u[j[:, 0], j[:, 1], j[:, 2]]
+    dx = x1 - x0
+    g = metric_fn(0.5 * (x0 + x1))
+    return np.sqrt(np.einsum("ei,eij,ej->e", dx, g, dx))
+
+
+def _tt_metric_fn(eps_amp: float, L: int):
+    kz = 2.0 * math.pi / L
+
+    def f(mid):
+        h = eps_amp * np.cos(kz * mid[:, 2])
+        g = np.zeros((mid.shape[0], 3, 3))
+        g[:, 0, 0] = np.cosh(h)
+        g[:, 1, 1] = np.cosh(h)
+        g[:, 0, 1] = np.sinh(h)
+        g[:, 1, 0] = np.sinh(h)
+        g[:, 2, 2] = 1.0
+        return g
+
+    return f
+
+
+def _flat_metric_fn(mid):
+    return np.broadcast_to(np.eye(3), (mid.shape[0], 3, 3))
+
+
 def audit_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2(L: int = 4) -> dict:
     """
     Construct an exact 3D periodic Kuhn simplicial complex on an L x L x L cubic lattice
@@ -1270,17 +1416,24 @@ def audit_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2(L: int = 4) -> dict:
         S_Regge_3D({l_e}) = sum_{edges e} l_e * (2 pi - sum_{tau supset e} theta_{tau, e}({l_m}))
     using Cayley-Menger dihedral angles on every tetrahedron.
 
-    Proves two fundamental 3D properties that distinguish Outcome 5 (Regge) from Hooke's law:
-      1. Exact 3D Nonlinear Diffeomorphism Invariance on Vertex Displacements u_i:
-         Under any 3D vertex displacement field x_i -> x_i + u_i in R^3, all 7 L^3 bar lengths
-         change (so Hooke's-law spring energy E_Hooke(u) = 1/2 sum_e (l_e(u) - l_{e,0})^2 > 0
-         and Hooke's-law forces -dE_Hooke/du_i != 0 are large), YET every dihedral deficit angle
-         delta_e(u) == 0 to ~1e-14 and the Regge vertex force -dS_Regge_3D/du_i == 0 to ~1e-13!
-      2. Non-Zero Quadratic Curvature Action on Incompatible 3D Spin-2 Metric Waves:
-         Under an incompatible transverse-traceless spin-2 metric perturbation h_{xy}(z) = eps cos(2 pi z / L)
-         (modifying squared edge lengths by dl_e^2 = d_e^T h(x_mid) d_e, which cannot come from any
-         flat-space vertex shift u_i), the deficit angles delta_e != 0 become non-zero and the
-         second-order Regge action shift Delta S_Regge_3D(eps) scales quadratically (Delta S(2 eps)/Delta S(eps) = 4.000).
+    HONEST SCOPE (added after audit):
+      * The Kuhn complex is NOT the 18-point stencil: every vertex has degree 14 (6 axial, 6 of the 12
+        face diagonals - one diagonal per face - and 2 of the 8 body diagonals). It singles out the
+        (1,1,1) direction, so it is not cubically symmetric.
+      * S_Regge_3D is 3D Euclidean Regge gravity = (1/2) int sqrt(g) ^(3)R, i.e. the spatial-curvature
+        (potential) term of the ADM Hamiltonian. There is no time direction here and 3D gravity has no
+        propagating gravitons: the TT deformation is a STATIC spatial metric, not a wave.
+      * Vertex displacements of a FLAT configuration are exact zero modes (deficits stay 0 to all orders).
+        This exact symmetry is a property of flat configurations only: on a curved background vertex
+        displacements change S (here between O(u) and O(u^2); broken discrete diffeomorphisms, Bahr &
+        Dittrich 2009), measured below.
+      * Because flat space solves the vacuum Regge equations (dS/dl_e = delta_e = 0 by Schlafli), the
+        first derivative of S vanishes for EVERY edge-length variation at a flat configuration, including
+        curvature-producing ones. The vanishing vertex force is therefore a consequence of flatness, not
+        independent evidence of gauge invariance; the evidence is that FINITE displacements leave every
+        deficit and S unchanged, whereas the TT deformation changes S at O(eps^2).
+      * Genuine quantitative check: Delta S_Regge for h_xy = eps cos(2 pi z/L) is compared with the
+        continuum Fierz-Pauli value (1/2) int sqrt(g) R = -(1/8) eps^2 k^2 L^3, with a resolution study.
     """
     # 6 permutations of (0, 1, 2) defining the 6 Kuhn tetrahedra inside each unit cube [0,1]^3:
     perms = [
@@ -1454,10 +1607,70 @@ def audit_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2(L: int = 4) -> dict:
     max_deficit_tt_wave = float(np.max(np.abs(def_tt_1)))
     tt_regge_quadratic_ratio = abs(S_tt_2 - S0_regge) / max(abs(S_tt_1 - S0_regge), 1e-30)
 
+    # --- Audit additions ---------------------------------------------------------------
+    # (a) Vertex degree of the Kuhn complex (vs 18 for the 18-point stencil)
+    degree = np.zeros(L ** 3, dtype=int)
+    for ix in range(L):
+        for iy in range(L):
+            for iz in range(L):
+                for d_off in edge_dirs:
+                    i_lin = (ix * L + iy) * L + iz
+                    jx, jy, jz = (ix + d_off[0]) % L, (iy + d_off[1]) % L, (iz + d_off[2]) % L
+                    degree[i_lin] += 1
+                    degree[(jx * L + jy) * L + jz] += 1
+    kuhn_vertex_degrees = sorted(set(degree.tolist()))
+
+    # (b) Continuum comparison and resolution study: Delta S_Regge vs (1/2) int sqrt(g) R
+    #     = -(1/8) eps^2 k^2 L^3 for the TT deformation h_xy = eps cos(2 pi z / L), k = 2 pi / L.
+    eps_c = 0.04
+    continuum_L_list = [4, 8, 16]
+    continuum_ratios = []
+    for L_c in continuum_L_list:
+        tp_c, base_c, dvec_c = _build_periodic_kuhn_complex(L_c)
+        S_flat_c, _ = _kuhn_regge_action(
+            _kuhn_lengths_from_metric(_flat_metric_fn, base_c, dvec_c, L_c), tp_c
+        )
+        S_tt_c, _ = _kuhn_regge_action(
+            _kuhn_lengths_from_metric(_tt_metric_fn(eps_c, L_c), base_c, dvec_c, L_c), tp_c
+        )
+        k_c = 2.0 * math.pi / L_c
+        continuum_value = -0.125 * eps_c ** 2 * k_c ** 2 * L_c ** 3
+        continuum_ratios.append(float((S_tt_c - S_flat_c) / continuum_value))
+    # O((k ell)^2) approach to 1: order from the last two resolutions (k ell halves)
+    continuum_ratio_order = math.log(
+        abs(1.0 - continuum_ratios[-2]) / abs(1.0 - continuum_ratios[-1])
+    ) / math.log(2.0)
+
+    # (c) Vertex-displacement symmetry on flat vs curved (TT, eps = 0.08) backgrounds, L = 8
+    L_g = 8
+    tp_g, base_g, dvec_g = _build_periodic_kuhn_complex(L_g)
+    u_dir = np.random.default_rng(7).normal(size=(L_g, L_g, L_g, 3))
+    gauge_shift = {}
+    for name, mfn in [("flat", _flat_metric_fn), ("tt_curved", _tt_metric_fn(0.08, L_g))]:
+        S_ref, _ = _kuhn_regge_action(_kuhn_lengths_from_metric(mfn, base_g, dvec_g, L_g), tp_g)
+        shifts = []
+        for sig in (0.01, 0.02):
+            S_u, _ = _kuhn_regge_action(
+                _kuhn_lengths_from_metric(mfn, base_g, dvec_g, L_g, u=sig * u_dir), tp_g
+            )
+            shifts.append(float(S_u - S_ref))
+        gauge_shift[name] = shifts
+    S_tt_g, _ = _kuhn_regge_action(
+        _kuhn_lengths_from_metric(_tt_metric_fn(0.08, L_g), base_g, dvec_g, L_g), tp_g
+    )
+    S_flat_g, _ = _kuhn_regge_action(
+        _kuhn_lengths_from_metric(_flat_metric_fn, base_g, dvec_g, L_g), tp_g
+    )
+    curved_gauge_breaking_relative = abs(gauge_shift["tt_curved"][0]) / abs(S_tt_g - S_flat_g)
+    curved_gauge_breaking_scaling = abs(gauge_shift["tt_curved"][1]) / abs(gauge_shift["tt_curved"][0])
+
     return {
         "L": L,
         "num_tetrahedra": len(tet_edge_ids),
         "num_edges": n_edges,
+        "kuhn_vertex_degrees": kuhn_vertex_degrees,
+        "is_18_point_stencil": False,
+        "is_3d_euclidean_static_not_wave_dynamics": True,
         "flat_space_max_deficit": float(np.max(np.abs(deficits_0))),
         "diffeo_displaced_max_deficit": max_deficit_under_diffeo,
         "diffeo_regge_action_shift": abs(S_u_regge - S0_regge),
@@ -1468,6 +1681,13 @@ def audit_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2(L: int = 4) -> dict:
         "tt_spin2_regge_action_eps_004": S_tt_1 - S0_regge,
         "tt_spin2_regge_action_eps_008": S_tt_2 - S0_regge,
         "tt_spin2_regge_quadratic_ratio": tt_regge_quadratic_ratio,
+        "tt_continuum_fierz_pauli_L_list": continuum_L_list,
+        "tt_regge_over_continuum_half_int_sqrtg_R": continuum_ratios,
+        "tt_regge_over_continuum_convergence_order": continuum_ratio_order,
+        "gauge_dS_flat_background_sigma_001_002": gauge_shift["flat"],
+        "gauge_dS_curved_tt_background_sigma_001_002": gauge_shift["tt_curved"],
+        "curved_background_gauge_breaking_relative_to_tt_action": curved_gauge_breaking_relative,
+        "curved_background_gauge_breaking_scaling_2x_sigma": curved_gauge_breaking_scaling,
     }
 
 

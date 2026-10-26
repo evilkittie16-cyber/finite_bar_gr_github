@@ -8,9 +8,9 @@ foundational pieces of Outcome 5 (Simplicial Regge Calculus + Compact Holonomy, 
   - Test 50: 3D 18-Point Lattice Poisson + Bernoulli Superfluid Condensate Flow & Bopp-Podolsky UV Audit
   - Test 51: Sakharov One-Loop Quantum Zero-Point Energy (Induced Gravity) on the 18-Point Brillouin Zone
   - Test 52: Exact 3D Simplicial Regge Calculus (Cayley-Menger, Schlafli Identity, Exterior Variational Stationarity & Jacobson Area Deficit)
-  - Test 53: Bounded Trigonometric Holonomy / Regge Action Deriving the Planck Density Cap (rho_max) and Core Bounce (R_core) via Extrinsic-Curvature Bragg Reflection
-  - Test 54: Variational Regge + Matter Derivation of Karl Schwarzschild's (1916) Interior Star and the Regular de Sitter Core
-  - Test 55: Full 3D Periodic Kuhn-Regge Complex — Nonlinear Diffeomorphism Gauge Invariance (dS_Regge/du_i == 0) vs. Spin-2 Curvature Stiffness
+  - Test 53: Polymerised (effective-LQC) Hamiltonian sin^2(ell beta)/ell^2: Hamiltonian origin of the Module 9 bounce law (R_core, rho_max fixed by the postulated normalisation)
+  - Test 54: Discretised minisuperspace Einstein-Hilbert + Schutz fluid action: de Sitter region (R < ell) and Schwarzschild (1916) interior star by numerical stationarity
+  - Test 55: 3D periodic Kuhn Regge complex (degree-14, not the 18-pt stencil): exact flat-space vertex-shift zero modes, broken on curved backgrounds; static TT curvature matches (1/2) int sqrt(g) R at O((k ell)^2)
 """
 
 from __future__ import annotations
@@ -126,8 +126,10 @@ def test_52_simplicial_regge_schlafli_and_variational_stationarity() -> dict:
 
 def test_53_bounded_holonomy_regge_core_bounce_bragg_reflection() -> dict:
     """
-    Test 53: Bounded Trigonometric Holonomy / Regge Action Deriving the Planck Density Cap (rho_max)
-    and Core Bounce (R_core) via Extrinsic-Curvature Bragg Reflection at theta_plaq = -pi / 2.
+    Test 53: Polymerised (effective-LQC) Hamiltonian H_hol = (3v/2ell^2) sin^2(ell beta) - m.
+    R_core and rho_max follow algebraically from sin^2 <= 1 (set by the postulated normalisation);
+    the genuine checks are that Hamilton's equations reproduce the Module 9 effective-LQC law
+    (Rdot/R)^2 = (2Gm/R^3)(1 - 2Gm ell^2/R^3) along the trajectory and reach the bound at ell*beta = -pi/2.
     """
     res = audit_bounded_holonomy_regge_core_bounce(m=5.0, ell=1.0)
     passed = bool(
@@ -135,6 +137,7 @@ def test_53_bounded_holonomy_regge_core_bounce_bragg_reflection() -> dict:
         and res["rel_err_rho_max"] < 1e-6
         and res["abs_err_theta_plaq_bounce"] < 1e-3
         and res["max_hamiltonian_constraint_drift"] < 1e-6
+        and res["max_rel_residual_vs_module9_effective_lqc_friedmann_law"] < 1e-6
         and res["unbounded_continuum_H_collapsed_to_singularity"]
     )
     return {
@@ -145,9 +148,12 @@ def test_53_bounded_holonomy_regge_core_bounce_bragg_reflection() -> dict:
 
 def test_54_variational_regge_interior_star_and_desitter_core() -> dict:
     """
-    Test 54: Pure Numerical Variational Stationarity of the Discrete Regge + Matter Action
-    for (A) the Regular de Sitter Planck Core (p_r = -rho_max c^2) and (B) Karl Schwarzschild's
-    (1916) Constant-Density Interior Star (via the Schutz-Brown Relativistic Fluid Action).
+    Test 54: Numerical variational stationarity of a discretised minisuperspace Einstein-Hilbert
+    action (1/2 of the reduced sqrt(-g) R; not a simplicial Regge action) plus kappa sqrt(-g) p matter for
+    (A) a de Sitter region R < ell (p_r = -rho_max c^2) and (B) Schwarzschild's (1916) constant-density
+    interior star (compaction 0.5, incompressible EOS input). The outer lapse boundary condition is
+    a(R_star) = a_surf only (the exact interior solution is no longer used to seed the outer shell),
+    so the star clock tolerance is 2e-5; second-order convergence is the primary criterion.
     """
     res = audit_variational_regge_interior_star_and_desitter_core(
         N_list=(50, 100, 200)
@@ -158,9 +164,10 @@ def test_54_variational_regge_interior_star_and_desitter_core() -> dict:
         and 1.95 < res["desitter_core_order_A"] < 2.05
         and 1.95 < res["desitter_core_order_a"] < 2.05
         and res["schwarzschild_star_errors_A"][-1] < 1e-5
-        and res["schwarzschild_star_errors_a"][-1] < 1e-5
+        and res["schwarzschild_star_errors_a"][-1] < 2e-5
         and res["schwarzschild_star_errors_p"][-1] < 1e-4
         and 1.95 < res["schwarzschild_star_order_A"] < 2.05
+        and 1.95 < res["schwarzschild_star_order_a"] < 2.05
         and 1.95 < res["schwarzschild_star_order_p"] < 2.05
     )
     return {
@@ -171,10 +178,13 @@ def test_54_variational_regge_interior_star_and_desitter_core() -> dict:
 
 def test_55_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2() -> dict:
     """
-    Test 55: Full 3D Periodic Kuhn-Triangulated Regge Complex (384 Tetrahedra, 448 Edges) —
-    Exact Nonlinear Diffeomorphism Invariance on Vertex Displacements u_i (deficit = 0,
-    dS_Regge/du_i = 0 vs. large Hooke force) and Quadratic Curvature Response to Incompatible
-    3D Transverse-Traceless Spin-2 Metric Waves.
+    Test 55: 3D periodic Kuhn Regge complex (384 tetrahedra, 448 edges, vertex degree 14; NOT the
+    18-point stencil). Checks: (1) finite vertex displacements of FLAT space leave every deficit and S
+    unchanged (exact zero modes), while the same displacements on a curved TT background change S
+    (broken discrete diffeomorphisms); (2) a static TT deformation h_xy = eps cos(2 pi z/L) changes S at
+    O(eps^2) and Delta S_Regge -> (1/2) int sqrt(g) R = -(1/8) eps^2 k^2 L^3 at O((k ell)^2).
+    The vertex-force comparison with Hooke's law is reported but is a consequence of flatness
+    (dS/dl_e = delta_e = 0), not independent evidence. 3D Euclidean: no time evolution / no waves.
     """
     res = audit_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2(L=4)
     passed = bool(
@@ -186,6 +196,11 @@ def test_55_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2() -> dict:
         and res["diffeo_hooke_vertex_force_norm"] > 0.1
         and res["tt_spin2_wave_max_deficit"] > 1e-2
         and abs(res["tt_spin2_regge_quadratic_ratio"] - 4.0) < 1e-2
+        and res["kuhn_vertex_degrees"] == [14]
+        and abs(res["tt_regge_over_continuum_half_int_sqrtg_R"][-1] - 1.0) < 5e-3
+        and 1.9 < res["tt_regge_over_continuum_convergence_order"] < 2.1
+        and max(abs(x) for x in res["gauge_dS_flat_background_sigma_001_002"]) < 1e-11
+        and min(abs(x) for x in res["gauge_dS_curved_tt_background_sigma_001_002"]) > 1e-7
     )
     return {
         "passed": passed,
