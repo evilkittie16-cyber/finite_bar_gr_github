@@ -1,6 +1,6 @@
 # Finite-Bar Discrete General Relativity (`finite_bar_gr`)
 
-Discrete General Relativity on a Planck-scale lattice ($\ell = \ell_P$) with the isotropic 18-point and 27-point stencils, 3D random Voronoi–Delaunay Discrete Exterior Calculus and smoothly stretched / tidal aspect-ratio anamorphic grids (`random_voronoi_and_mesh_audit.py`), dynamic Hamiltonian Painlevé–Gullstrand river evolution, the 3D curvature-capped core simulator, the 1+1D self-consistent falling-lattice dust collapse solver (`collapse_falling_lattice.py`), the post-bounce shock and Rankine–Hugoniot solver (`shock_post_bounce.py`), the coupled general-relativistic Misner–Sharp / Einstein–Euler fluid solver (`einstein_euler_core_bounce.py`), and an independent 12-module (42-test) verification suite (`verify_core_finite_bar_gr.py`).
+Discrete General Relativity on a Planck-scale lattice ($\ell = \ell_P$) with the isotropic 18-point and 27-point stencils, 3D random Voronoi–Delaunay Discrete Exterior Calculus and smoothly stretched / tidal aspect-ratio anamorphic grids (`random_voronoi_and_mesh_audit.py`), emergent General Relativity and true 3D spin-2 gravitational waves solved directly from discrete anamorphic grid constraints (`emergent_anamorphic_gr.py`), dynamic Hamiltonian Painlevé–Gullstrand river evolution, the 3D curvature-capped core simulator, the 1+1D self-consistent falling-lattice dust collapse solver (`collapse_falling_lattice.py`), the post-bounce shock and Rankine–Hugoniot solver (`shock_post_bounce.py`), the coupled general-relativistic Misner–Sharp / Einstein–Euler fluid solver (`einstein_euler_core_bounce.py`), and an independent 13-module (47-test) verification suite (`verify_core_finite_bar_gr.py`).
 
 ## Scope & Physical Claims Audit
 
@@ -33,7 +33,13 @@ In response to rigorous peer review of our earlier manuscript, we have explicitl
    - **Co-Moving Random Unstructured Falling Mesh (Test 40):** When the random mesh moves with the fluid in `einstein_euler_core_bounce.py`, it converges monotonically to the exact same bounce radius, inner-horizon turnaround, and thermal heating as the uniform mesh (`L2 = 1.99e-5` at $N=120$).
    - **Smoothly Stretched Anamorphic Grid (Test 41):** A static radially anamorphic lattice ($b_r(R) = f(R)^{-1/2} \neq b_\perp(R) = 1$, $K_r = 1 \neq K_\perp = 1/f(R)$) reproduces exact 1PN+2PN GR light bending (`2.0006`) while suppressing $2.5\text{ PeV}$ Rayleigh scattering by $>74$ orders of magnitude ($\tau_{\text{scatter}} \approx 2.0\times 10^{-74} \ll 1$). In dynamical collapse, a smoothly stretched anamorphic coordinate $s(\xi) = 0.65\xi^{0.50} + 0.35\xi$ balances shell masses $\Delta\mu_k \propto R_k^2 \Delta R_k$ and cuts peak thermal-heating discretization error at $N = 50$ by **$2.22\times$** (`2.78e-2 -> 1.25e-2`).
    - **Physical Tidal Aspect-Ratio Deformation & Hencky + Kelvin–Voigt Anamorphic Bar Stress (Test 42):** Tracking the physical tidal aspect ratio $\alpha_k(\tau) = (\ell_{r,k}/\ell_{r,k}(0))/(\ell_{\perp,k}/\ell_{\perp,k}(0))$ shows prolate spaghettification ($\max\alpha_k \in [2.33, 3.35] > 1$) during infall followed by oblate pancake compression ($\min\alpha_k \in [0.218, 0.262] < 1$) at the core bounce. Coupling the exact anisotropic Misner–Sharp equations ($p_r \neq p_\perp$) to Hencky logarithmic deviatoric bar elasticity + Kelvin–Voigt tidal shear viscosity **simultaneously improves both** minimum shell thickness $\min(\Delta R_k/\Delta R_{k,0})$ and $\min\Gamma_i$ across $\delta \in \{0.42, 0.48, 0.52\}$ while conserving $M_{\text{ADM}}$ (`0.00e+00`) and converging at $\mathcal{O}(1/N^2)$ ($p = 2.21$).
-7. **Retracted Overclaims:**
+7. **Producing General Relativity Directly from the Discrete Anamorphic Grid Constraints (`emergent_anamorphic_gr.py` & Module 13):**
+   - **Emergent Exterior Schwarzschild Metric & Light Bending (Test 43):** Starting *only* from a compact stellar density profile $\rho(R)$ without assuming Schwarzschild formulas, stepping the discrete frustum Hamiltonian constraint outward for the aspect ratio $\mathcal{A}_i = b_{r,i}/b_{\perp,i}$ and the discrete radial momentum constraint inward for the clock rate $a_i$ derives the exterior Schwarzschild metric and vacuum reciprocity $a_i\mathcal{A}_i \to 1$ at exact second order $\mathcal{O}(1/N^2)$ ($p = 2.00001$, residual `7.99e-6` at $N=1600$) and produces emergent 1PN light bending `1.99991` (vs. `1.00218` for the 1911 time-only control).
+   - **Emergent Karl Schwarzschild (1916) Interior Star Solution & Buchdahl Limit (Test 44):** Coupling the discrete Hamiltonian and radial momentum constraints to discrete hydrostatic balance inside a constant-density star ($2GM/(c^2 R_{\text{star}}) = 0.5$) reproduces Schwarzschild's 1916 exact analytical interior solution for $(\mathcal{A}_i, a_i, p_i)$ at $\mathcal{O}(1/N^2)$ ($p = 1.9978$, pressure error `4.47e-7`, clock error `2.84e-8` at $N=800$) and reproduces the Buchdahl limit ($2GM/(c^2 R_{\text{star}}) \to 8/9 = 0.8889$).
+   - **Emergent Anamorphic-to-River Duality Across Black-Hole Horizons (Test 45):** When the emergent curvature charge reaches $\mathcal{Q}_i/R_i \ge 1$ inside a black hole's trapped region $[R_-, R_+]$ (where static bars $\mathcal{A}_i = (1 - \mathcal{Q}_i/R_i)^{-1/2}$ become imaginary), transforming to a freely falling flat slice ($\Gamma_i = 1$) converts the exact same discrete curvature charge directly into the horizon-penetrating Painlevé–Gullstrand river velocity $J_i = -c\sqrt{\mathcal{Q}_i/R_i}$ (`err = 9.41e-8`) across all three regular black-hole zones.
+   - **True 3D Spin-2 Transverse-Traceless Gravitational Waves on the 18-Point Anamorphic Lattice (Test 46):** Replacing the 2-component scalar toy (Test 23) with the full 6-component symmetric $3\times 3$ metric perturbation $h_{ij}(\mathbf{x}, t)$ proves why the 12 face-diagonal bars of the 18-point stencil are geometrically mandatory: a 6-bar simple cubic truss has rank $3 < 6$ (blind to $\times$-polarized off-diagonal shear $h_{xy}, h_{xz}, h_{yz}$), whereas the 6 axial + 12 face-diagonal bars have full **rank 6** (`6.66e-16`), transform under rotation with spin weight $s = 2$ ($\cos 2\theta, \sin 2\theta$), satisfy the linearized vacuum Hamiltonian constraint $\delta G^0{}_0 = 0$ (`1.22e-15`) and $\delta R_{ij}[h^{\text{TT}}] = -\frac{1}{2}\Delta_{18} h_{ij}^{\text{TT}}$ (`2.50e-16`), and conserve $\text{Tr}(h) = 0$ (`5.02e-16`), $D_j h_{ij} = 0$ (`3.83e-16`), and Cayley GW energy (`7.50e-16`).
+   - **Emergent Spin-2 Regge–Wheeler Barrier vs. Spin-0 Scalar on the Anamorphic Grid (Test 47):** Constructing the quadrupole ($\ell = 2$) Regge–Wheeler potential $V_{\text{RW}}^{(s)}(R_i) = \frac{a_i}{\mathcal{A}_i}\left[\frac{6}{R_i^2} + (1 - s^2)\frac{\mathcal{Q}_i}{R_i^3}\right]$ directly on the emergent discrete grid $(R_i, \mathcal{A}_i, a_i, \mathcal{Q}_i)$ matches exact GR perturbation theory to `7.10e-5` ($V_{\max}^{(s=2)} M^2 = 0.151281$ at $r_{\text{peak}} = \frac{9+\sqrt{17}}{4}M = 3.2808\,M$), cleanly distinguishing spin-2 gravitons ($1 - s^2 = -3$) from spin-0 scalars ($1 - s^2 = +1$, $V_{\max}^{(s=0)} M^2 = 0.2471$).
+8. **Retracted Overclaims:**
    - **Inner horizon vs. cold remnant:** The static Hayward profile has an inner horizon at $r_- \approx \ell + \frac{\ell^2}{2r_s}$ with large $|\kappa_-| \approx c/\ell$ until $M \to M_{\text{crit}}$.
    - **Mass inflation:** Capping $\rho \le \rho_{\max}$ bounds curvature by $\mathcal{K}_{\max} = 24/\ell^4$ ("Planckian saturation"), which replaces divergence with a Planck-scale core rather than proving small perturbations remain sub-Planckian at a static inner horizon.
    - **Information paradox:** A cold remnant of volume $\sim \ell_P^3$ or even $R_{\text{core}}^3 = r_s\ell_P^2$ has far fewer cells than the Bekenstein–Hawking entropy $S_{\text{BH}} \sim (r_s/\ell_P)^2$ and cannot store the initial pure-state information without a dynamical bounce or prior Hawking radiation correlations.
@@ -43,12 +49,13 @@ In response to rigorous peer review of our earlier manuscript, we have explicitl
 ```text
 finite_bar_gr_github/
 ├── proof_corrected.md                  # Full mathematical manuscript with Section 0 Scope & Claims Audit
-├── verify_core_finite_bar_gr.py        # Master runner for all 12 verification modules (42 tests)
+├── verify_core_finite_bar_gr.py        # Master runner for all 13 verification modules (47 tests)
 ├── verify_core_finite_bar_gr_results.json
 ├── collapse_falling_lattice.py         # Self-consistent 1+1D falling-lattice PG/LTB dust collapse solver
 ├── shock_post_bounce.py                # Post-bounce Godunov PDE, Rankine-Hugoniot ODE & causality solver
 ├── einstein_euler_core_bounce.py       # Coupled relativistic Misner-Sharp / Einstein-Euler fluid solver
 ├── random_voronoi_and_mesh_audit.py    # 3D Voronoi-Delaunay DEC, anamorphic grids & tidal bar stress solver
+├── emergent_anamorphic_gr.py           # Emergent GR metric solver from discrete anamorphic grid constraints
 ├── simulate_3d_18pt_freezing_core.py   # 3D 18-point stencil PG wave + curvature-cap simulator
 ├── requirements.txt
 └── tests/
@@ -63,7 +70,8 @@ finite_bar_gr_github/
     ├── module_9_dynamical_collapse.py
     ├── module_10_post_bounce_shock.py
     ├── module_11_relativistic_einstein_euler.py
-    └── module_12_random_grid_and_voronoi_audit.py
+    ├── module_12_random_grid_and_voronoi_audit.py
+    └── module_13_emergent_anamorphic_gr.py
 ```
 
 ## Running the Verification Suite

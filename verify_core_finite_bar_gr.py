@@ -1042,6 +1042,14 @@ def build_claims_audit(results, modules):
     t38 = m12["test_38_random_voronoi_delaunay_vs_naive_random_laplacian_consistency"]
     t39 = m12["test_39_random_grid_rotational_isotropy_vs_rayleigh_scattering_bound"]
     t40 = m12["test_40_random_unstructured_falling_lattice_einstein_euler_invariance"]
+    t41 = m12["test_41_static_and_stretched_anamorphic_grid_light_bending_and_zero_scattering"]
+    t42 = m12["test_42_tidal_aspect_ratio_and_hencky_anamorphic_bar_stress_in_bounce"]
+    m13 = modules["module_13_emergent_anamorphic_gr"]
+    t43 = m13["test_43_emergent_exterior_schwarzschild_and_light_bending_from_discrete_constraints"]
+    t44 = m13["test_44_emergent_interior_schwarzschild_constant_density_star_and_buchdahl_limit"]
+    t45 = m13["test_45_emergent_painleve_gullstrand_river_and_lqc_core_from_anamorphic_duality"]
+    t46 = m13["test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves"]
+    t47 = m13["test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid"]
     b3 = results["test_3_eighteen_point_sphere_isotropy"]
 
     def verdict(ok, yes="SUPPORTED", no="NOT SUPPORTED"):
@@ -1133,7 +1141,7 @@ def build_claims_audit(results, modules):
                   "but attenuates Galactic multi-PeV photons (tau = 15.6 at 2.5 PeV / 10 kpc vs. tau = 0 on the 18-pt crystal). By contrast, a co-moving random "
                   "unstructured falling mesh in the Einstein-Euler solver converges to the exact same bounce and heating (L2 err 2.0e-5 at N=120).")},
         {"claim": "Smoothly stretched anamorphic grid & physical tidal aspect-ratio (Hencky + Kelvin-Voigt) bar stress",
-         "verdict": "SUPPORTED (zero PeV scattering, 2.22x lower heating error, simultaneous improvement in min_dR and min_Gamma)",
+         "verdict": verdict(t41["passed"] and t42["passed"], yes="SUPPORTED (zero PeV scattering, 2.22x lower heating error, simultaneous improvement in min_dR and min_Gamma)"),
          "note": ("Module 12 (Tests 41-42): (1) A static radially anamorphic lattice (b_r = 1/sqrt(f) != b_perp = 1) reproduces exact 1PN+2PN GR light bending "
                   "(2.0006) while suppressing 2.5 PeV Rayleigh scattering by > 70 orders of magnitude (tau ~ 2e-74 << 1 vs. 15.65 on random Voronoi). "
                   "(2) A smoothly stretched anamorphic falling radial coordinate s(xi) = 0.65 xi^0.5 + 0.35 xi reduces peak thermal-heating discretization error "
@@ -1141,6 +1149,22 @@ def build_claims_audit(results, modules):
                   "spaghettification alpha > 1 during infall -> oblate pancake alpha < 1 at bounce) with Hencky logarithmic deviatoric bar elasticity + "
                   "Kelvin-Voigt tidal viscosity (p_r != p_perp) simultaneously increases min(dR/dR_0), increases min(alpha_k), reduces max(alpha_k), AND "
                   "increases min(Gamma_i) across delta in {0.42, 0.48, 0.52} while conserving ADM mass to 0.0 and converging at O(1/N^2) (p = 2.21).")},
+        {"claim": "Emergent exterior & interior GR metrics (A_i, a_i, p_i, J_i) produced directly from discrete anamorphic grid constraints",
+         "verdict": verdict(t43["passed"] and t44["passed"] and t45["passed"], yes="SUPPORTED (O(1/N^2) convergent p = 2.000; derives Schwarzschild exterior, 1916 interior star, Buchdahl limit, and PG river)"),
+         "note": ("Module 13 (Tests 43-45): Starting ONLY from a matter density profile rho(R) without assuming Schwarzschild or Hayward metric formulas, "
+                  "solving the discrete frustum Hamiltonian constraint for the aspect ratio A_i = b_{r,i}/b_{perp,i} and the discrete radial momentum "
+                  "constraint for the clock rate a_i derives: (1) the exterior Schwarzschild metric and vacuum reciprocity a_i * A_i -> 1 at O(1/N^2) "
+                  "(p = 2.0000, err 8.0e-6 at N=1600) and emergent 1PN light bending 1.9999 (vs 1.002 for 1911 time-only control); (2) Karl Schwarzschild's "
+                  "(1916) interior constant-density star solution (p = 1.998, pressure err 4.5e-7, clock err 2.8e-8 at N=800) and the Buchdahl limit "
+                  "(2GM/c^2 R -> 8/9); and (3) the Anamorphic-to-River Duality J_i = -c sqrt(Q_i / R_i) across all three black-hole zones (err 9.4e-8).")},
+        {"claim": "True 3D Spin-2 Transverse-Traceless gravitational waves (h_ij) & emergent spin-2 Regge-Wheeler barrier on the 18-pt anamorphic grid",
+         "verdict": verdict(t46["passed"] and t47["passed"], yes="SUPPORTED (rank-6 18-bar reconstruction, helicity-2 rotation, TT Ricci wave identity, and emergent s=2 barrier)"),
+         "note": ("Module 13 (Tests 46-47): Replacing the Test 23 scalar toy with the full 6-component symmetric 3x3 metric perturbation h_ij on the 3D "
+                  "18-point anamorphic lattice proves: (1) the 6 axial + 12 face-diagonal bars have full rank 6 (vs. rank 3 for a 6-bar cubic truss) and "
+                  "reconstruct h_ij to 6.7e-16; (2) (h_+, h_x) obey the spin-2 quadrupole rotation law (cos 2*theta, sin 2*theta) to 2.2e-16; (3) on the TT "
+                  "subspace, the linearized 3D Ricci tensor satisfies delta G^0_0 == 0 (1.2e-15) and delta R_ij[h^TT] == -(1/2) Delta_18 h_ij^TT (2.5e-16), "
+                  "and 80 Cayley steps conserve Tr(h)==0 (5.0e-16), D_j h_ij==0 (3.8e-16), and GW energy (7.5e-16); and (4) the emergent s=2 Regge-Wheeler "
+                  "barrier on the discrete grid matches exact GR perturbation theory to 7.1e-5.")},
     ]
 
 
@@ -1157,6 +1181,7 @@ def main():
     from tests.module_10_post_bounce_shock import run_module_10
     from tests.module_11_relativistic_einstein_euler import run_module_11
     from tests.module_12_random_grid_and_voronoi_audit import run_module_12
+    from tests.module_13_emergent_anamorphic_gr import run_module_13
 
     results = {
         "test_1_equivalence_principle_and_gr_bending": test_1_equivalence_principle_and_gr_bending(),
@@ -1185,6 +1210,7 @@ def main():
         "module_10_post_bounce_shock": run_module_10(),
         "module_11_relativistic_einstein_euler": run_module_11(),
         "module_12_random_grid_and_voronoi_audit": run_module_12(),
+        "module_13_emergent_anamorphic_gr": run_module_13(),
     }
     n_tests = sum(len([k for k in m if k.startswith("test_")]) for m in modules.values())
     modules_passed = all(
@@ -1202,6 +1228,7 @@ def main():
             (10, "post_bounce_shock"),
             (11, "relativistic_einstein_euler"),
             (12, "random_grid_and_voronoi_audit"),
+            (13, "emergent_anamorphic_gr"),
         ]
     )
     all_passed = bool(core_passed and modules_passed)
@@ -1220,7 +1247,7 @@ def main():
         json.dump(results, f, indent=2)
 
     print(json.dumps({k: v for k, v in results.items() if k != "CLAIMS_AUDIT"}, indent=2))
-    print(f"\nALL 12 MODULES ({n_tests} TESTS) NUMERICAL CHECKS PASSED: {modules_passed}")
+    print(f"\nALL 13 MODULES ({n_tests} TESTS) NUMERICAL CHECKS PASSED: {modules_passed}")
     print(f"ALL 10 CORE BENCHMARK NUMERICAL CHECKS PASSED: {core_passed}")
     print("\nCLAIMS AUDIT (what the code does and does not support):")
     for item in audit:

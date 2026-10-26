@@ -57,10 +57,13 @@ jobs:
       - name: Run Module 11 (Relativistic Misner-Sharp / Einstein-Euler Fluid Bounce, Tests 34-37)
         run: python tests/module_11_relativistic_einstein_euler.py
 
-      - name: Run Module 12 (3D Random Voronoi-Delaunay Lattice & Unstructured Mesh Audit, Tests 38-40)
+      - name: Run Module 12 (Random Voronoi vs. Smooth Anamorphic Grids & Tidal Bar Stress, Tests 38-42)
         run: python tests/module_12_random_grid_and_voronoi_audit.py
 
-      - name: Run Master Verification Suite (10 Benchmarks + 12 Modules / 40 Tests + Claims Audit)
+      - name: Run Module 13 (Emergent General Relativity & 3D Spin-2 Gravitational Waves, Tests 43-47)
+        run: python tests/module_13_emergent_anamorphic_gr.py
+
+      - name: Run Master Verification Suite (10 Benchmarks + 13 Modules / 47 Tests + Claims Audit)
         run: python verify_core_finite_bar_gr.py
 
       - name: Run 3D Lattice Simulator (energy budget)

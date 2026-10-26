@@ -892,9 +892,137 @@
       },
       "module_12_passed": true,
       "all_passed": true
+    },
+    "module_13_emergent_anamorphic_gr": {
+      "module": "Module 13: Emergent General Relativity & True 3D Spin-2 Gravitational Waves on the Anamorphic Grid",
+      "test_43_emergent_exterior_schwarzschild_and_light_bending_from_discrete_constraints": {
+        "passed": true,
+        "resolutions_N": [
+          200,
+          400,
+          800,
+          1600
+        ],
+        "exterior_clock_rel_errors": [
+          0.0005113431843075168,
+          0.00012783409562943255,
+          3.195841758949498e-05,
+          7.98959775181468e-06
+        ],
+        "vacuum_reciprocity_aA_minus_1_errors": [
+          0.0005113519287226476,
+          0.00012783464241705733,
+          3.1958451767954976e-05,
+          7.989599888125198e-06
+        ],
+        "empirical_convergence_order_mean": 2.0000083966895232,
+        "N1600_emergent_1PN_light_bending_raw": 2.003839108445926,
+        "N1600_emergent_1PN_light_bending_after_2PN": 1.999912117628939,
+        "N1600_control_1911_time_only_coeff": 1.0021780785207657
+      },
+      "test_44_emergent_interior_schwarzschild_constant_density_star_and_buchdahl_limit": {
+        "passed": true,
+        "resolutions_N": [
+          100,
+          200,
+          400,
+          800
+        ],
+        "interior_pressure_rel_errors": [
+          2.8498818704962057e-05,
+          7.143660488933126e-06,
+          1.7882992487830668e-06,
+          4.4737376017433145e-07
+        ],
+        "interior_clock_abs_errors": [
+          1.8083446449157492e-06,
+          4.538201421322441e-07,
+          1.136731263562396e-07,
+          2.8445628519335742e-08
+        ],
+        "empirical_convergence_order_mean": 1.997759223058044,
+        "N800_interior_aA_product_center": 0.5606601433341929,
+        "buchdahl_limit_scan": [
+          {
+            "compaction_rs_over_Rstar": 0.5,
+            "central_clock_a0_emergent": 0.5606601212260326,
+            "central_clock_a0_exact": 0.5606601717798214,
+            "central_pressure_over_rho0_emergent": 0.261204082661008,
+            "central_pressure_over_rho0_exact": 0.26120387496374137
+          },
+          {
+            "compaction_rs_over_Rstar": 0.75,
+            "central_clock_a0_emergent": 0.24999991249677256,
+            "central_clock_a0_exact": 0.25,
+            "central_pressure_over_rho0_emergent": 1.0000016530425633,
+            "central_pressure_over_rho0_exact": 1.0
+          },
+          {
+            "compaction_rs_over_Rstar": 0.85,
+            "central_clock_a0_emergent": 0.08094854745841264,
+            "central_clock_a0_exact": 0.08094750193111255,
+            "central_pressure_over_rho0_emergent": 3.784500963247559,
+            "central_pressure_over_rho0_exact": 3.7845619121185226
+          },
+          {
+            "compaction_rs_over_Rstar": 0.885,
+            "central_clock_a0_emergent": 0.008680081472337751,
+            "central_clock_a0_exact": 0.00867474873439511,
+            "central_pressure_over_rho0_emergent": 38.06751044440848,
+            "central_pressure_over_rho0_exact": 38.09237138035791
+          }
+        ]
+      },
+      "test_45_emergent_painleve_gullstrand_river_and_lqc_core_from_anamorphic_duality": {
+        "passed": true,
+        "N": 2000,
+        "M_tot": 50.0,
+        "R_core": 4.641588833612778,
+        "R_minus_emergent": 1.1,
+        "R_plus_emergent": 99.9,
+        "J_at_R0": -0.0,
+        "max_abs_J_in_trapped_zone": 3.376249701530357,
+        "duality_identity_err": 1.1102230246251565e-16,
+        "max_emergent_vs_exact_metric_err": 9.414952817365929e-08,
+        "three_zones_emerged": true
+      },
+      "test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves": {
+        "passed": true,
+        "rank_6bar_axial_only": 3,
+        "rank_18bar_with_face_diagonals": 6,
+        "max_18bar_strain_reconstruction_err": 6.661338147750939e-16,
+        "max_spin2_helicity_rotation_err": 2.220446049250313e-16,
+        "quadrupole_flip_at_pi_over_2_err": 0.0,
+        "quadrupole_invariant_at_pi_err": 0.0,
+        "polarization_orthogonality_err": 0.0,
+        "raw_trace_rms": 2.2089357752025363,
+        "raw_div_max": 1.8563784696126635,
+        "initial_tt_trace_max": 5.551115123125783e-16,
+        "initial_tt_div_max": 4.3341539952833557e-16,
+        "ricci_tt_wave_identity_err": 2.498001805406602e-16,
+        "linearized_hamiltonian_constraint_tt_max": 1.2212453270876722e-15,
+        "real_vs_spectral_lap18_err": 1.4432899320127035e-15,
+        "cayley_80_steps_energy_rel_drift": 7.501217318481841e-16,
+        "final_tt_trace_max": 5.022024462952857e-16,
+        "final_tt_div_max": 3.829980159973574e-16,
+        "final_tensor_symmetry_err": 2.983724378680108e-16
+      },
+      "test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid": {
+        "passed": true,
+        "R_peak_spin2_over_M_emergent": 3.271031818864749,
+        "R_peak_spin2_over_M_exact": 3.2807764064044154,
+        "Vmax_spin2_M2_emergent": 0.1512808335000555,
+        "Vmax_spin2_M2_exact": 0.15128669957006935,
+        "R_peak_spin0_over_M_emergent": 2.952488444148306,
+        "Vmax_spin0_M2_emergent": 0.2471103652030288,
+        "max_rel_err_V_spin2_emergent_vs_exact": 7.098636627689488e-05,
+        "spin2_barrier_lower_and_further_out_than_scalar": true
+      },
+      "module_13_passed": true,
+      "all_passed": true
     }
   },
-  "number_of_module_tests": 42,
+  "number_of_module_tests": 47,
   "ALL_MODULE_NUMERICAL_CHECKS_PASSED": true,
   "ALL_NUMERICAL_CHECKS_PASSED": true,
   "CLAIMS_AUDIT": [
@@ -1007,6 +1135,16 @@
       "claim": "Smoothly stretched anamorphic grid & physical tidal aspect-ratio (Hencky + Kelvin-Voigt) bar stress",
       "verdict": "SUPPORTED (zero PeV scattering, 2.22x lower heating error, simultaneous improvement in min_dR and min_Gamma)",
       "note": "Module 12 (Tests 41-42): (1) A static radially anamorphic lattice (b_r = 1/sqrt(f) != b_perp = 1) reproduces exact 1PN+2PN GR light bending (2.0006) while suppressing 2.5 PeV Rayleigh scattering by > 70 orders of magnitude (tau ~ 2e-74 << 1 vs. 15.65 on random Voronoi). (2) A smoothly stretched anamorphic falling radial coordinate s(xi) = 0.65 xi^0.5 + 0.35 xi reduces peak thermal-heating discretization error at N=50 by 2.22x (2.78e-2 -> 1.25e-2). (3) Tracking physical tidal aspect ratio alpha_k = (ell_r/ell_r0)/(ell_perp/ell_perp0) (prolate spaghettification alpha > 1 during infall -> oblate pancake alpha < 1 at bounce) with Hencky logarithmic deviatoric bar elasticity + Kelvin-Voigt tidal viscosity (p_r != p_perp) simultaneously increases min(dR/dR_0), increases min(alpha_k), reduces max(alpha_k), AND increases min(Gamma_i) across delta in {0.42, 0.48, 0.52} while conserving ADM mass to 0.0 and converging at O(1/N^2) (p = 2.21)."
+    },
+    {
+      "claim": "Emergent exterior & interior GR metrics (A_i, a_i, p_i, J_i) produced directly from discrete anamorphic grid constraints",
+      "verdict": "SUPPORTED (O(1/N^2) convergent p = 2.000; derives Schwarzschild exterior, 1916 interior star, Buchdahl limit, and PG river)",
+      "note": "Module 13 (Tests 43-45): Starting ONLY from a matter density profile rho(R) without assuming Schwarzschild or Hayward metric formulas, solving the discrete frustum Hamiltonian constraint for the aspect ratio A_i = b_{r,i}/b_{perp,i} and the discrete radial momentum constraint for the clock rate a_i derives: (1) the exterior Schwarzschild metric and vacuum reciprocity a_i * A_i -> 1 at O(1/N^2) (p = 2.0000, err 8.0e-6 at N=1600) and emergent 1PN light bending 1.9999 (vs 1.002 for 1911 time-only control); (2) Karl Schwarzschild's (1916) interior constant-density star solution (p = 1.998, pressure err 4.5e-7, clock err 2.8e-8 at N=800) and the Buchdahl limit (2GM/c^2 R -> 8/9); and (3) the Anamorphic-to-River Duality J_i = -c sqrt(Q_i / R_i) across all three black-hole zones (err 9.4e-8)."
+    },
+    {
+      "claim": "True 3D Spin-2 Transverse-Traceless gravitational waves (h_ij) & emergent spin-2 Regge-Wheeler barrier on the 18-pt anamorphic grid",
+      "verdict": "SUPPORTED (rank-6 18-bar reconstruction, helicity-2 rotation, TT Ricci wave identity, and emergent s=2 barrier)",
+      "note": "Module 13 (Tests 46-47): Replacing the Test 23 scalar toy with the full 6-component symmetric 3x3 metric perturbation h_ij on the 3D 18-point anamorphic lattice proves: (1) the 6 axial + 12 face-diagonal bars have full rank 6 (vs. rank 3 for a 6-bar cubic truss) and reconstruct h_ij to 6.7e-16; (2) (h_+, h_x) obey the spin-2 quadrupole rotation law (cos 2*theta, sin 2*theta) to 2.2e-16; (3) on the TT subspace, the linearized 3D Ricci tensor satisfies delta G^0_0 == 0 (1.2e-15) and delta R_ij[h^TT] == -(1/2) Delta_18 h_ij^TT (2.5e-16), and 80 Cayley steps conserve Tr(h)==0 (5.0e-16), D_j h_ij==0 (3.8e-16), and GW energy (7.5e-16); and (4) the emergent s=2 Regge-Wheeler barrier on the discrete grid matches exact GR perturbation theory to 7.1e-5."
     }
   ]
 }
