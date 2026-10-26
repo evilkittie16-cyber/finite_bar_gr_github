@@ -1005,7 +1005,13 @@
         "cayley_80_steps_energy_rel_drift": 7.501217318481841e-16,
         "final_tt_trace_max": 5.022024462952857e-16,
         "final_tt_div_max": 3.829980159973574e-16,
-        "final_tensor_symmetry_err": 2.983724378680108e-16
+        "final_tensor_symmetry_err": 2.983724378680108e-16,
+        "real_space_consistent_bianchi_non_tt_max": 1.249000902703301e-16,
+        "real_space_mixed_lap18_bianchi_anomaly_non_tt": 0.10532645119018937,
+        "real_space_gauge_mode_ricci_max": 1.3877787807814457e-16,
+        "gw_phase_speed_anisotropy_6pt": 0.016959269655471565,
+        "gw_phase_speed_anisotropy_18pt": 0.0002608432813304695,
+        "gw_isotropy_improvement_factor_18pt_over_6pt": 65.01708446914299
       },
       "test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid": {
         "passed": true,
@@ -1083,8 +1089,8 @@
     },
     {
       "claim": "Spin-2 (gravitational-wave) sector",
-      "verdict": "NOT SUPPORTED",
-      "note": "Test 23 is a two-component scalar toy with an ad-hoc coupling, not linearized GR."
+      "verdict": "PARTLY SUPPORTED (rank-6 18-bar geometry & linearized TT evolution; Test 23 was a scalar toy)",
+      "note": "Test 23 (Module 8) was a 2-component scalar toy. Module 13 (Tests 46-47) proves the 18-point stencil's 6 axial + 12 face-diagonal bars have full rank 6 on symmetric 3x3 tensors h_ij (vs. rank 3 for a 6-bar cubic truss), reduces GW phase-speed anisotropy by 65.0x, and satisfies the real-space discrete contracted Bianchi identity D_j G_{ij}[h] = 0 when using operator-consistent D_k D_k, while the Regge-Wheeler (1 - s^2) = -3 factor in Test 47 is taken from continuum perturbation theory and nonlinear 3+1D backreaction is not evolved."
     },
     {
       "claim": "No post-merger echoes",
@@ -1133,18 +1139,18 @@
     },
     {
       "claim": "Smoothly stretched anamorphic grid & physical tidal aspect-ratio (Hencky + Kelvin-Voigt) bar stress",
-      "verdict": "SUPPORTED (zero PeV scattering, 2.22x lower heating error, simultaneous improvement in min_dR and min_Gamma)",
-      "note": "Module 12 (Tests 41-42): (1) A static radially anamorphic lattice (b_r = 1/sqrt(f) != b_perp = 1) reproduces exact 1PN+2PN GR light bending (2.0006) while suppressing 2.5 PeV Rayleigh scattering by > 70 orders of magnitude (tau ~ 2e-74 << 1 vs. 15.65 on random Voronoi). (2) A smoothly stretched anamorphic falling radial coordinate s(xi) = 0.65 xi^0.5 + 0.35 xi reduces peak thermal-heating discretization error at N=50 by 2.22x (2.78e-2 -> 1.25e-2). (3) Tracking physical tidal aspect ratio alpha_k = (ell_r/ell_r0)/(ell_perp/ell_perp0) (prolate spaghettification alpha > 1 during infall -> oblate pancake alpha < 1 at bounce) with Hencky logarithmic deviatoric bar elasticity + Kelvin-Voigt tidal viscosity (p_r != p_perp) simultaneously increases min(dR/dR_0), increases min(alpha_k), reduces max(alpha_k), AND increases min(Gamma_i) across delta in {0.42, 0.48, 0.52} while conserving ADM mass to 0.0 and converging at O(1/N^2) (p = 2.21)."
+      "verdict": "SUPPORTED (smoothness eliminates random PeV scattering; 2.22x lower heating error; constitutive bar stress modifies bounce)",
+      "note": "Module 12 (Tests 41-42): (1) A static radially anamorphic lattice (b_r = 1/sqrt(f) != b_perp = 1) reproduces exact 1PN+2PN GR light bending (2.0006) with zero random shear disorder (smooth cell-to-cell gradient delta A_cell ~ ell_P/(2 r_s) ~ 2.7e-39 suppresses (delta A/sigma)^2 by ~1.3e-75). (2) A smoothly stretched falling radial coordinate s(xi) = 0.65 xi^0.5 + 0.35 xi reduces peak thermal-heating discretization error at N=50 by 2.22x (2.78e-2 -> 1.25e-2). (3) Adding a constitutive lattice-bar stress model (Hencky logarithmic deviatoric elasticity + Kelvin-Voigt tidal viscosity, p_r != p_perp) beyond an ideal isotropic fluid increases min(dR/dR_0), increases min(alpha_k), reduces max(alpha_k), and increases min(Gamma_i) across delta in {0.42, 0.48, 0.52} while conserving ADM mass to 0.0 and converging at O(1/N^2) (p = 2.21)."
     },
     {
-      "claim": "Emergent exterior & interior GR metrics (A_i, a_i, p_i, J_i) produced directly from discrete anamorphic grid constraints",
-      "verdict": "SUPPORTED (O(1/N^2) convergent p = 2.000; derives Schwarzschild exterior, 1916 interior star, Buchdahl limit, and PG river)",
-      "note": "Module 13 (Tests 43-45): Starting ONLY from a matter density profile rho(R) without assuming Schwarzschild or Hayward metric formulas, solving the discrete frustum Hamiltonian constraint for the aspect ratio A_i = b_{r,i}/b_{perp,i} and the discrete radial momentum constraint for the clock rate a_i derives: (1) the exterior Schwarzschild metric and vacuum reciprocity a_i * A_i -> 1 at O(1/N^2) (p = 2.0000, err 8.0e-6 at N=1600) and emergent 1PN light bending 1.9999 (vs 1.002 for 1911 time-only control); (2) Karl Schwarzschild's (1916) interior constant-density star solution (p = 1.998, pressure err 4.5e-7, clock err 2.8e-8 at N=800) and the Buchdahl limit (2GM/c^2 R -> 8/9); and (3) the Anamorphic-to-River Duality J_i = -c sqrt(Q_i / R_i) across all three black-hole zones (err 9.4e-8)."
+      "claim": "Second-order discretisation of spherically symmetric Einstein / TOV constraints in anamorphic variables (A_i, a_i, p_i, J_i) without a metric ansatz",
+      "verdict": "SUPPORTED (O(1/N^2) convergent p = 2.000; no metric ansatz, but Einstein/TOV equations are input)",
+      "note": "Module 13 (Tests 43-45): Taking the spherically symmetric Einstein/TOV constraint equations (G^t_t, G^r_r, and hydrostatic balance) as input and discretizing them in anamorphic variables (A_i = b_{r,i}/b_{perp,i}, a_i, p_i) starting from rho(R) without a prescribed metric formula reproduces: (1) exterior Schwarzschild and vacuum reciprocity a_i * A_i -> 1 at O(1/N^2) (p = 2.0000, err 8.0e-6 at N=1600) and 1PN light bending 1.9999 (vs 1.002 for 1911 time-only); (2) Schwarzschild's 1916 interior constant-density star solution (p = 1.998, pressure err 4.5e-7, clock err 2.8e-8 at N=800) and the Buchdahl limit (2GM/c^2 R -> 8/9); and (3) the exact Painleve-Gullstrand coordinate transformation J_i = -c sqrt(Q_i / R_i) across all three black-hole zones (quadrature err 9.4e-8)."
     },
     {
-      "claim": "True 3D Spin-2 Transverse-Traceless gravitational waves (h_ij) & emergent spin-2 Regge-Wheeler barrier on the 18-pt anamorphic grid",
-      "verdict": "SUPPORTED (rank-6 18-bar reconstruction, helicity-2 rotation, TT Ricci wave identity, and emergent s=2 barrier)",
-      "note": "Module 13 (Tests 46-47): Replacing the Test 23 scalar toy with the full 6-component symmetric 3x3 metric perturbation h_ij on the 3D 18-point anamorphic lattice proves: (1) the 6 axial + 12 face-diagonal bars have full rank 6 (vs. rank 3 for a 6-bar cubic truss) and reconstruct h_ij to 6.7e-16; (2) (h_+, h_x) obey the spin-2 quadrupole rotation law (cos 2*theta, sin 2*theta) to 2.2e-16; (3) on the TT subspace, the linearized 3D Ricci tensor satisfies delta G^0_0 == 0 (1.2e-15) and delta R_ij[h^TT] == -(1/2) Delta_18 h_ij^TT (2.5e-16), and 80 Cayley steps conserve Tr(h)==0 (5.0e-16), D_j h_ij==0 (3.8e-16), and GW energy (7.5e-16); and (4) the emergent s=2 Regge-Wheeler barrier on the discrete grid matches exact GR perturbation theory to 7.1e-5."
+      "claim": "3D 18-point rank-6 strain reconstruction, real-space non-TT discrete Bianchi audit, & Regge-Wheeler potential on the discretized background",
+      "verdict": "PARTLY SUPPORTED (rank-6 18-bar geometry, 65.0x GW isotropy, & real-space Bianchi proved; RW spin factor 1-s^2=-3 is continuum input)",
+      "note": "Module 13 (Tests 46-47): (1) A 6-bar cubic truss has rank 3 < 6 (blind to off-diagonal x-shear), whereas the 6 axial + 12 face-diagonal bars of the 18-point stencil have full rank 6 and reconstruct any symmetric 3x3 h_ij to 6.7e-16; (2) the 18-pt stencil reduces 3D GW phase-speed anisotropy at |k|ell=pi/4 by 65.0x over the 6-pt stencil; (3) in real space on general non-TT perturbations h_raw, the discrete contracted Bianchi identity D_j G_{ij}[h] = 0 holds to 1.2e-16 when using operator-consistent sum_k D_k D_k (and vanishes on gauge modes D_i xi_j + D_j xi_i to 1.4e-16), whereas mixing D_i D_j with compact Delta_18 produces an O(ell^2 k^5) longitudinal Bianchi anomaly (~0.105); and (4) evaluating the continuum Regge-Wheeler formula (with input spin factor 1 - s^2 = -3) on the discretized background (A_i, a_i, Q_i) matches the exact Schwarzschild barrier to 7.1e-5."
     }
   ]
 }

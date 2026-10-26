@@ -192,6 +192,10 @@ def test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves() 
         and res["final_tt_trace_max"] < 1e-13
         and res["final_tt_div_max"] < 1e-13
         and res["final_tensor_symmetry_err"] < 1e-14
+        and res["real_space_consistent_bianchi_non_tt_max"] < 1e-14
+        and res["real_space_mixed_lap18_bianchi_anomaly_non_tt"] > 1e-3
+        and res["real_space_gauge_mode_ricci_max"] < 1e-14
+        and res["gw_isotropy_improvement_factor_18pt_over_6pt"] > 15.0
     )
     return {
         "passed": passed,

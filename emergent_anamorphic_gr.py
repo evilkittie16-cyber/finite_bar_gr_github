@@ -1,26 +1,27 @@
 """
 emergent_anamorphic_gr.py
 =========================
-Module 13 (Step 1): Producing General Relativity Directly from the Discrete Anamorphic Grid
-Constraint Equations (Without Assuming Schwarzschild or Hayward Metric Formulas in Advance).
+Module 13: Discretised Spherically Symmetric Einstein / TOV Constraint Solver in Anamorphic
+Variables (Without a Prescribed Metric Ansatz) & 3D 18-Point Spin-2 Lattice Perturbations.
 
-Given ONLY a rest-mass density distribution rho(R) and the local Planck curvature cap rho_max,
-this solver computes:
-  1. The discrete Regge / Misner-Sharp curvature charge Q_i = R_i (1 - 1 / A_i^2) by integrating
-     the 3D discrete Hamiltonian constraint across spherical frustum cells:
-       Q_{k+1} - Q_k = (2 G / c^4) * dV_coord,k * rho_eff,k
-     which yields the emergent radial-to-transverse bar aspect ratio:
-       A_i = b_{r,i} / b_{perp,i} = 1 / sqrt(1 - Q_i / R_i).
-  2. The emergent local clock rate a_i by integrating the discrete radial momentum (G^r_r)
-     difference equation inward from a(R_max) = sqrt(1 - Q_N / R_N):
-       ln(a_{k+1}) - ln(a_k) = int_{R_k}^{R_{k+1}} [ (A^2 - 1)/(2 R) + (4 pi G / c^4) R A^2 p_r ] dR
-     coupled with discrete hydrostatic balance dp_r/dR = -(rho + p_r/c^2) c^2 d(ln a)/dR inside
-     static stars.
-  3. The Anamorphic-to-River Duality across black-hole horizons: when Q_i / R_i >= 1 (inside the
-     trapped region [R_-, R_+] where static bars A_i become imaginary), transforming to a freely
-     falling flat slice (Gamma_i = 1) converts the exact same emergent curvature charge Q_i / R_i
-     into the Painleve-Gullstrand river velocity:
-       J_i = -c * sqrt(Q_i / R_i).
+Scope & What Is vs. Is Not Derived Here:
+  - In Tests 43-45, Einstein's spherically symmetric constraint equations (G^t_t, G^r_r, and
+    hydrostatic balance) are taken as the input field equations, discretized at second order
+    O(1/N^2) in the anamorphic variables (A_i = b_{r,i}/b_{perp,i}, a_i, p_i, J_i), and solved
+    starting from a rest-mass density profile rho(R) without inputting the closed-form
+    Schwarzschild or Hayward metric formulas in advance.
+  - In Test 45, J_i = -c * sqrt(Q_i / R_i) is the exact Painleve-Gullstrand coordinate
+    transformation mapping the static curvature variable Q_i / R_i onto a flat free-fall slice
+    when Q_i / R_i >= 1 inside a black hole's trapped region.
+  - In Test 46, we prove the genuine geometric result that a 6-bar cubic truss has rank 3 < 6
+    (blind to x-polarized off-diagonal shear), whereas the 18-point stencil (6 axial + 12 face-
+    diagonal bars) has full rank 6 on symmetric 3x3 tensors h_ij, reduces directional GW phase-
+    speed anisotropy by 15.8x over the 6-point stencil, and satisfies the real-space discrete
+    contracted Bianchi identity D_j G_{ij}[h] = 0 on general non-TT perturbations when the
+    operator-consistent second derivative sum_k D_k D_k is used (whereas mixing D_i D_j with
+    Delta_18 introduces an O(ell^2 k^5) longitudinal Bianchi anomaly outside TT gauge).
+  - In Test 47, the continuum Regge-Wheeler potential formula (with spin weight 1 - s^2 = -3
+    for s = 2 vs. +1 for s = 0) is evaluated on the discretely solved background (R_i, A_i, a_i, Q_i).
 """
 
 from __future__ import annotations
@@ -565,6 +566,101 @@ def audit_3d_anamorphic_spin2_gravitational_waves(L: int = 16, n_steps: int = 80
         np.max(np.abs(apply_lap18_real(h_tt) - np.real(np.fft.ifftn(lap18_symbol[None, None] * Hk_tt, axes=(2, 3, 4)))))
     )
 
+    # Real-space 18-point first derivative D_a via np.roll (no FFT):
+    def apply_D18_real(field: np.ndarray, a: int) -> np.ndarray:
+        ax = a - 3
+        others = [b - 3 for b in range(3) if b != a]
+        diff_a = 0.5 * (np.roll(field, -1, axis=ax) - np.roll(field, 1, axis=ax))
+        avg_other = (
+            0.5 * (np.roll(diff_a, -1, axis=others[0]) + np.roll(diff_a, 1, axis=others[0]))
+            + 0.5 * (np.roll(diff_a, -1, axis=others[1]) + np.roll(diff_a, 1, axis=others[1]))
+        )
+        return (1.0 / 3.0) * diff_a + (1.0 / 3.0) * avg_other
+
+    # Genuine Real-Space Non-TT Discrete Contracted Bianchi & Gauge-Invariance Audit on h_raw:
+    # h_raw has large trace (raw_trace_rms ~ 1.65) and large longitudinal divergence (raw_div_max ~ 1.68).
+    # Compute D_i h_raw[j, k] in real space:
+    Dh_raw = np.stack([apply_D18_real(h_raw, a) for a in range(3)], axis=0)  # shape (3, 3, 3, L, L, L)
+    # D_a D_b h_raw[i, j] in real space:
+    DDh_raw = np.stack([[apply_D18_real(Dh_raw[b], a) for b in range(3)] for a in range(3)], axis=0)  # (3, 3, 3, 3, L, L, L)
+    tr_raw = h_raw[0, 0] + h_raw[1, 1] + h_raw[2, 2]
+    D_tr_raw = np.stack([apply_D18_real(tr_raw, a) for a in range(3)], axis=0)
+    DD_tr_raw = np.stack([[apply_D18_real(D_tr_raw[b], a) for b in range(3)] for a in range(3)], axis=0)
+
+    # Operator-consistent Laplacian sum_k D_k D_k vs single-step compact 18-pt Laplacian apply_lap18_real:
+    lap_cons_raw = DDh_raw[0, 0] + DDh_raw[1, 1] + DDh_raw[2, 2]
+    lap_18_raw = apply_lap18_real(h_raw)
+
+    # 1) Operator-consistent linearized Ricci & Einstein tensors on non-TT h_raw in real space:
+    delta_R_cons = np.zeros_like(h_raw)
+    delta_R_mixed = np.zeros_like(h_raw)
+    for i in range(3):
+        for j in range(3):
+            div_sym = sum(DDh_raw[k, i, j, k] + DDh_raw[k, j, i, k] for k in range(3))
+            delta_R_cons[i, j] = 0.5 * (div_sym - lap_cons_raw[i, j] - DD_tr_raw[i, j])
+            delta_R_mixed[i, j] = 0.5 * (div_sym - lap_18_raw[i, j] - DD_tr_raw[i, j])
+
+    R_scalar_cons = delta_R_cons[0, 0] + delta_R_cons[1, 1] + delta_R_cons[2, 2]
+    R_scalar_mixed = delta_R_mixed[0, 0] + delta_R_mixed[1, 1] + delta_R_mixed[2, 2]
+    G_cons = delta_R_cons.copy()
+    G_mixed = delta_R_mixed.copy()
+    for i in range(3):
+        G_cons[i, i] -= 0.5 * R_scalar_cons
+        G_mixed[i, i] -= 0.5 * R_scalar_mixed
+
+    # Discrete contracted Bianchi divergence (D_j G_ij) in real space on non-TT h_raw:
+    bianchi_cons = np.zeros((3, L, L, L))
+    bianchi_mixed = np.zeros((3, L, L, L))
+    for i in range(3):
+        for j in range(3):
+            bianchi_cons[i] += apply_D18_real(G_cons[i, j], j)
+            bianchi_mixed[i] += apply_D18_real(G_mixed[i, j], j)
+    real_space_consistent_bianchi_non_tt_max = float(np.max(np.abs(bianchi_cons)))
+    real_space_mixed_lap18_bianchi_anomaly_non_tt = float(np.max(np.abs(bianchi_mixed)))
+
+    # 2) Real-space linearized diffeomorphism gauge mode h_ij^gauge = D_i xi_j + D_j xi_i:
+    xi_vec = np.stack([
+        np.sin(2.0 * np.pi * (X + Y - Z) / L + 0.2),
+        np.cos(2.0 * np.pi * (2 * X - Y + Z) / L - 0.4),
+        np.sin(2.0 * np.pi * (X - 2 * Y + Z) / L + 0.7),
+    ], axis=0)
+    h_gauge = np.zeros_like(h_raw)
+    for i in range(3):
+        for j in range(3):
+            h_gauge[i, j] = apply_D18_real(xi_vec[j], i) + apply_D18_real(xi_vec[i], j)
+    Dh_g = np.stack([apply_D18_real(h_gauge, a) for a in range(3)], axis=0)
+    DDh_g = np.stack([[apply_D18_real(Dh_g[b], a) for b in range(3)] for a in range(3)], axis=0)
+    tr_g = h_gauge[0, 0] + h_gauge[1, 1] + h_gauge[2, 2]
+    D_tr_g = np.stack([apply_D18_real(tr_g, a) for a in range(3)], axis=0)
+    DD_tr_g = np.stack([[apply_D18_real(D_tr_g[b], a) for b in range(3)] for a in range(3)], axis=0)
+    lap_cons_g = DDh_g[0, 0] + DDh_g[1, 1] + DDh_g[2, 2]
+    delta_R_gauge_cons = np.zeros_like(h_gauge)
+    for i in range(3):
+        for j in range(3):
+            div_sym_g = sum(DDh_g[k, i, j, k] + DDh_g[k, j, i, k] for k in range(3))
+            delta_R_gauge_cons[i, j] = 0.5 * (div_sym_g - lap_cons_g[i, j] - DD_tr_g[i, j])
+    real_space_gauge_mode_ricci_max = float(np.max(np.abs(delta_R_gauge_cons)))
+
+    # 3) 3D GW directional phase-speed anisotropy at |k|*ell = pi/4 (6-pt cubic vs 18-pt stencil):
+    k_mag = 0.25 * np.pi
+    unit_dirs = [
+        np.array([1.0, 0.0, 0.0]),
+        np.array([1.0, 1.0, 0.0]) / np.sqrt(2.0),
+        np.array([1.0, 1.0, 1.0]) / np.sqrt(3.0),
+    ]
+    v_ph_6pt = []
+    v_ph_18pt = []
+    for u in unit_dirs:
+        kv = k_mag * u
+        cx, cy, cz = np.cos(kv[0]), np.cos(kv[1]), np.cos(kv[2])
+        w2_6 = 2.0 * (3.0 - (cx + cy + cz))
+        w2_18 = 4.0 - (2.0 / 3.0) * (cx + cy + cz) - (2.0 / 3.0) * (cx * cy + cy * cz + cz * cx)
+        v_ph_6pt.append(np.sqrt(w2_6) / k_mag)
+        v_ph_18pt.append(np.sqrt(w2_18) / k_mag)
+    gw_aniso_6pt = float(max(v_ph_6pt) - min(v_ph_6pt))
+    gw_aniso_18pt = float(max(v_ph_18pt) - min(v_ph_18pt))
+    gw_isotropy_improvement = float(gw_aniso_6pt / gw_aniso_18pt)
+
     def tensor_energy(h_f: np.ndarray, pi_f: np.ndarray) -> float:
         lap_h = apply_lap18_real(h_f)
         return 0.5 * float(np.sum(pi_f * pi_f - h_f * lap_h))
@@ -612,6 +708,12 @@ def audit_3d_anamorphic_spin2_gravitational_waves(L: int = 16, n_steps: int = 80
         "final_tt_trace_max": final_trace_max,
         "final_tt_div_max": final_div_max,
         "final_tensor_symmetry_err": final_symmetry_err,
+        "real_space_consistent_bianchi_non_tt_max": real_space_consistent_bianchi_non_tt_max,
+        "real_space_mixed_lap18_bianchi_anomaly_non_tt": real_space_mixed_lap18_bianchi_anomaly_non_tt,
+        "real_space_gauge_mode_ricci_max": real_space_gauge_mode_ricci_max,
+        "gw_phase_speed_anisotropy_6pt": gw_aniso_6pt,
+        "gw_phase_speed_anisotropy_18pt": gw_aniso_18pt,
+        "gw_isotropy_improvement_factor_18pt_over_6pt": gw_isotropy_improvement,
     }
 
 
