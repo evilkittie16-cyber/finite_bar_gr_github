@@ -1,12 +1,14 @@
 """
 generate_figures.py
 ===================
-Generates the 4-panel publication summary figure (figures/finite_bar_gr_summary.png)
+Generates the 6-panel publication summary figure (figures/finite_bar_gr_summary.png)
 for the Finite-Bar Discrete General Relativity Nonsingular Black Hole Model:
   Panel (a): Unified Painleve-Gullstrand River Velocity |J(r)|/c & Inner Cauchy Horizon Excision
   Panel (b): Smooth Hayward Radial & Tangential Core Stress Profiles p_r(r) and p_theta(r)
   Panel (c): 3D 25x25x25 Lattice Spherical Shell Isotropy on R = 3.0*ell (6-Pt vs. 18-Pt vs. 27-Pt)
   Panel (d): Exact Total Energy Conservation H_total = H_wave + H_core During 3D Cell Freezing
+  Panel (e): Hawking Temperature T_H(r_+) Peak at r_+ = 3*ell & Zero-Temperature Remnant at r_+ = sqrt(3)*ell
+  Panel (f): 3D Spinning Kerr-Doran Whirlpool + River Equatorial Ergosphere (|J| > c > |J_r|)
 """
 
 import os
@@ -100,13 +102,13 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
 
     plt.rcParams.update({
-        "font.size": 10,
-        "axes.titlesize": 11,
-        "axes.labelsize": 10,
+        "font.size": 9.5,
+        "axes.titlesize": 10.5,
+        "axes.labelsize": 9.5,
         "figure.facecolor": "white",
     })
 
-    fig, axes = plt.subplots(2, 2, figsize=(13.5, 9.5), dpi=200)
+    fig, axes = plt.subplots(3, 2, figsize=(13.5, 13.5), dpi=200)
 
     # -------------------------------------------------------------------------
     # Panel (a): Unified River Velocity |J(r)|/c & Inner Cauchy Horizon Excision
@@ -134,7 +136,7 @@ def main():
     ax.set_xlabel(r"Radius $r / \ell$")
     ax.set_ylabel(r"Inward River Speed $|J(r)| / c$")
     ax.set_title(r"(a) Unified River Profile $|J(r)|/c$ & Inner Horizon Excision")
-    ax.legend(loc="upper right", fontsize=8.3, framealpha=0.92)
+    ax.legend(loc="upper right", fontsize=8.0, framealpha=0.92)
     ax.grid(True, alpha=0.25)
 
     # -------------------------------------------------------------------------
@@ -159,7 +161,7 @@ def main():
     ax.set_xlabel(r"Normalized Core Radius $r / R_{\mathrm{core}}(M)$")
     ax.set_ylabel(r"Normalized Stress / Pressure $[ \rho_{\max} c^2 ]$")
     ax.set_title(r"(b) SEC Violation & Smooth Tangential Stress $p_\theta(r)$")
-    ax.legend(loc="lower right", fontsize=8.2, framealpha=0.92)
+    ax.legend(loc="lower right", fontsize=8.0, framealpha=0.92)
     ax.grid(True, alpha=0.25)
 
     # -------------------------------------------------------------------------
@@ -179,7 +181,7 @@ def main():
             ha="center",
             va="bottom",
             fontweight="bold",
-            fontsize=9.5,
+            fontsize=9.2,
         )
 
     ax.annotate(
@@ -187,7 +189,7 @@ def main():
         xy=(1, 1.05),
         xytext=(0.55, 3.6),
         arrowprops=dict(arrowstyle="->", color="#1f77b4", lw=1.5),
-        fontsize=9,
+        fontsize=8.8,
         fontweight="bold",
         color="#1f77b4",
     )
@@ -196,7 +198,7 @@ def main():
         xy=(2, 0.90),
         xytext=(1.35, 2.6),
         arrowprops=dict(arrowstyle="->", color="#2ca02c", lw=1.5),
-        fontsize=9,
+        fontsize=8.8,
         fontweight="bold",
         color="#2ca02c",
     )
@@ -221,14 +223,68 @@ def main():
     ax.set_xlabel(r"Proper Free-Fall Time $t / \Delta t_{\min}$")
     ax.set_ylabel(r"Lattice Energy (Natural Grid Units)")
     ax.set_title(r"(d) Exact 3D $25\times 25\times 25$ Matter + Core Energy Conservation")
-    ax.legend(loc="center right", fontsize=8.3, framealpha=0.92)
+    ax.legend(loc="center right", fontsize=8.0, framealpha=0.92)
     ax.grid(True, alpha=0.25)
 
-    plt.tight_layout(pad=1.8)
+    # -------------------------------------------------------------------------
+    # Panel (e): Surface Gravity / Hawking Temperature & Zero-Temp Remnant
+    # -------------------------------------------------------------------------
+    ax = axes[2, 0]
+    r_p = np.linspace(np.sqrt(3.0), 12.0, 500)
+    kappa_reg = (1.0 / (2.0 * r_p)) * (1.0 - 3.0 / (r_p**2))
+    r_p_cl = np.linspace(0.8, 12.0, 500)
+    kappa_cl = 1.0 / (2.0 * r_p_cl)
+
+    ax.plot(r_p_cl, kappa_cl, "--", color="#888888", lw=1.5, label=r"Classical Hawking $\kappa_{\mathrm{GR}} = \frac{c^2}{2r_+} \to \infty$")
+    ax.plot(r_p, kappa_reg, "-", color="#d62728", lw=2.3, label=r"Finite-Bar / Hayward $\kappa(r_+) = \frac{c^2}{2r_+}\left(1 - \frac{3\ell^2}{r_+^2}\right)$")
+    ax.axvline(3.0, color="#1f77b4", ls=":", lw=1.4, label=r"Peak Temperature $r_{+,\mathrm{peak}} = 3\ell$ ($C_M = \frac{dM}{dT_H}$ flips sign)")
+    ax.axvline(np.sqrt(3.0), color="#2ca02c", ls="-.", lw=1.5, label=r"Cold Remnant $r_+ = \sqrt{3}\ell$ ($T_H = 0, M_{\mathrm{crit}} \approx 1.30 m_P$)")
+    ax.axvspan(np.sqrt(3.0), 3.0, color="#2ca02c", alpha=0.11, label=r"Stable Cooling Regime ($C_M > 0$)")
+
+    ax.set_xlim(0.8, 12.0)
+    ax.set_ylim(0.0, 0.25)
+    ax.set_xlabel(r"Outer Horizon Radius $r_+ / \ell$")
+    ax.set_ylabel(r"Surface Gravity $\kappa(r_+) / (c^2/\ell) \propto T_H$")
+    ax.set_title(r"(e) Hawking Temperature Peak ($r_+ = 3\ell$) & Cold Remnant ($T_H = 0$)")
+    ax.legend(loc="upper right", fontsize=7.9, framealpha=0.92)
+    ax.grid(True, alpha=0.25)
+
+    # -------------------------------------------------------------------------
+    # Panel (f): 3D Spinning Kerr-Doran Whirlpool + River Ergosphere
+    # -------------------------------------------------------------------------
+    ax = axes[2, 1]
+    r_k = np.linspace(0.0, 10.0, 500)
+    r_s_k = 6.0
+    a_sp = 0.85 * (0.5 * r_s_k)  # high spin a/M = 0.85
+    denom_k = (r_k**3) + r_s_k * (ell**2) + (a_sp**2) * r_k
+    J_r_k = np.sqrt(np.divide(r_s_k * (r_k**2), denom_k, out=np.zeros_like(r_k), where=denom_k > 1e-12))
+    J_phi_k = J_r_k * (a_sp * r_k) / (r_k**2 + ell**2)
+    J_tot_k = np.sqrt(J_r_k**2 + J_phi_k**2)
+
+    ax.plot(r_k, J_tot_k, "-", color="#9467bd", lw=2.3, label=r"Total Equatorial Flow $|\mathbf{J}|/c = \sqrt{J_r^2 + J_\phi^2}/c$")
+    ax.plot(r_k, J_r_k, "--", color="#1f77b4", lw=2.0, label=r"Radial River Inflow $|J_r(r)|/c$")
+    ax.plot(r_k, J_phi_k, "-.", color="#ff7f0e", lw=1.8, label=r"Regularized Whirlpool $|J_\phi(r,\pi/2)|/c \to 0$ at $r=0$")
+    ax.axhline(1.0, color="#d62728", ls=":", lw=1.4, label=r"Light Speed Threshold $|\mathbf{J}|/c = 1$")
+
+    ergo_mask = (J_tot_k >= 1.0) & (J_r_k <= 1.0) & (r_k > 2.5)
+    if np.any(ergo_mask):
+        r_ergo_min = float(np.min(r_k[ergo_mask]))
+        r_ergo_max = float(np.max(r_k[ergo_mask]))
+        ax.axvspan(r_ergo_min, r_ergo_max, color="#9467bd", alpha=0.15, label=rf"Equatorial Ergosphere ($|\mathbf{{J}}| > c > |J_r|$)")
+
+    ax.set_xlim(0.0, 10.0)
+    ax.set_ylim(0.0, 1.65)
+    ax.set_xlabel(r"Equatorial Radius $r / \ell$")
+    ax.set_ylabel(r"Flow Speed / $c$")
+    ax.set_title(r"(f) 3D Kerr–Doran Whirlpool + River Flow & Equatorial Ergosphere")
+    ax.legend(loc="upper right", fontsize=7.9, framealpha=0.92)
+    ax.grid(True, alpha=0.25)
+
+    plt.tight_layout(pad=1.7)
     out_file = os.path.join(out_dir, "finite_bar_gr_summary.png")
     plt.savefig(out_file, dpi=200)
     plt.close(fig)
-    print(f"Saved publication summary figure to: {out_file}")
+    print(f"Saved 6-panel publication summary figure to: {out_file}")
 
 
 if __name__ == "__main__":

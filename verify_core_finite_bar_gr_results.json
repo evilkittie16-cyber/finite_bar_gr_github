@@ -78,5 +78,31 @@
     "peak_J_over_c_at_remnant_Mcrit_smooth_hayward": 1.0,
     "smooth_hayward_extremal_horizon_radius_over_ell": 1.7320508075688772
   },
+  "test_8_surface_gravity_hawking_thermodynamics_and_zero_temp_remnant": {
+    "passed": true,
+    "kappa_forms_algebraic_equivalence_error": 2.7755575615628914e-17,
+    "kappa_vs_finite_difference_error": 1.3206291026024441e-09,
+    "kappa_at_extremal_remnant_sqrt3_ell": -6.409875621278547e-17,
+    "peak_temperature_horizon_radius_over_ell": 3.0,
+    "dkappa_dr_at_peak_temperature_radius": 0.0,
+    "specific_heat_positive_in_cooling_regime": true,
+    "first_law_TdS_reg_minus_dM_max_residual": 2.220446049250313e-16,
+    "remnant_entropy_S_reg_at_sqrt3_ell": -3.139081648207769e-15
+  },
+  "test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical": {
+    "passed": true,
+    "link_flux_antisymmetry_error_Fij_plus_Fji": 1.3877787807814457e-17,
+    "volume_dE_dt_inside_R3p2": -5.3452707837357485,
+    "minus_surface_poynting_flux_across_R3p2": -5.34527078373575,
+    "discrete_gauss_poynting_conservation_residual": 1.7763568394002505e-15
+  },
+  "test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere": {
+    "passed": true,
+    "ergosphere_supersonic_cell_count": 16,
+    "origin_flow_speed_regular": 0.0,
+    "kerr_doran_27pt_skew_symmetry_error": 0.0,
+    "symplectic_cayley_energy_drift_50steps": 6.451515520750494e-15,
+    "lense_thirring_azimuthal_frame_drag_y_shift": -0.20598893815259722
+  },
   "ALL_CORE_GR_TESTS_PASSED": true
 }

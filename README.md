@@ -3,7 +3,7 @@
 [![Verify Finite-Bar Discrete GR Benchmarks](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml/badge.svg)](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Self-contained manuscript, analytical verification suite, and 3D $25 \times 25 \times 25$ (`15,625-cell`) isotropic lattice simulator for the **spherically symmetric Painlevé–Gullstrand / Misner–Sharp reduction and scalar wave sector** of Finite-Bar Discrete General Relativity.
+Self-contained manuscript, 10-benchmark analytical & numerical verification suite, and 3D $25 \times 25 \times 25$ (`15,625-cell`) isotropic lattice simulator for the **Painlevé–Gullstrand / Misner–Sharp reduction and canonical scalar wave sector** of Finite-Bar Discrete General Relativity.
 
 ![Finite-Bar Discrete GR Summary](figures/finite_bar_gr_summary.png)
 
@@ -13,12 +13,12 @@ Self-contained manuscript, analytical verification suite, and 3D $25 \times 25 \
 
 | File | Description |
 | :--- | :--- |
-| [`proof_corrected.md`](proof_corrected.md) | Complete mathematical manuscript covering the Planck-scale UV lattice postulates ($\ell = \ell_P, \Delta t_{\min} = t_P, \rho_{\max} = \frac{3c^2}{8\pi G\ell^2}$), 2PN weak-field isotropic & Painlevé–Gullstrand gauge match, de Sitter / Hayward core unification ($R_{\text{core}}(M) = (r_s\ell^2)^{1/3}, K(0) = \frac{24}{\ell^4}$), 18-neighbor & 27-point isotropic 3D stencils, skew-symmetric summation-by-parts (SBP) river Hamiltonian ($M_{ij} = -M_{ji}$), Cayley symplectic evolution, and Neumann link-decoupled Stefan core accretion. |
-| [`verify_core_finite_bar_gr.py`](verify_core_finite_bar_gr.py) | Self-contained 7-benchmark verification suite testing all analytical and numerical identities in Sections 1–5 of the manuscript. |
+| [`proof_corrected.md`](proof_corrected.md) | Complete mathematical manuscript covering the Planck-scale UV lattice postulates ($\ell = \ell_P, \Delta t_{\min} = t_P, \rho_{\max} = \frac{3c^2}{8\pi G\ell^2}$), 2PN weak-field isotropic & Painlevé–Gullstrand gauge match, de Sitter / Hayward core unification ($R_{\text{core}}(M) = (r_s\ell^2)^{1/3}, K(0) = \frac{24}{\ell^4}$), 18-neighbor & 27-point isotropic 3D stencils, skew-symmetric summation-by-parts (SBP) river Hamiltonian ($M_{ij} = -M_{ji}$), Cayley symplectic evolution, Neumann link-decoupled Stefan core accretion, discrete Gauss–Poynting flux conservation, Hawking specific-heat reversal ($C_M > 0$ below $r_+ = 3\ell$) & zero-temperature remnant ($T_H(\sqrt{3}\ell) = 0$), and 3D Kerr–Doran spinning whirlpool+river ergosphere propagation. |
+| [`verify_core_finite_bar_gr.py`](verify_core_finite_bar_gr.py) | Self-contained 10-benchmark verification suite testing all analytical and numerical identities in Sections 1–6 of the manuscript. |
 | [`verify_core_finite_bar_gr_results.json`](verify_core_finite_bar_gr_results.json) | Pre-computed JSON benchmark output from `verify_core_finite_bar_gr.py`. |
 | [`simulate_3d_18pt_freezing_core.py`](simulate_3d_18pt_freezing_core.py) | Shortcut-free 3D $25 \times 25 \times 25$ (`15,625-cell`) lattice wave simulator comparing uncapped inner-horizon pile-up against local Stefan cell freezing across 6-point cubic, 18-neighbor isotropic, and 27-point isotropic stencils. |
 | [`simulate_3d_18pt_freezing_core_results.json`](simulate_3d_18pt_freezing_core_results.json) | Pre-computed JSON simulation output from `simulate_3d_18pt_freezing_core.py`. |
-| [`generate_figures.py`](generate_figures.py) | Reproducible figure generation script that produces the 4-panel summary plot [`figures/finite_bar_gr_summary.png`](figures/finite_bar_gr_summary.png). |
+| [`generate_figures.py`](generate_figures.py) | Reproducible figure generation script that produces the 6-panel summary plot [`figures/finite_bar_gr_summary.png`](figures/finite_bar_gr_summary.png). |
 | [`CITATION.cff`](CITATION.cff) & [`LICENSE`](LICENSE) | Standard academic citation metadata and MIT open-source license. |
 | [`requirements.txt`](requirements.txt) | Python dependencies (`numpy>=1.20.0`, `matplotlib>=3.5.0`). |
 
@@ -33,7 +33,7 @@ cd finite_bar_gr_github
 pip install -r requirements.txt
 ```
 
-### 2. Run the 7 Core Mathematical & Physical Verification Benchmarks
+### 2. Run the 10 Core Mathematical & Physical Verification Benchmarks
 ```bash
 python verify_core_finite_bar_gr.py
 ```
@@ -51,14 +51,14 @@ Expected console confirmation:
 ALL 3D 18-PT & 27-PT LATTICE SIMULATOR CHECKS PASSED: True
 ```
 
-### 4. Regenerate the 4-Panel Summary Figure
+### 4. Regenerate the 6-Panel Summary Figure
 ```bash
 python generate_figures.py
 ```
 
 ---
 
-## Summary of Verification Benchmarks
+## Summary of the 10 Verification Benchmarks
 
 | Benchmark | Physical / Mathematical Check | Result |
 | :--- | :--- | :--- |
@@ -69,3 +69,6 @@ python generate_figures.py
 | **5. Surface Freezing & Horizon Trapping ($R_{\text{core}} \propto M^{1/3}$)** | Bounced-wave trapping $v_{\text{bounce}}(R_{\text{core}}) = c(1 - \sqrt{r_s/R_{\text{core}}}) < 0$ and uniform-sphere growth $M(r) = M\frac{r^3}{R_{\text{core}}^3}$ | **PASSED** (`v_bounce = -0.140c < 0` above threshold; `3.33e-16` match to $\frac{r^3}{r} = r^2$ core law) |
 | **6. Quantum Operator Evolution & Branch Superposition** | Unitary Heisenberg commutator $[\hat{\Phi}_i, \hat{\Pi}_j] = i\hbar\,\delta_{ij}$, Ehrenfest trajectory equivalence, and horizon entanglement | **PASSED** (`commutator drift = 4.12e-14`; Ehrenfest quantum vs. classical GR difference `0.0`) |
 | **7. Observational, SEC/Buchdahl, & Remnant Shut-Off Tests** | Fermi-LAT GRB 090510 group-velocity bound, SEC bypass ($p_r = -\rho_{\max}c^2$), smooth Hayward $p_\theta(r)$, and remnant shut-off $\max_r\lvert J(r)\rvert = c$ | **PASSED** ($\Delta t_{\text{iso}} = 1.85 \times 10^{-19}\text{ s} \ll 0.8\text{ s}$; remnant shut-off at $M_{\text{crit}}^{\text{sharp}} = 0.5\,m_P$ and $M_{\text{crit}}^{\text{smooth}} = \frac{3\sqrt{3}}{4}m_P \approx 1.299\,m_P$) |
+| **8. Surface Gravity $\kappa(r_+)$, Specific Heat Flip, & First Law** | Hawking temperature peak at $r_+ = 3\ell$ ($C_M > 0$ below $3\ell$), zero-temperature remnant $T_H(\sqrt{3}\ell) = 0$, and $c^2 dM = T_H dS_{\text{reg}}$ | **PASSED** ($\kappa(r_+) = \frac{c^2}{2r_+}(1 - 3\ell^2/r_+^2)$ identity `err = 2.78e-17`; $T_H(\sqrt{3}\ell) = 0$; First Law residual `2.22e-16`) |
+| **9. Discrete Gauss–Poynting Flux Theorem (3D Non-Spherical)** | Antisymmetric 27-point link flux $F_{ij} = -F_{ji}$ conservation $\frac{d}{dt}\sum_{i\in\Omega} E_i^{\text{local}} = -\sum_{\partial\Omega} F_{ij}$ for an off-center 3D wave | **PASSED** (link flux antisymmetry `1.39e-17`; volume rate vs. boundary Poynting flux residual `1.78e-15`) |
+| **10. 3D Kerr–Doran Whirlpool + River Ergosphere ($J_\phi \neq 0$)** | Core-regularized spinning flow $\mathbf{J} = J_r\hat{\mathbf{r}} + J_\phi\hat{\boldsymbol{\phi}}$ on the 3D 27-point lattice across the equatorial ergosphere | **PASSED** ($M^T = -M$ `err = 0.0`; Cayley energy `drift = 6.45e-15`; Lense–Thirring frame-dragging shift `Delta <y> = -0.206 ell`) |

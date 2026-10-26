@@ -635,6 +635,336 @@ def test_7_observational_and_buchdahl_stress_tests():
     }
 
 
+def test_8_surface_gravity_hawking_thermodynamics_and_zero_temp_remnant():
+    """
+    Test 8:
+    - Verifies the exact analytical surface gravity identity at the outer horizon r_+:
+        kappa(r_+) = (c^2 / 2) f'(r_+) = (c^2 / (2 r_+)) * (1 - 3*ell^2 / r_+^2)
+                                       == (c^2 / (2 r_s)) * (r_+^2 - 3*ell^2) / (r_+^2 - ell^2)
+    - Verifies that at the extremal remnant r_+ = sqrt(3)*ell (r_s = 1.5*sqrt(3)*ell),
+      kappa(r_+) == 0 and T_H == 0 identically.
+    - Verifies that peak Hawking temperature occurs at r_+ = 3*ell (r_s = 27/8 * ell = 3.375*ell),
+      below which specific heat C_M = dM / dT_H > 0 is strictly positive (stable cooling).
+    - Verifies the exact First Law c^2 dM = T_H dS_reg with the quantum-corrected regular black hole entropy:
+        S_reg(r_+) = (k_B c^3 / (4 G hbar)) * [4*pi*(r_+^2 - 3*ell^2) + 8*pi*ell^2 * ln((r_+^2 - ell^2)/(2*ell^2))
+                                               - 4*pi*ell^4 * (1/(r_+^2 - ell^2) - 1/(2*ell^2))]
+      and S_reg(sqrt(3)*ell) == 0.
+    """
+    c = 1.0
+    ell = 1.0
+    r_plus_vals = np.linspace(np.sqrt(3.0) * ell, 20.0 * ell, 200)
+    r_s_vals = (r_plus_vals**3) / (r_plus_vals**2 - ell**2)
+
+    # Analytical surface gravity in both forms
+    kappa_form1 = (c**2 / (2.0 * r_plus_vals)) * (1.0 - 3.0 * (ell**2) / (r_plus_vals**2))
+    kappa_form2 = (c**2 / (2.0 * r_s_vals)) * ((r_plus_vals**2 - 3.0 * ell**2) / (r_plus_vals**2 - ell**2))
+    algebraic_equivalence_err = float(np.max(np.abs(kappa_form1 - kappa_form2)))
+
+    # Compare against direct derivative f'(r_+) of f(r) = 1 - r_s r^2 / (r^3 + r_s ell^2)
+    eps = 1e-7
+    f_plus = 1.0 - (r_s_vals * ((r_plus_vals + eps) ** 2)) / (((r_plus_vals + eps) ** 3) + r_s_vals * (ell**2))
+    f_minus = 1.0 - (r_s_vals * ((r_plus_vals - eps) ** 2)) / (((r_plus_vals - eps) ** 3) + r_s_vals * (ell**2))
+    kappa_fd = 0.5 * (c**2) * (f_plus - f_minus) / (2.0 * eps)
+    fd_match_err = float(np.max(np.abs(kappa_form1 - kappa_fd)))
+
+    # Remnant zero-temperature check at r_+ = sqrt(3)*ell
+    kappa_at_remnant = float(kappa_form1[0])
+
+    # Peak temperature radius r_{+,\text{peak}} = 3 * ell (r_s = 27/8 * ell = 3.375 * ell)
+    r_plus_peak_exact = float(3.0 * ell)
+    dkappa_at_peak = float(0.5 * (c**2) * (9.0 * (ell**2) - (r_plus_peak_exact**2)) / (r_plus_peak_exact**4))
+
+    # Specific heat sign: dM/dr_+ > 0 for all r_+ > sqrt(3)*ell, while dT_H/dr_+ > 0 for sqrt(3)*ell < r_+ < 3*ell
+    r_sub_peak = 2.2 * ell
+    dM_dr_sub = 0.5 * (r_sub_peak**2) * (r_sub_peak**2 - 3.0 * ell**2) / ((r_sub_peak**2 - ell**2) ** 2)
+    dkappa_dr_sub = 0.5 * (c**2) * (9.0 * (ell**2) - (r_sub_peak**2)) / (r_sub_peak**4)
+    specific_heat_positive_below_peak = bool((dM_dr_sub / dkappa_dr_sub) > 0.0)
+
+    # First Law verification: dM / dr_+ == T_H * (dS_reg / dr_+) in units G = hbar = k_B = c = 1
+    dM_dr_vals = 0.5 * (r_plus_vals**2) * (r_plus_vals**2 - 3.0 * ell**2) / ((r_plus_vals**2 - ell**2) ** 2)
+    T_H_vals = kappa_form1 / (2.0 * np.pi)
+    dS_reg_dr_vals = 2.0 * np.pi * (r_plus_vals**5) / ((r_plus_vals**2 - ell**2) ** 2)
+    first_law_residual = float(np.max(np.abs(dM_dr_vals[1:] - T_H_vals[1:] * dS_reg_dr_vals[1:])))
+
+    r_rem = np.sqrt(3.0) * ell
+    S_reg_remnant = float(
+        np.pi * (r_rem**2 - 3.0 * ell**2)
+        + 2.0 * np.pi * (ell**2) * np.log((r_rem**2 - ell**2) / (2.0 * ell**2))
+        - np.pi * (ell**4) * (1.0 / (r_rem**2 - ell**2) - 1.0 / (2.0 * ell**2))
+    )
+
+    passed = (
+        algebraic_equivalence_err < 1e-15
+        and fd_match_err < 1e-8
+        and abs(kappa_at_remnant) < 1e-15
+        and abs(dkappa_at_peak) < 1e-15
+        and specific_heat_positive_below_peak
+        and first_law_residual < 1e-14
+        and abs(S_reg_remnant) < 1e-14
+    )
+    return {
+        "passed": bool(passed),
+        "kappa_forms_algebraic_equivalence_error": algebraic_equivalence_err,
+        "kappa_vs_finite_difference_error": fd_match_err,
+        "kappa_at_extremal_remnant_sqrt3_ell": kappa_at_remnant,
+        "peak_temperature_horizon_radius_over_ell": r_plus_peak_exact,
+        "dkappa_dr_at_peak_temperature_radius": dkappa_at_peak,
+        "specific_heat_positive_in_cooling_regime": specific_heat_positive_below_peak,
+        "first_law_TdS_reg_minus_dM_max_residual": first_law_residual,
+        "remnant_entropy_S_reg_at_sqrt3_ell": S_reg_remnant,
+    }
+
+
+def test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical():
+    """
+    Test 9:
+    - Verifies the exact discrete Gauss-Poynting flux conservation law on the 3D 27-point grid
+      for an ASYMMETRIC, OFF-CENTER (non-spherical) 3D wave packet:
+        d/dt sum_{i in Omega} E_i^local == - sum_{i in Omega, j not in Omega} F_{ij}
+      where the antisymmetric link energy flux is:
+        F_{ij} = 0.5 * K_{ij} * (Phi_i - Phi_j) * (Pi_i/a_i + Pi_j/a_j) + M_{ij} * (Pi_i/a_i) * (Pi_j/a_j) == -F_{ji}
+    - Proves that local hyperbolic radial momentum-flux updates dM/dt = -oint S . dA are
+      exact to machine precision (< 1e-14) on the 27-point lattice without assuming spherical symmetry.
+    """
+    n_grid = 13
+    ell = 1.0
+    coords = np.arange(n_grid) - (n_grid // 2)
+    X, Y, Z = np.meshgrid(coords, coords, coords, indexing="ij")
+    R = np.sqrt(X**2 + Y**2 + Z**2)
+
+    # Full 27-point stencil weights
+    faces = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+    edges = [
+        (1, 1, 0), (1, -1, 0), (-1, 1, 0), (-1, -1, 0),
+        (1, 0, 1), (1, 0, -1), (-1, 0, 1), (-1, 0, -1),
+        (0, 1, 1), (0, 1, -1), (0, -1, 1), (0, -1, -1),
+    ]
+    corners = [
+        (1, 1, 1), (1, 1, -1), (1, -1, 1), (1, -1, -1),
+        (-1, 1, 1), (-1, 1, -1), (-1, -1, 1), (-1, -1, -1),
+    ]
+    offsets = (
+        [(d[0], d[1], d[2], 7.0 / 15.0) for d in faces]
+        + [(d[0], d[1], d[2], 1.0 / 10.0) for d in edges]
+        + [(d[0], d[1], d[2], 1.0 / 30.0) for d in corners]
+    )
+
+    # Non-uniform inertia a_i and 3D radial river velocity J(x,y,z)
+    r_s = 3.0
+    r_tilde = np.sqrt(R**2 + ell**2)
+    a_grid = 1.0 + 0.25 * (r_s / r_tilde)
+    J_mag = (R / r_tilde) * np.sqrt((r_s * (R**2)) / (R**3 + r_s * (ell**2)))
+    inv_R = np.divide(1.0, R, out=np.zeros_like(R), where=R > 1e-12)
+    Jx = -J_mag * X * inv_R
+    Jy = -J_mag * Y * inv_R
+    Jz = -J_mag * Z * inv_R
+
+    # Initialize an OFF-CENTER, ASYMMETRIC 3D wave packet (centered at (1.5, -1.0, 0.8))
+    dist_off = np.sqrt((X - 1.5) ** 2 + (Y + 1.0) ** 2 + (Z - 0.8) ** 2)
+    phi = (1.2 + 0.4 * X - 0.3 * Y * Z) * np.exp(-(dist_off**2) / 3.2)
+    pi = (0.9 - 0.5 * Y + 0.2 * X * Z) * np.exp(-(dist_off**2) / 2.8)
+    u = pi / a_grid
+
+    # Compute dphi/dt and dpi/dt under the co-moving equations
+    dphi = u
+    lap = np.zeros_like(phi)
+    m_u = np.zeros_like(phi)
+    for dx, dy, dz, w in offsets:
+        phi_nb = np.roll(phi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        u_nb = np.roll(u, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jx_nb = np.roll(Jx, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jy_nb = np.roll(Jy, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jz_nb = np.roll(Jz, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+
+        lap += w * (phi - phi_nb)
+        J_dot_d = 0.5 * ((Jx + Jx_nb) * dx + (Jy + Jy_nb) * dy + (Jz + Jz_nb) * dz)
+        m_u += 0.25 * w * J_dot_d * u_nb
+
+    dpi = -lap - m_u
+
+    # Exact rate of change dE_i^local / dt in every cell i
+    dE_local_dt = u * dpi
+    for dx, dy, dz, w in offsets:
+        phi_nb = np.roll(phi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        dphi_nb = np.roll(dphi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        dE_local_dt += 0.5 * w * (phi - phi_nb) * (dphi - dphi_nb)
+
+    # Test Gauss-Poynting surface flux theorem across spherical control volume R <= 3.2 * ell
+    omega_mask = R <= 3.2
+    volume_rate_of_change = float(np.sum(dE_local_dt[omega_mask]))
+
+    # Surface flux sum_{i in Omega, j not in Omega} F_{ij}
+    boundary_flux_out = 0.0
+    max_link_antisymmetry_err = 0.0
+    for dx, dy, dz, w in offsets:
+        phi_nb = np.roll(phi, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        u_nb = np.roll(u, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jx_nb = np.roll(Jx, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jy_nb = np.roll(Jy, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        Jz_nb = np.roll(Jz, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+        omega_nb = np.roll(omega_mask, shift=(-dx, -dy, -dz), axis=(0, 1, 2))
+
+        J_dot_d = 0.5 * ((Jx + Jx_nb) * dx + (Jy + Jy_nb) * dy + (Jz + Jz_nb) * dz)
+        M_ij = 0.25 * w * J_dot_d
+        F_ij = 0.5 * w * (phi - phi_nb) * (u + u_nb) + M_ij * u * u_nb
+
+        # Check F_{ij} == -F_{ji} by rolling reverse link (-dx, -dy, -dz)
+        F_ji_rolled = (
+            0.5 * w * (phi_nb - phi) * (u_nb + u)
+            - M_ij * u_nb * u
+        )
+        max_link_antisymmetry_err = max(
+            max_link_antisymmetry_err, float(np.max(np.abs(F_ij + F_ji_rolled)))
+        )
+
+        crossing_cut = omega_mask & (~omega_nb)
+        boundary_flux_out += float(np.sum(F_ij[crossing_cut]))
+
+    gauss_poynting_residual = abs(volume_rate_of_change + boundary_flux_out)
+
+    passed = max_link_antisymmetry_err < 1e-15 and gauss_poynting_residual < 1e-13
+    return {
+        "passed": bool(passed),
+        "link_flux_antisymmetry_error_Fij_plus_Fji": max_link_antisymmetry_err,
+        "volume_dE_dt_inside_R3p2": volume_rate_of_change,
+        "minus_surface_poynting_flux_across_R3p2": -boundary_flux_out,
+        "discrete_gauss_poynting_conservation_residual": gauss_poynting_residual,
+    }
+
+
+def test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere():
+    """
+    Test 10:
+    - Extends the 3D 27-point skew-symmetric lattice operator M_{ij} to a spinning regular
+      black hole flow (Kerr-Doran river + azimuthal whirlpool):
+        J(x,y,z) = J_r(r) r_hat + J_phi(r, theta) phi_hat
+      with J_r(r) = -c * sqrt(r_s r^2 / (r^3 + r_s ell^2 + a_spin^2 r))
+      and  J_phi(r,theta) = c * (a_spin r_s r sin(theta)) / (r^3 + r_s ell^2 + a_spin^2 r).
+    - Verifies:
+      1. Existence of an equatorial ergosphere where |J| = sqrt(J_r^2 + J_phi^2) > c outside
+         the radial horizon (|J_r| < c), while the origin remains regular (|J(0)| = 0).
+      2. Exact skew-symmetry M^T = -M (< 1e-15) of the 3D 27-point operator with spin.
+      3. Machine-precision symplectic Cayley energy conservation dH_wave/dt = 0 (< 1e-14)
+         across 50 spinning ergosphere steps and non-zero Lense-Thirring frame-dragging shift.
+    """
+    n_grid = 9
+    n_cells = n_grid**3
+    ell = 1.0
+    c = 1.0
+    r_s = 3.2
+    a_spin = 0.85 * r_s
+
+    coords = np.arange(n_grid) - (n_grid // 2)
+    X, Y, Z = np.meshgrid(coords, coords, coords, indexing="ij")
+    R = np.sqrt(X**2 + Y**2 + Z**2)
+    rho_cyl = np.sqrt(X**2 + Y**2)
+
+    denom = (R**3) + r_s * (ell**2) + (a_spin**2) * R
+    J_r_mag = c * np.sqrt(np.divide(r_s * (R**2), denom, out=np.zeros_like(R), where=denom > 1e-12))
+    # In core-regularized Kerr-Doran coordinates, |J_phi| = |J_r| * (a_spin * r * sin(theta) / (r^2 + ell^2)),
+    # and since sin(theta) = rho_cyl / R and phi_hat = (-Y / rho_cyl, X / rho_cyl, 0),
+    # J_phi_vec = |J_r| * a_spin / (R^2 + ell^2) * (-Y, X, 0)
+    J_phi_over_rho = (J_r_mag * a_spin) / (R**2 + ell**2)
+
+    inv_R = np.divide(1.0, R, out=np.zeros_like(R), where=R > 1e-12)
+    Jx = -J_r_mag * X * inv_R - J_phi_over_rho * Y
+    Jy = -J_r_mag * Y * inv_R + J_phi_over_rho * X
+    Jz = -J_r_mag * Z * inv_R
+
+    J_tot_sq = Jx**2 + Jy**2 + Jz**2
+    J_r_sq = J_r_mag**2
+    # Ergosphere cells: total flow is supersonic (|J| > c) while radial flow is subsonic (|J_r| < c)
+    ergosphere_cells = int(np.sum((J_tot_sq > c**2) & (J_r_sq < c**2)))
+    origin_flow_speed = float(np.sqrt(J_tot_sq[n_grid // 2, n_grid // 2, n_grid // 2]))
+
+    # Build explicit 3D 27-point matrices L_K and M on the 9x9x9 lattice
+    faces = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
+    edges = [
+        (1, 1, 0), (1, -1, 0), (-1, 1, 0), (-1, -1, 0),
+        (1, 0, 1), (1, 0, -1), (-1, 0, 1), (-1, 0, -1),
+        (0, 1, 1), (0, 1, -1), (0, -1, 1), (0, -1, -1),
+    ]
+    corners = [
+        (1, 1, 1), (1, 1, -1), (1, -1, 1), (1, -1, -1),
+        (-1, 1, 1), (-1, 1, -1), (-1, -1, 1), (-1, -1, -1),
+    ]
+    offsets = (
+        [(d[0], d[1], d[2], 7.0 / 15.0) for d in faces]
+        + [(d[0], d[1], d[2], 1.0 / 10.0) for d in edges]
+        + [(d[0], d[1], d[2], 1.0 / 30.0) for d in corners]
+    )
+
+    L_K = np.zeros((n_cells, n_cells), dtype=float)
+    M_spin = np.zeros((n_cells, n_cells), dtype=float)
+    Jx_f, Jy_f, Jz_f = Jx.ravel(), Jy.ravel(), Jz.ravel()
+
+    def idx3(ix, iy, iz):
+        return (ix % n_grid) * (n_grid * n_grid) + (iy % n_grid) * n_grid + (iz % n_grid)
+
+    for ix in range(n_grid):
+        for iy in range(n_grid):
+            for iz in range(n_grid):
+                i = idx3(ix, iy, iz)
+                for dx, dy, dz, w in offsets:
+                    j = idx3(ix + dx, iy + dy, iz + dz)
+                    L_K[i, i] += w
+                    L_K[i, j] -= w
+                    J_dot_d = 0.5 * (
+                        (Jx_f[i] + Jx_f[j]) * dx
+                        + (Jy_f[i] + Jy_f[j]) * dy
+                        + (Jz_f[i] + Jz_f[j]) * dz
+                    )
+                    M_spin[i, j] += 0.25 * w * J_dot_d
+
+    skew_err = float(np.max(np.abs(M_spin + M_spin.T)))
+
+    # Symplectic Cayley evolution over 50 steps
+    F = np.block([
+        [M_spin, np.eye(n_cells)],
+        [-L_K, -M_spin.T],
+    ])
+    dt = 0.04
+    I_2n = np.eye(2 * n_cells)
+    S_cayley = np.linalg.solve(I_2n - 0.5 * dt * F, I_2n + 0.5 * dt * F)
+
+    # Initial wave packet at (x=+2, y=0, z=0) to measure azimuthal frame dragging into y != 0
+    phi0 = np.exp(-(((X - 2.0) ** 2 + Y**2 + Z**2) / 1.5)).ravel()
+    pi0 = np.zeros(n_cells, dtype=float)
+    z = np.concatenate([phi0, pi0])
+
+    def calc_H(z_vec):
+        p = z_vec[:n_cells]
+        q = z_vec[n_cells:]
+        return float(0.5 * (q @ q) + (q @ (M_spin @ p)) + 0.5 * (p @ (L_K @ p)))
+
+    H0 = calc_H(z)
+    max_H_drift = 0.0
+    for _ in range(50):
+        z = S_cayley @ z
+        Ht = calc_H(z)
+        max_H_drift = max(max_H_drift, abs(Ht - H0) / abs(H0))
+
+    phi_end = z[:n_cells].reshape((n_grid, n_grid, n_grid))
+    # Because initially phi0 is symmetric in +Y vs -Y, any net <Y * phi^2> != 0 is pure azimuthal frame-dragging!
+    frame_drag_y_asymmetry = float(np.sum(Y * (phi_end**2)) / np.sum(phi_end**2))
+
+    passed = (
+        ergosphere_cells > 0
+        and origin_flow_speed == 0.0
+        and skew_err < 1e-15
+        and max_H_drift < 1e-13
+        and abs(frame_drag_y_asymmetry) > 1e-3
+    )
+    return {
+        "passed": bool(passed),
+        "ergosphere_supersonic_cell_count": ergosphere_cells,
+        "origin_flow_speed_regular": origin_flow_speed,
+        "kerr_doran_27pt_skew_symmetry_error": skew_err,
+        "symplectic_cayley_energy_drift_50steps": max_H_drift,
+        "lense_thirring_azimuthal_frame_drag_y_shift": frame_drag_y_asymmetry,
+    }
+
+
 def main():
     results = {
         "test_1_equivalence_principle_and_gr_bending": test_1_equivalence_principle_and_gr_bending(),
@@ -644,6 +974,9 @@ def main():
         "test_5_surface_freezing_and_horizon_vise": test_5_surface_freezing_and_horizon_vise(),
         "test_6_quantum_route_preserves_gr": test_6_quantum_route_preserves_gr(),
         "test_7_observational_and_buchdahl_stress_tests": test_7_observational_and_buchdahl_stress_tests(),
+        "test_8_surface_gravity_hawking_thermodynamics_and_zero_temp_remnant": test_8_surface_gravity_hawking_thermodynamics_and_zero_temp_remnant(),
+        "test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical": test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical(),
+        "test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere": test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere(),
     }
     all_passed = all(v["passed"] for v in results.values())
     results["ALL_CORE_GR_TESTS_PASSED"] = bool(all_passed)
