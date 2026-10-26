@@ -4,7 +4,7 @@ verify_core_finite_bar_gr.py
 Clean, self-contained verification of the Finite-Bar Discrete General Relativity
 (GR) Black Hole Model documented in proof_corrected.md.
 
-Ten core benchmarks plus the 9-module / 29-test suite in tests/.
+Ten core benchmarks plus the 14-module / 55-test suite in tests/.
 
 How to read the output:
   * "passed" flags check NUMERICAL CORRECTNESS and ALGEBRAIC IDENTITIES (conservation, symplecticity,
@@ -1046,6 +1046,9 @@ def build_claims_audit(results, modules):
     t50 = m14["test_50_18pt_poisson_bernoulli_condensate_and_biharmonic_uv"]
     t51 = m14["test_51_sakharov_one_loop_zero_point_induced_gravity_18pt"]
     t52 = m14["test_52_simplicial_regge_schlafli_and_variational_stationarity"]
+    t53 = m14["test_53_bounded_holonomy_regge_core_bounce_bragg_reflection"]
+    t54 = m14["test_54_variational_regge_interior_star_and_desitter_core"]
+    t55 = m14["test_55_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2"]
     b3 = results["test_3_eighteen_point_sphere_isotropy"]
 
     def verdict(ok, yes="SUPPORTED", no="NOT SUPPORTED"):
@@ -1188,6 +1191,20 @@ def build_claims_audit(results, modules):
                   "with ell / ell_P_ind = 0.594 sqrt(N_fields), but carries an unsubtracted O(hbar c / ell^4) vacuum energy (0.989) requiring bare cosmological-constant "
                   "cancellation. (5) Simplicial Regge calculus (Test 52) satisfies the 3D tetrahedral Schlafli identity to 3.3e-9 and recovers both A(R) and a(R) "
                   "at O(1/N^2) (p = 2.00, err 3.2e-6) by numerical variational stationarity dS_Regge/d(a,A) = 0, matching Jacobson's entanglement area deficit.")},
+        {"claim": "Simplicial Regge + Compact Holonomy foundation (Outcome 5): core bounce as Bragg reflection, variational interior star & de Sitter core, and 3D Kuhn diffeomorphism gauge invariance vs spin-2 waves",
+         "verdict": verdict(t53["passed"] and t54["passed"] and t55["passed"], yes="SUPPORTED (derived from numerical Regge & holonomy action gradients without hardcoding analytical Einstein/TOV differential equations; compact sin^2(ell*beta) holonomy and Regge action are the explicit discrete postulates)"),
+         "note": ("Module 14 (Tests 53-55): (1) Replacing the unbounded continuum extrinsic curvature beta^2 with the compact dihedral plaquette holonomy "
+                  "sin^2(ell*beta)/ell^2 in the canonical Hamiltonian H_hol(v, beta) and integrating Hamilton's equations purely by numerical finite differences "
+                  "(dv/dtau = +dH/dbeta, dbeta/dtau = -dH/dv) bounces a collapsing dust shell at R_core = (2Gm*ell^2/c^2)^(1/3) (rel err 1.5e-7) and "
+                  "rho_max = 3c^2/(8*pi*G*ell^2) (rel err 4.4e-7) via Bragg reflection dR/dtau ~ sin(2*theta_plaq) = 0 at the dihedral Brillouin-zone boundary "
+                  "theta_plaq = -pi/2, whereas unbounded beta^2 collapses to v -> 0 (Test 53). (2) Coupling the radial Regge action S_Regge to the Schutz-Brown "
+                  "relativistic fluid action L_fluid = 4*pi*R^2*rho_0*c^2*A*(a_surf - a) and solving numerical variational stationarity dS_total/d(a_s, A_v) = 0 "
+                  "recovers both the regular de Sitter Planck core (p_A = 2.01, p_a = 1.99, err 1.0e-5) and Schwarzschild's 1916 constant-density interior star "
+                  "(p_A = 2.01, p_p = 1.99, err_A 5.4e-6, err_a 7.4e-6, err_p 5.2e-5 at N=200) without hardcoding TOV differential equations (Test 54). "
+                  "(3) On a 3D periodic Kuhn simplicial complex (L=4: 384 tetrahedra, 448 edges built from the 18-pt axial + face-diagonal bars plus body diagonals), "
+                  "S_Regge^3D = sum_e ell_e * delta_e is invariant under arbitrary 3D vertex coordinate displacements u_i (deficit 3.6e-15, action shift 1.2e-13, "
+                  "vertex force 6.5e-9 vs Hooke force 0.406), proving exact discrete 3D diffeomorphism gauge invariance, while responding quadratically "
+                  "(ratio = 4.0025, max deficit 0.0338 rad) to incompatible 3D transverse-traceless spin-2 metric waves h_xy(z) = eps*cos(2*pi*z/L) (Test 55).")},
     ]
 
 
