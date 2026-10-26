@@ -4,7 +4,7 @@ Discrete General Relativity on a Planck-scale lattice ($\ell = \ell_P$) with the
 
 ## Scope & Physical Claims Audit
 
-In response to rigorous peer review of our earlier manuscript (other AIs), we have explicitly separated **what holds mathematically and numerically** from **what is assumed vs. derived** and **which claims from the earlier draft have been retracted or narrowed**:
+> **Note:** This repository and manuscript are published on GitHub as an open working draft and **have not undergone formal academic peer review**. In response to critical self-audit, forum feedback, and AI-assisted technical stress-testing of our earlier draft, we have explicitly separated **what holds mathematically and numerically** from **what is assumed vs. derived** and **which claims from the earlier draft have been retracted or narrowed**:
 
 1. **Corrected Hamiltonian Sign & True Painlevé–Gullstrand Wave Operator:**
    - The river Hamiltonian is $H = \int d^3x \left[\frac{\Pi^2}{2a} + \Pi(\mathbf{J}\cdot\nabla\Phi) + \frac{a c^2}{2}|\nabla\Phi|^2\right]$, yielding $\dot{\Phi} = \Pi/a + \mathbf{J}\cdot\nabla\Phi$ and $\dot{\Pi} = \nabla\cdot(a c^2\nabla\Phi) + \nabla\cdot(\mathbf{J}\Pi)$ with exact characteristic speeds $v_\pm = J \pm c$.

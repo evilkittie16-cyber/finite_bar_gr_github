@@ -2,7 +2,7 @@
 Module 12: 3D Random Voronoi-Delaunay Lattice, Rayleigh Scattering Bounds,
 and Unstructured Random Falling-Mesh Invariance Audit (Tests 38-40).
 
-Tests the forum/peer-review question: "What about a random grid? Would that be closer to real space?"
+Tests the forum discussion question: "What about a random grid? Would that be closer to real space?"
 """
 
 from __future__ import annotations

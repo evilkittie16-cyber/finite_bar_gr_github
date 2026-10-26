@@ -2,7 +2,7 @@
 viscosity_sweep_audit.py
 ========================
 Sensitivity of the Module 11 Lagrangian Misner-Sharp / Einstein-Euler bounce observables to the
-fixed physical shock-dissipation length l_visc (referee item C2). Because l_visc is held fixed in
+fixed physical shock-dissipation length l_visc (audit item C2). Because l_visc is held fixed in
 units of ell, N -> infinity converges to the *viscous* PDE; this script measures how the headline
 observables (core heating, min Gamma, min shell thickness) depend on l_visc itself.
 """

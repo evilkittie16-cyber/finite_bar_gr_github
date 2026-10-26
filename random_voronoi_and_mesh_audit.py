@@ -3,7 +3,7 @@
 (`random_voronoi_and_mesh_audit.py`)
 
 Tests the physical and mathematical consequences of replacing the regular cubic lattice
-with a random grid in response to peer/forum review:
+with a random grid in response to forum and technical discussion:
 
   1. 3D Random Voronoi-Delaunay Discrete Exterior Calculus (DEC) vs. Naive Random Graphs
      (Christ, Friedberg & Lee 1982):
