@@ -59,16 +59,16 @@
   "test_6_quantum_route_preserves_gr": {
     "passed": true,
     "canonical_commutator_drift_200_steps": 3.7862013829086065e-14,
-    "ehrenfest_quantum_vs_classical_GR_diff": 0.0,
-    "superposition_branch_isotropic_1PN_coeffs": [
+    "ehrenfest_status": "not tested (exact by construction for linear dynamics)",
+    "two_mass_classical_isotropic_1PN_coeffs": [
       2.0000009970744475,
       2.0000016870161272
     ],
-    "superposition_branch_PG_1PN_coeffs": [
+    "two_mass_classical_PG_1PN_coeffs": [
       2.000008016031511,
       2.000013555243028
     ],
-    "superposition_max_1PN_err_after_2PN": 1.3555243028040564e-05,
+    "two_mass_classical_max_1PN_err_after_2PN": 1.3555243028040564e-05,
     "horizon_cut_entanglement_entropy_S": 1.1099023388407945
   },
   "test_7_observational_and_buchdahl_stress_tests": {
@@ -310,16 +310,16 @@
       "test_16_heisenberg_unitarity_ehrenfest_and_entanglement": {
         "passed": true,
         "canonical_commutator_drift_200_steps": 3.7862013829086065e-14,
-        "ehrenfest_quantum_vs_classical_GR_diff": 0.0,
-        "superposition_branch_isotropic_1PN_coeffs": [
+        "ehrenfest_status": "not tested (exact by construction for linear dynamics)",
+        "two_mass_classical_isotropic_1PN_coeffs": [
           2.0000009970744475,
           2.0000016870161272
         ],
-        "superposition_branch_PG_1PN_coeffs": [
+        "two_mass_classical_PG_1PN_coeffs": [
           2.000008016031511,
           2.000013555243028
         ],
-        "superposition_max_1PN_err_after_2PN": 1.3555243028040564e-05,
+        "two_mass_classical_max_1PN_err_after_2PN": 1.3555243028040564e-05,
         "horizon_cut_entanglement_entropy_S": 1.1099023388407945
       },
       "test_17_hawking_surface_gravity_specific_heat_and_remnant": {
@@ -789,8 +789,9 @@
         "grb090510_31GeV_optical_depth_tau": 8.279543499014282e-14,
         "lhaaso_1p4PeV_1p4kpc_l_scatter_m": 2.0051866958190415e+20,
         "lhaaso_1p4PeV_1p4kpc_optical_depth_tau": 0.2154412857918672,
-        "galactic_2p5PeV_10kpc_l_scatter_m": 1.9720000539285578e+19,
-        "galactic_2p5PeV_10kpc_optical_depth_tau": 15.649086793137586,
+        "lhaaso_2p5PeV_1p4kpc_optical_depth_tau": 2.1906693112882167,
+        "hypothetical_2p5PeV_10kpc_l_scatter_m": 1.9720000539285578e+19,
+        "hypothetical_2p5PeV_10kpc_optical_depth_tau": 15.649086793137586,
         "periodic_18pt_crystal_bloch_optical_depth_tau": 0.0,
         "finding_static_3d_random_grid_scatters_multi_PeV_photons": true
       },
@@ -823,8 +824,6 @@
         "anamorphic_1PN_coeff_raw": 2.003583098331596,
         "anamorphic_1PN_coeff_after_2PN_subtraction": 2.000637855218856,
         "delta_A_cell_solar_horizon": 2.73640057563701e-39,
-        "rayleigh_suppression_factor_vs_random_voronoi": 1.2794887625010145e-75,
-        "tau_2p5PeV_10kpc_anamorphic": 2.0023999133140876e-74,
         "N50_uniform_rel_err_max_eps": 0.02784111489132539,
         "N50_anamorphic_rel_err_max_eps": 0.012529325062724986,
         "thermal_heating_error_reduction_factor": 2.222076189415287,
@@ -894,8 +893,8 @@
       "all_passed": true
     },
     "module_13_emergent_anamorphic_gr": {
-      "module": "Module 13: Emergent General Relativity & True 3D Spin-2 Gravitational Waves on the Anamorphic Grid",
-      "test_43_emergent_exterior_schwarzschild_and_light_bending_from_discrete_constraints": {
+      "module": "Module 13: Discretised Spherical Einstein/TOV Constraints in Anamorphic Variables & 3D 18-Point Linearised Spin-2 Lattice Audit",
+      "test_43_discretised_exterior_schwarzschild_and_light_bending_from_rho": {
         "passed": true,
         "resolutions_N": [
           200,
@@ -920,7 +919,7 @@
         "N1600_emergent_1PN_light_bending_after_2PN": 1.999912117628939,
         "N1600_control_1911_time_only_coeff": 1.0021780785207657
       },
-      "test_44_emergent_interior_schwarzschild_constant_density_star_and_buchdahl_limit": {
+      "test_44_discretised_interior_schwarzschild_star_and_constant_density_8_9_divergence": {
         "passed": true,
         "resolutions_N": [
           100,
@@ -973,7 +972,7 @@
           }
         ]
       },
-      "test_45_emergent_painleve_gullstrand_river_and_lqc_core_from_anamorphic_duality": {
+      "test_45_painleve_gullstrand_coordinate_map_of_discrete_curvature_charge": {
         "passed": true,
         "N": 2000,
         "M_tot": 50.0,
@@ -982,11 +981,11 @@
         "R_plus_emergent": 99.9,
         "J_at_R0": -0.0,
         "max_abs_J_in_trapped_zone": 3.376249701530357,
-        "duality_identity_err": 1.1102230246251565e-16,
+        "pg_definition_identity_err_by_construction": 1.1102230246251565e-16,
         "max_emergent_vs_exact_metric_err": 9.414952817365929e-08,
         "three_zones_emerged": true
       },
-      "test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves": {
+      "test_46_18pt_rank6_strain_tt_evolution_and_by_construction_bianchi": {
         "passed": true,
         "rank_6bar_axial_only": 3,
         "rank_18bar_with_face_diagonals": 6,
@@ -1013,7 +1012,7 @@
         "gw_phase_speed_anisotropy_18pt": 0.0002608432813304695,
         "gw_isotropy_improvement_factor_18pt_over_6pt": 65.01708446914299
       },
-      "test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid": {
+      "test_47_continuum_regge_wheeler_formula_on_discretised_background": {
         "passed": true,
         "R_peak_spin2_over_M_emergent": 3.271031818864749,
         "R_peak_spin2_over_M_exact": 3.2807764064044154,
@@ -1085,12 +1084,12 @@
     {
       "claim": "Quantum unitarity / information preserved",
       "verdict": "NOT SUPPORTED",
-      "note": "Linear evolution is unitary, but saturation damping is not; core entropy bound falls short of S_BH by 1.83e+38 for 1 M_sun."
+      "note": "Linear evolution is unitary, but saturation damping is not; core entropy bound falls short of S_BH by 1.83e+38 for 1 M_sun using the per-cell heuristic, or by 3.22e+25 using the whole-system Bekenstein bound S <= 2 pi M c^2 R_core / (hbar c) = pi (r_s/l_P)^(4/3)."
     },
     {
       "claim": "Spin-2 (gravitational-wave) sector",
       "verdict": "PARTLY SUPPORTED (rank-6 18-bar geometry & linearized TT evolution; Test 23 was a scalar toy)",
-      "note": "Test 23 (Module 8) was a 2-component scalar toy. Module 13 (Tests 46-47) proves the 18-point stencil's 6 axial + 12 face-diagonal bars have full rank 6 on symmetric 3x3 tensors h_ij (vs. rank 3 for a 6-bar cubic truss), reduces GW phase-speed anisotropy by 65.0x, and satisfies the real-space discrete contracted Bianchi identity D_j G_{ij}[h] = 0 when using operator-consistent D_k D_k, while the Regge-Wheeler (1 - s^2) = -3 factor in Test 47 is taken from continuum perturbation theory and nonlinear 3+1D backreaction is not evolved."
+      "note": "Test 23 (Module 8) was a 2-component scalar toy. Module 13 (Tests 46-47) shows the 18-point stencil's 6 axial + 12 face-diagonal bars have full rank 6 on symmetric 3x3 tensors h_ij (vs. rank 3 for a 6-bar cubic truss; kinematic only). Linearized TT evolution is six decoupled scalar 18-pt waves (TT/Bianchi identities hold by construction), the Regge-Wheeler (1 - s^2) = -3 factor in Test 47 is taken from continuum perturbation theory, and nonlinear 3+1D backreaction is not evolved."
     },
     {
       "claim": "No post-merger echoes",
@@ -1105,7 +1104,7 @@
     {
       "claim": "A curvature (mean-density) cap produces a regular bounce at R_core = (r_s ell^2)^(1/3)",
       "verdict": "SUPPORTED (with LQC-type dynamics)",
-      "note": "Every shell, empty or not, bounces at exactly R_core(m); shells then cross near the bounce, so a shock treatment is needed to follow what comes out (V2-type)."
+      "note": "Every shell, empty or not, bounces at exactly R_core(m); shells then cross near the bounce, so a shock treatment is needed to follow what comes out (V2-type). The bounce law dR/dt^2 = (2m/R)(1 - R_b^3/R^3) is the effective-LQC Oppenheimer-Snyder equation IMPOSED per shell; each shell is an independent ODE (no neighbour coupling), so the lattice carries no dynamics in Module 9."
     },
     {
       "claim": "The lattice saturation rule selects V1 (transition), V2 (bounce) or V3 (inner horizon)",
@@ -1115,7 +1114,7 @@
     {
       "claim": "Post-bounce HKSW (2022) shock wave exits horizon in time T ~ (8 pi / 3) M^2",
       "verdict": "SUPPORTED (conditional: spacelike inside horizon)",
-      "note": "Module 10 (Tests 30-31): Godunov PDE converges at O(dx) to the exact Rankine-Hugoniot ODE (rel_err 3.7e-5 at dx=0.01) and confirms Delta t = (8 pi M^2)/(3 ell) - 8M/3 - pi ell/3; HOWEVER, the shock has exterior Mach number M_ext = (dX_s/dt - U_R)/c > 1 across 100% of [R_-, R_+] (spacelike/superluminal relative to exterior metric; Fazzini & Mehmood 2024)."
+      "note": "Module 10 (Tests 30-31): Godunov PDE converges at O(dx) to the exact Rankine-Hugoniot ODE (rel_err 3.7e-5 at dx=0.01) and confirms Delta t = (8 pi M^2)/(3 ell) - 8M/3 - pi ell/3 (G = c = 1; in SI the leading term is 8 pi G^2 M^2/(3 c^5 ell), giving a PBH mass ~2e25 g for Delta t = t_0); HOWEVER, the shock has exterior Mach number M_ext = (dX_s/dt - U_R)/c > 1 across 100% of [R_-, R_+] (spacelike/superluminal relative to exterior metric; Fazzini & Mehmood 2024)."
     },
     {
       "claim": "Causal post-bounce shock / inelastic shell coalescence & inner horizon at R_core",
@@ -1129,28 +1128,28 @@
     },
     {
       "claim": "Coupled relativistic Misner-Sharp / Einstein-Euler shock pressure prevents shell crossing & preserves Lorentzian signature",
-      "verdict": "SUPPORTED (in causal core-bounce window; O(1/N^2) convergent)",
-      "note": "Module 11 (Tests 35-37): Replacing dust (p=0) with relativistic Einstein-Euler fluid (p=(gamma-1)rho_0 eps > 0) prevents shell crossing (min dR/dR_0 = 0.088 > 0), heats the core by 48.2x, conserves ADM mass to machine zero, preserves Gamma >= 0.783 > 0 and |Gamma^2 - f_LQC - U^2| < 2.4e-8, converges at O(1/N^2) (L2 err 5.8e-7 at N=120 vs 240), and proves via the trapped-region hyperbola (U/c)^2 - Gamma^2 = |f_LQC| that every shell must enter R <= R_-(m_i) before rebounding (whereas over-deceleration in R > R_-(m_i) drives a Gamma -> 0 spatial throat)."
+      "verdict": "SUPPORTED QUALITATIVELY (no crossing, Gamma > 0, turnaround inside R_-); headline numbers depend on l_visc",
+      "note": "Module 11 (Tests 35-37): Replacing dust (p=0) with relativistic Einstein-Euler fluid (p=(gamma-1)rho_0 eps > 0) prevents shell crossing (min dR/dR_0 = 0.088 > 0), heats the core by 48.2x, preserves Gamma >= 0.783 > 0 and |Gamma^2 - f_LQC - U^2| < 2.4e-8 at l_visc = 0.06 ell. ADM mass conservation (0.0) follows from the P = 0 surface boundary condition and is not a test of the scheme. Because l_visc is fixed in physical units, O(1/N^2) convergence (L2 err 5.8e-7) is to the VISCOUS PDE: sweeping l_visc = 0.03/0.06/0.12 gives heating 21x/48x/129x and min Gamma 0.83/0.78/0.53 (viscosity_sweep_audit.py), while R_surf,min varies by only 1.5% and every shell still turns around inside R_-(m_i). The trapped-region hyperbola (U/c)^2 - Gamma^2 = |f_LQC| requires turnaround at R <= R_-(m_i)."
     },
     {
       "claim": "3D random Voronoi-Delaunay grid vs. regular 18-pt crystal & unstructured falling mesh",
       "verdict": "PARTLY SUPPORTED (co-moving random mesh works; static 3D random grid scatters PeV photons)",
-      "note": "Module 12 (Tests 38-40): Exact 3D Voronoi-Delaunay DEC weights satisfy Minkowski's facet identity (1.3e-15), Tr(M_i)==3 (2.7e-15), Cayley conservation (6.0e-15), and statistical SO(3) isotropy (unlike naive random graphs which fail at O(1/ell)). However, static 3D Voronoi cell-to-cell shear fluctuations (sigma_shear = 0.0765) cause E^4 Rayleigh scattering that passes GRB 090510 at 31 GeV (tau = 8.3e-14) but attenuates Galactic multi-PeV photons (tau = 15.6 at 2.5 PeV / 10 kpc vs. tau = 0 on the 18-pt crystal). By contrast, a co-moving random unstructured falling mesh in the Einstein-Euler solver converges to the exact same bounce and heating (L2 err 2.0e-5 at N=120)."
+      "note": "Module 12 (Tests 38-40): Exact 3D Voronoi-Delaunay DEC weights satisfy Minkowski's facet identity (1.3e-15), Tr(M_i)==3 (2.7e-15), Cayley conservation (6.0e-15), and statistical SO(3) isotropy (unlike naive random graphs which fail at O(1/ell)). However, static 3D Voronoi cell-to-cell shear fluctuations (sigma_shear = 0.0765) cause E^4 Rayleigh scattering that passes GRB 090510 at 31 GeV (tau = 8.3e-14) but gives tau = 2.2 > 1 for 2.5 PeV photons over the observed ~1.4 kpc LHAASO baseline (15.6 over a hypothetical 10 kpc; tau = 0 on the 18-pt crystal), assuming the random lattice is the physical spacetime. By contrast, a co-moving random unstructured falling mesh in the Einstein-Euler solver converges to the exact same bounce and heating (L2 err 2.0e-5 at N=120)."
     },
     {
       "claim": "Smoothly stretched anamorphic grid & physical tidal aspect-ratio (Hencky + Kelvin-Voigt) bar stress",
-      "verdict": "SUPPORTED (smoothness eliminates random PeV scattering; 2.22x lower heating error; constitutive bar stress modifies bounce)",
-      "note": "Module 12 (Tests 41-42): (1) A static radially anamorphic lattice (b_r = 1/sqrt(f) != b_perp = 1) reproduces exact 1PN+2PN GR light bending (2.0006) with zero random shear disorder (smooth cell-to-cell gradient delta A_cell ~ ell_P/(2 r_s) ~ 2.7e-39 suppresses (delta A/sigma)^2 by ~1.3e-75). (2) A smoothly stretched falling radial coordinate s(xi) = 0.65 xi^0.5 + 0.35 xi reduces peak thermal-heating discretization error at N=50 by 2.22x (2.78e-2 -> 1.25e-2). (3) Adding a constitutive lattice-bar stress model (Hencky logarithmic deviatoric elasticity + Kelvin-Voigt tidal viscosity, p_r != p_perp) beyond an ideal isotropic fluid increases min(dR/dR_0), increases min(alpha_k), reduces max(alpha_k), and increases min(Gamma_i) across delta in {0.42, 0.48, 0.52} while conserving ADM mass to 0.0 and converging at O(1/N^2) (p = 2.21)."
+      "verdict": "PARTLY SUPPORTED (2.22x lower heating error; light bending by construction; bar stress is a tunable material model)",
+      "note": "Module 12 (Tests 41-42): (1) A static radially anamorphic lattice (b_r = 1/sqrt(f) != b_perp = 1) reproduces 1PN+2PN GR light bending (2.0006) by construction (Schwarzschild optical metric is input). Its smooth gradient (delta A_cell ~ 2.7e-39 near a solar-mass horizon) is deterministic, not random disorder, so no Rayleigh optical depth is claimed; away from masses it is the periodic crystal (tau = 0). (2) A smoothly stretched falling radial coordinate s(xi) = 0.65 xi^0.5 + 0.35 xi reduces peak thermal-heating discretization error at N=50 by 2.22x (2.78e-2 -> 1.25e-2). (3) Adding a constitutive lattice-bar stress model (Hencky logarithmic deviatoric elasticity + Kelvin-Voigt tidal viscosity with tunable G_bar, eta_anam; p_r != p_perp) beyond an ideal isotropic fluid increases min(dR/dR_0) and min(Gamma_i) across delta in {0.42, 0.48, 0.52}; this is a material-model effect, not a GR result."
     },
     {
       "claim": "Second-order discretisation of spherically symmetric Einstein / TOV constraints in anamorphic variables (A_i, a_i, p_i, J_i) without a metric ansatz",
       "verdict": "SUPPORTED (O(1/N^2) convergent p = 2.000; no metric ansatz, but Einstein/TOV equations are input)",
-      "note": "Module 13 (Tests 43-45): Taking the spherically symmetric Einstein/TOV constraint equations (G^t_t, G^r_r, and hydrostatic balance) as input and discretizing them in anamorphic variables (A_i = b_{r,i}/b_{perp,i}, a_i, p_i) starting from rho(R) without a prescribed metric formula reproduces: (1) exterior Schwarzschild and vacuum reciprocity a_i * A_i -> 1 at O(1/N^2) (p = 2.0000, err 8.0e-6 at N=1600) and 1PN light bending 1.9999 (vs 1.002 for 1911 time-only); (2) Schwarzschild's 1916 interior constant-density star solution (p = 1.998, pressure err 4.5e-7, clock err 2.8e-8 at N=800) and the Buchdahl limit (2GM/c^2 R -> 8/9); and (3) the exact Painleve-Gullstrand coordinate transformation J_i = -c sqrt(Q_i / R_i) across all three black-hole zones (quadrature err 9.4e-8)."
+      "note": "Module 13 (Tests 43-45): Taking the spherically symmetric Einstein/TOV constraint equations (G^t_t, G^r_r, and hydrostatic balance) as input and discretizing them in anamorphic variables (A_i = b_{r,i}/b_{perp,i}, a_i, p_i) starting from rho(R) without a prescribed metric formula reproduces: (1) exterior Schwarzschild and vacuum reciprocity a_i * A_i -> 1 at O(1/N^2) (p = 2.0000, err 8.0e-6 at N=1600) and 1PN light bending 1.9999 (vs 1.002 for 1911 time-only); (2) Schwarzschild's 1916 interior constant-density star solution (p = 1.998, pressure err 4.5e-7, clock err 2.8e-8 at N=800) and the constant-density central-pressure divergence as 2GM/(c^2 R) -> 8/9 (the Buchdahl-saturating case; Buchdahl's general theorem is not tested); and (3) the Painleve-Gullstrand coordinate definition J_i = -c sqrt(Q_i / R_i), whose identity holds by definition (only the quadrature err 9.4e-8 of Q_i is a genuine check)."
     },
     {
-      "claim": "3D 18-point rank-6 strain reconstruction, real-space non-TT discrete Bianchi audit, & Regge-Wheeler potential on the discretized background",
-      "verdict": "PARTLY SUPPORTED (rank-6 18-bar geometry, 65.0x GW isotropy, & real-space Bianchi proved; RW spin factor 1-s^2=-3 is continuum input)",
-      "note": "Module 13 (Tests 46-47): (1) A 6-bar cubic truss has rank 3 < 6 (blind to off-diagonal x-shear), whereas the 6 axial + 12 face-diagonal bars of the 18-point stencil have full rank 6 and reconstruct any symmetric 3x3 h_ij to 6.7e-16; (2) the 18-pt stencil reduces 3D GW phase-speed anisotropy at |k|ell=pi/4 by 65.0x over the 6-pt stencil; (3) in real space on general non-TT perturbations h_raw, the discrete contracted Bianchi identity D_j G_{ij}[h] = 0 holds to 1.2e-16 when using operator-consistent sum_k D_k D_k (and vanishes on gauge modes D_i xi_j + D_j xi_i to 1.4e-16), whereas mixing D_i D_j with compact Delta_18 produces an O(ell^2 k^5) longitudinal Bianchi anomaly (~0.105); and (4) evaluating the continuum Regge-Wheeler formula (with input spin factor 1 - s^2 = -3) on the discretized background (A_i, a_i, Q_i) matches the exact Schwarzschild barrier to 7.1e-5."
+      "claim": "3D 18-point rank-6 strain reconstruction & Regge-Wheeler potential on the discretized background",
+      "verdict": "PARTLY SUPPORTED (rank-6 kinematics genuine; TT/Bianchi checks by construction; RW spin factor 1-s^2=-3 is continuum input)",
+      "note": "Module 13 (Tests 46-47): (1) GENUINE: a 6-bar cubic truss has rank 3 < 6 (blind to off-diagonal x-shear), whereas the 6 axial + 12 face-diagonal bars have full rank 6 and reconstruct any symmetric 3x3 h_ij to 6.7e-16 (kinematic only; the evolution does not use the bars). (2) The scalar 18-pt vs 6-pt dispersion anisotropy ratio at the single wavenumber |k|ell = pi/4 is 65x (k-dependent; not gravity-specific). (3) BY CONSTRUCTION: TT trace/divergence, Cayley energy, delta G^0_0 = 0, and the real-space contracted Bianchi / gauge identities with Delta = sum_k D_k D_k hold for ANY commuting difference operators; the ~0.105 'mixed' anomaly only measures Delta_18 != sum_k D_k D_k, sum_k D_k D_k has spurious zone-boundary zero modes, and the evolution itself uses Delta_18. (4) The continuum Regge-Wheeler formula (input spin factor 1 - s^2 = -3) on the discretized background matches the exact barrier to 7.1e-5, which measures the accuracy of the discretized f = a/A only."
     }
   ]
 }

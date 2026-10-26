@@ -24,10 +24,10 @@ def test_16_heisenberg_unitarity_ehrenfest_and_entanglement():
     Test 16:
     - Verifies canonical quantum commutator preservation S(t) Omega S(t)^T = Omega
       across 200 horizon-crossing steps (drift < 1e-13),
-    - Confirms exact Ehrenfest agreement (<z_hat(t)> == z_cl(t), diff = 0.0),
-    - Confirms quantum superposition branch preservation of the 2.0000 GR light-bending
-      factor, and finite non-zero Gaussian ground-state entanglement entropy S_ent > 0
-      across the horizon cut.
+    - Ehrenfest agreement is exact by construction for linear dynamics and is NOT tested,
+    - Evaluates the classical 1PN index coefficient for two masses (no superposition is formed;
+      agreement with 2.0 is by construction), and finite non-zero Gaussian ground-state entanglement
+      entropy S_ent > 0 across the horizon cut.
     """
     return test_6_quantum_route_preserves_gr()
 

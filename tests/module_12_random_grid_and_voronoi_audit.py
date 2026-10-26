@@ -62,9 +62,9 @@ def test_39_random_grid_rotational_isotropy_vs_rayleigh_scattering_bound() -> di
       2) Quenched Planck-scale disorder & 3D Rayleigh elastic scattering: individual random Voronoi cells
          have traceless shear std sigma_shear = 0.0765 and volume std sigma_vol = 0.1553.
          While this passes Fermi-LAT GRB 090510 at 31 GeV (tau_scatter = 8.2e-14 << 1), the E^4 Rayleigh
-         scattering cross-section produces tau_scatter = 15.6 >> 1 for 2.5 PeV photons across 10 kpc
-         (attenuating Galactic multi-PeV gamma-rays observed by LHAASO), whereas the periodic 18-point
-         crystal lattice has tau_scatter == 0 by Bloch's theorem.
+         scattering estimate gives tau_scatter = 2.2 > 1 for 2.5 PeV photons over the observed ~1.4 kpc
+         LHAASO (Cygnus-region) baseline (15.6 over a hypothetical 10 kpc), whereas the periodic 18-point
+         crystal lattice has tau_scatter == 0 by Bloch's theorem. Assumes the random lattice is physical.
     """
     vor_res = audit_3d_random_voronoi_vs_naive_laplacian(jitter=0.35, seed=42)
     scat = audit_random_grid_rayleigh_scattering_bounds(vor_res["cell_to_cell_directional_shear_std"])
@@ -73,7 +73,7 @@ def test_39_random_grid_rotational_isotropy_vs_rayleigh_scattering_bound() -> di
         vor_res["volume_averaged_second_moment_isotropy_err"] < 0.02
         and vor_res["cell_to_cell_directional_shear_std"] > 0.05
         and scat["grb090510_31GeV_optical_depth_tau"] < 1e-10
-        and scat["galactic_2p5PeV_10kpc_optical_depth_tau"] > 10.0
+        and scat["lhaaso_2p5PeV_1p4kpc_optical_depth_tau"] > 1.0
         and scat["periodic_18pt_crystal_bloch_optical_depth_tau"] == 0.0
     )
     return {
@@ -83,7 +83,7 @@ def test_39_random_grid_rotational_isotropy_vs_rayleigh_scattering_bound() -> di
         "cell_to_cell_volume_std": vor_res["cell_to_cell_volume_std"],
         **scat,
         "finding_static_3d_random_grid_scatters_multi_PeV_photons": bool(
-            scat["galactic_2p5PeV_10kpc_optical_depth_tau"] > 1.0
+            scat["lhaaso_2p5PeV_1p4kpc_optical_depth_tau"] > 1.0
         ),
     }
 
@@ -144,11 +144,10 @@ def test_41_static_and_stretched_anamorphic_grid_light_bending_and_zero_scatteri
       1) Static 3D radially anamorphic lattice (b_r(R) = 1/sqrt(f(R)) != b_perp(R) = 1, a(R) = sqrt(f(R)),
          directional conductances K_r(R) = 1 != K_perp(R) = 1/f(R)) reproduces the exact 1915 GR 1PN
          light-bending coefficient 2.000 and 2PN deflection (< 1e-3 residual).
-      2) Because the smooth anamorphic aspect ratio A(R) = b_r/b_perp = 1/sqrt(f(R)) varies on the
-         macroscopic curvature scale R >= r_s >> ell_P (delta_A_cell ~ ell_P / (2 r_s) ~ 2.7e-39 near
-         a solar-mass horizon), its Planck-scale Rayleigh scattering optical depth at 2.5 PeV across
-         10 kpc is suppressed by > 70 orders of magnitude (tau_scatter ~ 2e-74 << 1, vs. tau_scatter = 15.65
-         on the static random Voronoi grid).
+      2) The smooth anamorphic aspect ratio A(R) varies only on the macroscopic curvature scale
+         R >= r_s >> ell_P (smooth gradient delta_A_cell ~ ell_P / (2 r_s) ~ 2.7e-39 near a solar-mass
+         horizon). This is a deterministic gradient, not random disorder, so no Rayleigh optical depth is
+         claimed for it; away from masses the grid is the periodic crystal (tau_scatter == 0, Bloch).
       3) In the relativistic Einstein-Euler collapse, a smoothly stretched anamorphic radial coordinate
          s(xi) = 0.65 * xi^0.50 + 0.35 * xi balances spherical shell masses dmu_k ~ R_k^2 dR_k, reducing
          the peak thermal-heating discretization error at N = 50 by 2.22x (2.78e-2 -> 1.25e-2) and
@@ -157,7 +156,6 @@ def test_41_static_and_stretched_anamorphic_grid_light_bending_and_zero_scatteri
     res = audit_static_and_stretched_anamorphic_grid(b_impact=2000.0, r_s=2.0, ell=1.0)
     passed = bool(
         abs(res["anamorphic_1PN_coeff_after_2PN_subtraction"] - 2.0) < 1e-3
-        and res["tau_2p5PeV_10kpc_anamorphic"] < 1e-60
         and res["thermal_heating_error_reduction_factor"] > 2.0
         and res["N50_anamorphic_rel_err_Rsurf_min"] < res["N50_uniform_rel_err_Rsurf_min"]
         and res["N50_anamorphic_L2_Rsurf"] < res["N50_uniform_L2_Rsurf"]

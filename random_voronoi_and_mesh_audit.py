@@ -207,9 +207,11 @@ def audit_random_grid_rayleigh_scattering_bounds(sigma_shear: float) -> dict:
 
     Compares:
       1) Fermi-LAT GRB 090510 (E = 31 GeV, L = 7.3 Gly = 6.906e25 m): tau_scatter << 1 (passes).
-      2) LHAASO Galactic PeV gamma-rays (E = 1.4 PeV, L = 1.4 kpc = 4.32e19 m): tau_scatter ~ O(1).
-      3) Multi-PeV Galactic disk photons (E = 2.5 PeV, L = 10 kpc = 3.086e20 m): tau_scatter >> 1 (ruled out
-         for a static 3D random spatial grid, whereas periodic 18-pt crystal has tau_scatter == 0).
+      2) LHAASO Galactic PeV gamma-rays (E = 1.4 PeV, L = 1.4 kpc = 4.32e19 m): tau_scatter ~ 0.2.
+      3) LHAASO-scale 2.5 PeV photons at the observed Cygnus-region baseline (L ~ 1.4 kpc): tau_scatter ~ 2.2 > 1.
+      4) Hypothetical 2.5 PeV photons across 10 kpc (NOT an observed baseline; reported for scale only).
+    The scattering estimate assumes the random lattice is the physical spacetime and that sigma_shear acts
+    as an O(1) refractive-index fluctuation per Planck cell; the periodic crystal has tau_scatter == 0.
     """
     h_planck = 6.62607015e-34
     c_light = 2.99792458e8
@@ -225,6 +227,7 @@ def audit_random_grid_rayleigh_scattering_bounds(sigma_shear: float) -> dict:
 
     l_grb, tau_grb = rayleigh_tau(31.0e9, 6.906e25)
     l_1p4PeV, tau_1p4PeV = rayleigh_tau(1.4e15, 4.32e19)
+    _, tau_2p5PeV_1p4kpc = rayleigh_tau(2.5e15, 4.32e19)
     l_2p5PeV, tau_2p5PeV = rayleigh_tau(2.5e15, 3.086e20)
 
     return {
@@ -233,8 +236,9 @@ def audit_random_grid_rayleigh_scattering_bounds(sigma_shear: float) -> dict:
         "grb090510_31GeV_optical_depth_tau": tau_grb,
         "lhaaso_1p4PeV_1p4kpc_l_scatter_m": l_1p4PeV,
         "lhaaso_1p4PeV_1p4kpc_optical_depth_tau": tau_1p4PeV,
-        "galactic_2p5PeV_10kpc_l_scatter_m": l_2p5PeV,
-        "galactic_2p5PeV_10kpc_optical_depth_tau": tau_2p5PeV,
+        "lhaaso_2p5PeV_1p4kpc_optical_depth_tau": tau_2p5PeV_1p4kpc,
+        "hypothetical_2p5PeV_10kpc_l_scatter_m": l_2p5PeV,
+        "hypothetical_2p5PeV_10kpc_optical_depth_tau": tau_2p5PeV,
         "periodic_18pt_crystal_bloch_optical_depth_tau": 0.0,
     }
 
@@ -633,13 +637,13 @@ def audit_static_and_stretched_anamorphic_grid(b_impact: float = 2000.0, r_s: fl
     exact_2pn = (15.0 * np.pi / 16.0) * ((r_s / b_impact) ** 2)
     coeff_1pn_sub = (defl - exact_2pn) / (r_s / b_impact)
 
-    # Smooth cell-to-cell aspect ratio variation delta_A_cell = ell_P * |dA/dR| near R ~ r_s_sun (3 km)
+    # Smooth cell-to-cell aspect ratio variation delta_A_cell = ell_P * |dA/dR| near R ~ r_s_sun (3 km).
+    # NOTE: this is a smooth deterministic gradient, NOT a random disorder amplitude, so it must not be
+    # inserted into the random-medium Rayleigh formula. Away from masses the anamorphic grid reduces to the
+    # periodic crystal, which already has tau_scatter == 0 by Bloch's theorem. Reported for scale only.
     ell_P = 1.616255e-35
     r_s_sun = 2953.25
     delta_A_cell_solar = ell_P / (2.0 * r_s_sun)
-    # Relative to random Voronoi sigma_shear = 0.0765, Rayleigh scattering scales as (delta_A_cell / sigma_shear)^2
-    rayleigh_suppression_factor = float((delta_A_cell_solar / 0.0765) ** 2)
-    tau_2p5PeV_10kpc_anamorphic = float(15.65 * rayleigh_suppression_factor)
 
     # Smoothly stretched anamorphic falling radial grid vs uniform grid at N = 50
     ref_240 = run_anamorphic_einstein_euler(N=240, stretch_alpha=1.0, l_visc=0.06)
@@ -657,8 +661,6 @@ def audit_static_and_stretched_anamorphic_grid(b_impact: float = 2000.0, r_s: fl
         "anamorphic_1PN_coeff_raw": float(coeff_1pn_raw),
         "anamorphic_1PN_coeff_after_2PN_subtraction": float(coeff_1pn_sub),
         "delta_A_cell_solar_horizon": float(delta_A_cell_solar),
-        "rayleigh_suppression_factor_vs_random_voronoi": rayleigh_suppression_factor,
-        "tau_2p5PeV_10kpc_anamorphic": tau_2p5PeV_10kpc_anamorphic,
         "N50_uniform_rel_err_max_eps": float(err_eps_unif),
         "N50_anamorphic_rel_err_max_eps": float(err_eps_anam),
         "thermal_heating_error_reduction_factor": float(err_eps_unif / max(err_eps_anam, 1e-30)),

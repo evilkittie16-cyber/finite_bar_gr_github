@@ -339,7 +339,7 @@ def solve_emergent_anamorphic_to_river_duality(
         "R_plus_emergent": R_plus_emergent,
         "J_at_R0": float(J[0]),
         "max_abs_J_in_trapped_zone": max_abs_J,
-        "duality_identity_err": duality_identity_err,
+        "pg_definition_identity_err_by_construction": duality_identity_err,
         "max_emergent_vs_exact_metric_err": max_metric_err,
         "three_zones_emerged": bool(
             J[0] == 0.0 and max_abs_J > 1.0 and abs(J[-1]) < 1.0 and R_minus_emergent < R_core < R_plus_emergent
@@ -349,7 +349,10 @@ def solve_emergent_anamorphic_to_river_duality(
 
 def audit_3d_anamorphic_spin2_gravitational_waves(L: int = 16, n_steps: int = 80, dt: float = 0.15) -> dict:
     """
-    Step 2: True Spin-2 Transverse-Traceless Gravitational Waves on the 3D 18-Point Anamorphic Lattice.
+    3D 18-point lattice audit for symmetric 3x3 metric perturbations h_ij (linearised, flat background).
+    Genuine content: item 1 (rank-6 strain reconstruction, kinematic only) and the scalar-stencil
+    dispersion anisotropy comparison. Items 2-3 and the real-space Bianchi/gauge checks hold by
+    construction (polarisation-tensor algebra; Fourier-space TT projection; commuting difference operators).
 
     Verifies:
       1) 18-Bar Strain Reconstruction Identity: On a 3D cell with metric perturbation g_ij = delta_ij + h_ij,
@@ -577,7 +580,9 @@ def audit_3d_anamorphic_spin2_gravitational_waves(L: int = 16, n_steps: int = 80
         )
         return (1.0 / 3.0) * diff_a + (1.0 / 3.0) * avg_other
 
-    # Genuine Real-Space Non-TT Discrete Contracted Bianchi & Gauge-Invariance Audit on h_raw:
+    # Real-space non-TT discrete contracted Bianchi & gauge-invariance check on h_raw.
+    # NOTE: with commuting constant-coefficient difference operators D_k and Delta = sum_k D_k D_k these
+    # identities hold for ANY stencil (by construction). The "mixed" variant only quantifies Delta_18 != sum D_k D_k.
     # h_raw has large trace (raw_trace_rms ~ 1.65) and large longitudinal divergence (raw_div_max ~ 1.68).
     # Compute D_i h_raw[j, k] in real space:
     Dh_raw = np.stack([apply_D18_real(h_raw, a) for a in range(3)], axis=0)  # shape (3, 3, 3, L, L, L)
@@ -719,11 +724,11 @@ def audit_3d_anamorphic_spin2_gravitational_waves(L: int = 16, n_steps: int = 80
 
 def audit_emergent_spin2_regge_wheeler_vs_scalar(N: int = 2000, M_tot: float = 1.0) -> dict:
     """
-    Constructs the quadrupole (l = 2) Regge-Wheeler potential V_RW^(s)(R) directly on the
-    EMERGENT discrete anamorphic grid (R_i, A_i, a_i) solved from the discrete Hamiltonian
-    and radial momentum constraints (with NO analytical metric formula input), and compares
-    genuine spin-2 axial gravitational perturbations (s = 2, factor 1 - s^2 = -3) against
-    spin-0 scalar perturbations (s = 0, factor 1 - s^2 = +1).
+    Evaluates the CONTINUUM quadrupole (l = 2) Regge-Wheeler formula V_RW^(s)(R) on the discretised
+    background (R_i, A_i, a_i, Q_i) obtained by integrating the discretised Einstein constraints
+    (no closed-form metric input). The spin factor 1 - s^2 (= -3 for s = 2, +1 for s = 0) is taken from
+    continuum GR perturbation theory and is NOT derived by the lattice; agreement with the exact barrier
+    therefore measures the accuracy of the discretised f = a/A only.
     """
     # Solve emergent discrete exterior metric from compact star inside R_star = 2.30 * M_tot
     # (strictly outside r_s = 2 M_tot so Q/R < 1 everywhere, and strictly inside both barrier peaks 2.89 M and 3.28 M)

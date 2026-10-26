@@ -1,18 +1,20 @@
 """
-Module 13: Emergent General Relativity from the Discrete Anamorphic Grid Constraints (Tests 43-45).
+Module 13: Discretised Spherical Einstein/TOV Constraints in Anamorphic Variables & 3D 18-Point
+Linearised Spin-2 Lattice Audit (Tests 43-47).
 
-Verifies Step 1 of producing General Relativity directly from the discrete anamorphic grid
-equations (without putting Schwarzschild or Hayward metric formulas in by hand):
-  - Test 43: Emergent exterior Schwarzschild metric (A_i, a_i), vacuum reciprocity a_i * A_i -> 1,
-             and emergent 1PN + 2PN gravitational light bending (2.000 vs. 1.000 for 1911 time-only)
-             with O(1/N^2) convergence across N = 200 -> 400 -> 800 -> 1600.
-  - Test 44: Emergent Karl Schwarzschild (1916) interior constant-density star solution (A_i, a_i, p_i)
-             from coupled discrete Hamiltonian + radial momentum + hydrostatic balance equations,
-             O(1/N^2) convergence across N = 100 -> 200 -> 400 -> 800, and Buchdahl limit (2GM/c^2 R -> 8/9).
-  - Test 45: Emergent Anamorphic-to-River Duality across black-hole horizons: when Q_i / R_i >= 1
-             (inside [R_-, R_+] where static bars A_i become imaginary), transforming to a freely
-             falling flat slice converts the emergent discrete curvature charge Q_i / R_i into the
-             horizon-penetrating Painleve-Gullstrand river velocity J_i = -c sqrt(Q_i / R_i).
+Scope: Einstein's spherically symmetric constraint equations (G^t_t, G^r_r, hydrostatic balance) are
+INPUT; they are discretised at O(1/N^2) in anamorphic variables without a closed-form metric ansatz.
+  - Test 43: Discretised exterior Schwarzschild (A_i, a_i), vacuum reciprocity a_i * A_i -> 1, and 1PN
+             light bending (2.000 vs. 1.000 for 1911 time-only), O(1/N^2) across N = 200 -> 1600.
+  - Test 44: Discretised Schwarzschild (1916) constant-density interior (A_i, a_i, p_i), O(1/N^2) across
+             N = 100 -> 800, and the constant-density central-pressure divergence as 2GM/(c^2 R) -> 8/9
+             (the case that saturates Buchdahl's bound; Buchdahl's general theorem is not tested).
+  - Test 45: Painleve-Gullstrand coordinate map J_i = -c sqrt(Q_i / R_i) applied to the discretely
+             integrated curvature charge (the identity itself holds by definition; only the quadrature
+             error of Q_i is a genuine check).
+  - Test 46: 18-bar rank-6 strain reconstruction (genuine kinematic result); TT/energy/Bianchi checks
+             hold by construction (see test docstring).
+  - Test 47: Continuum Regge-Wheeler formula (spin factor 1 - s^2 input) on the discretised background.
 """
 
 from __future__ import annotations
@@ -32,11 +34,12 @@ from emergent_anamorphic_gr import (
 )
 
 
-def test_43_emergent_exterior_schwarzschild_and_light_bending_from_discrete_constraints() -> dict:
+def test_43_discretised_exterior_schwarzschild_and_light_bending_from_rho() -> dict:
     """
-    Test 43: Starts ONLY from a compact stellar density profile rho(R) on [0, R_star] and solves
-    the discrete Hamiltonian constraint for the radial-to-transverse bar aspect ratio A_i = b_{r,i}/b_{perp,i}
-    and the discrete radial momentum constraint for the local clock rate a_i across N = 200, 400, 800, 1600.
+    Test 43: Starts from a compact stellar density profile rho(R) on [0, R_star] and integrates the
+    discretised G^t_t equation for the bar aspect ratio A_i = b_{r,i}/b_{perp,i} and the discretised
+    G^r_r equation for the clock rate a_i across N = 200, 400, 800, 1600 (Einstein's equations are input;
+    no closed-form metric is input).
     """
     resolutions = [200, 400, 800, 1600]
     reciprocity_errs = []
@@ -79,11 +82,11 @@ def test_43_emergent_exterior_schwarzschild_and_light_bending_from_discrete_cons
     }
 
 
-def test_44_emergent_interior_schwarzschild_constant_density_star_and_buchdahl_limit() -> dict:
+def test_44_discretised_interior_schwarzschild_star_and_constant_density_8_9_divergence() -> dict:
     """
-    Test 44: Solves the coupled discrete Hamiltonian + radial momentum + hydrostatic balance
-    equations inside a constant-density star (2GM/(c^2 R_star) = 0.5) across N = 100, 200, 400, 800,
-    and verifies the Buchdahl limit as compaction approaches 8/9 = 0.8888...
+    Test 44: Solves the discretised TOV system (G^t_t + G^r_r + hydrostatic balance) inside a
+    constant-density star (2GM/(c^2 R_star) = 0.5) across N = 100, 200, 400, 800, and scans the
+    constant-density central-pressure divergence as compaction -> 8/9 (Buchdahl-saturating case only).
     """
     resolutions = [100, 200, 400, 800]
     p_errs = []
@@ -139,18 +142,17 @@ def test_44_emergent_interior_schwarzschild_constant_density_star_and_buchdahl_l
     }
 
 
-def test_45_emergent_painleve_gullstrand_river_and_lqc_core_from_anamorphic_duality() -> dict:
+def test_45_painleve_gullstrand_coordinate_map_of_discrete_curvature_charge() -> dict:
     """
-    Test 45: Verifies that when Q_i / R_i >= 1 (inside a black hole's trapped region [R_-, R_+]
-    where the static radial bar stretch A_i = 1 / sqrt(1 - Q_i / R_i) becomes imaginary),
-    transforming to a freely falling flat slice (Gamma_i = 1) converts the emergent discrete
-    curvature charge Q_i / R_i directly into the horizon-penetrating Painleve-Gullstrand river
-    velocity J_i = -c sqrt(Q_i / R_i) across all three zones.
+    Test 45: Applies the Painleve-Gullstrand coordinate definition J_i = -c sqrt(Q_i / R_i) to the
+    discretely integrated curvature charge across all three regular-BH zones. The static/river identity
+    1 - Q/R == 1 - J^2 holds BY DEFINITION (reported as pg_definition_identity_err_by_construction);
+    the only genuine check is the quadrature accuracy of Q_i against the exact mass function.
     """
     res = solve_emergent_anamorphic_to_river_duality(N=2000, M_tot=50.0, ell=1.0, R_max=200.0)
     passed = bool(
         res["three_zones_emerged"]
-        and res["duality_identity_err"] < 1e-14
+        and res["pg_definition_identity_err_by_construction"] < 1e-14
         and res["max_emergent_vs_exact_metric_err"] < 1e-5
         and res["R_minus_emergent"] < res["R_core"] < res["R_plus_emergent"]
     )
@@ -160,21 +162,22 @@ def test_45_emergent_painleve_gullstrand_river_and_lqc_core_from_anamorphic_dual
     }
 
 
-def test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves() -> dict:
+def test_46_18pt_rank6_strain_tt_evolution_and_by_construction_bianchi() -> dict:
     """
-    Test 46: Audits Step 2 (True Spin-2 Transverse-Traceless Gravitational Waves on the 3D 18-Point
-    Anamorphic Lattice):
-      1) 18-Bar Strain Reconstruction Identity: The 6 axial bars and 12 face-diagonal bars of the
-         18-point stencil have full rank 6 on symmetric 3x3 tensors and uniquely reconstruct all
-         6 components of h_ij to < 1e-15, whereas a 6-bar simple cubic truss has rank 3 (blind to
-         off-diagonal x-polarized shear).
-      2) Helicity-2 (Spin-2) Quadrupole Rotation Law: (h_+, h_x) transform as (cos 2*theta, sin 2*theta),
-         reversing sign at theta = pi/2 and returning to +1 at theta = pi (< 1e-15).
-      3) 3D Linearized Ricci Tensor & Symplectic Cayley Evolution: On the 16^3 3D 18-point lattice,
-         the TT-projected 3x3 tensor field satisfies delta G^0_0 = -(1/2) delta R^k_k == 0 (< 1e-14)
-         and delta R_ij[h^TT] == -(1/2) Delta_18 h_ij^TT (< 1e-14), and 80 symplectic Cayley steps
-         preserve Tr(h) == 0 (< 1e-13), D_j h_ij == 0 (< 1e-13), h_ij == h_ji (< 1e-15), and
-         Hamiltonian tensor wave energy (< 1e-13).
+    Test 46: 3D 18-point lattice audit for symmetric 3x3 metric perturbations h_ij.
+      GENUINE (non-trivial) results:
+      1) 18-Bar Strain Reconstruction: the 6 axial + 12 face-diagonal bars have full rank 6 on symmetric
+         3x3 tensors (reconstruction < 1e-15), whereas a 6-bar cubic truss has rank 3 (blind to x-shear).
+         This is kinematic only: the evolution below does not use the bars.
+      2) Scalar 18-pt vs 6-pt dispersion anisotropy at a single wavenumber |k| ell = pi/4 (ratio is
+         k-dependent and is a property of the scalar stencil, not specific to gravity).
+      BY CONSTRUCTION (reported, not evidence):
+      3) (h_+, h_x) cos/sin(2 theta) law (property of the polarisation tensors).
+      4) TT trace/divergence, delta G^0_0 == 0, delta R_ij[h^TT] == -(1/2) Delta_18 h^TT, Cayley energy
+         (Fourier-space projection and mode-by-mode evolution with Delta_18).
+      5) Real-space D_j G_ij[h] == 0 and gauge-mode Ricci == 0 with Delta = sum_k D_k D_k: identities for ANY
+         commuting difference operators. The "mixed" anomaly only measures Delta_18 != sum_k D_k D_k; note
+         that sum_k D_k D_k has spurious zone-boundary zero modes, and the evolution itself uses Delta_18.
     """
     res = audit_3d_anamorphic_spin2_gravitational_waves(L=16, n_steps=80, dt=0.15)
     passed = bool(
@@ -203,13 +206,12 @@ def test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves() 
     }
 
 
-def test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid() -> dict:
+def test_47_continuum_regge_wheeler_formula_on_discretised_background() -> dict:
     """
-    Test 47: Constructs the quadrupole (l = 2) Regge-Wheeler potential V_RW^(s)(R) directly on the
-    EMERGENT discrete anamorphic grid (R_i, A_i, a_i, Q_i) solved from the discrete Hamiltonian and
-    radial momentum constraints (with NO analytical metric formula input), verifying that genuine
-    spin-2 axial gravitational perturbations (s = 2, factor 1 - s^2 = -3) match exact GR
-    perturbation theory (< 1e-4) and are distinct from spin-0 scalar perturbations (s = 0).
+    Test 47: Evaluates the CONTINUUM quadrupole (l = 2) Regge-Wheeler formula, with the spin factor
+    1 - s^2 (= -3 for s = 2, +1 for s = 0) taken from continuum GR perturbation theory, on the
+    discretised background (R_i, A_i, a_i, Q_i). The < 1e-4 agreement measures the accuracy of the
+    discretised background f = a/A; the lattice does not derive the spin-2 coupling.
     """
     res = audit_emergent_spin2_regge_wheeler_vs_scalar(N=1600, M_tot=1.0)
     passed = bool(
@@ -225,11 +227,11 @@ def test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid() 
 
 
 def run_module_13() -> dict:
-    t43 = test_43_emergent_exterior_schwarzschild_and_light_bending_from_discrete_constraints()
-    t44 = test_44_emergent_interior_schwarzschild_constant_density_star_and_buchdahl_limit()
-    t45 = test_45_emergent_painleve_gullstrand_river_and_lqc_core_from_anamorphic_duality()
-    t46 = test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves()
-    t47 = test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid()
+    t43 = test_43_discretised_exterior_schwarzschild_and_light_bending_from_rho()
+    t44 = test_44_discretised_interior_schwarzschild_star_and_constant_density_8_9_divergence()
+    t45 = test_45_painleve_gullstrand_coordinate_map_of_discrete_curvature_charge()
+    t46 = test_46_18pt_rank6_strain_tt_evolution_and_by_construction_bianchi()
+    t47 = test_47_continuum_regge_wheeler_formula_on_discretised_background()
 
     all_passed = bool(
         t43["passed"]
@@ -239,12 +241,12 @@ def run_module_13() -> dict:
         and t47["passed"]
     )
     return {
-        "module": "Module 13: Emergent General Relativity & True 3D Spin-2 Gravitational Waves on the Anamorphic Grid",
-        "test_43_emergent_exterior_schwarzschild_and_light_bending_from_discrete_constraints": t43,
-        "test_44_emergent_interior_schwarzschild_constant_density_star_and_buchdahl_limit": t44,
-        "test_45_emergent_painleve_gullstrand_river_and_lqc_core_from_anamorphic_duality": t45,
-        "test_46_3d_anamorphic_18pt_spin2_transverse_traceless_gravitational_waves": t46,
-        "test_47_emergent_spin2_regge_wheeler_barrier_vs_scalar_on_anamorphic_grid": t47,
+        "module": "Module 13: Discretised Spherical Einstein/TOV Constraints in Anamorphic Variables & 3D 18-Point Linearised Spin-2 Lattice Audit",
+        "test_43_discretised_exterior_schwarzschild_and_light_bending_from_rho": t43,
+        "test_44_discretised_interior_schwarzschild_star_and_constant_density_8_9_divergence": t44,
+        "test_45_painleve_gullstrand_coordinate_map_of_discrete_curvature_charge": t45,
+        "test_46_18pt_rank6_strain_tt_evolution_and_by_construction_bianchi": t46,
+        "test_47_continuum_regge_wheeler_formula_on_discretised_background": t47,
         "module_13_passed": all_passed,
         "all_passed": all_passed,
     }
