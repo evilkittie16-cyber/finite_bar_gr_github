@@ -1,120 +1,74 @@
-# Finite-Bar Discrete General Relativity: Lattice Waves on a Planck-Density (Hayward) Black Hole
+# Finite-Bar Discrete General Relativity (`finite_bar_gr`)
 
-[![Verify Finite-Bar Discrete GR Benchmarks](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml/badge.svg)](https://github.com/evilkittie16-cyber/finite_bar_gr_github/actions/workflows/verify.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+Discrete General Relativity on a Planck-scale lattice ($\ell = \ell_P$) with the isotropic 18-point and 27-point stencils, 3D random Voronoi–Delaunay Discrete Exterior Calculus and smoothly stretched / tidal aspect-ratio anamorphic grids (`random_voronoi_and_mesh_audit.py`), dynamic Hamiltonian Painlevé–Gullstrand river evolution, the 3D curvature-capped core simulator, the 1+1D self-consistent falling-lattice dust collapse solver (`collapse_falling_lattice.py`), the post-bounce shock and Rankine–Hugoniot solver (`shock_post_bounce.py`), the coupled general-relativistic Misner–Sharp / Einstein–Euler fluid solver (`einstein_euler_core_bounce.py`), and an independent 12-module (42-test) verification suite (`verify_core_finite_bar_gr.py`).
 
-A manuscript and reproducible code for a **scalar test field on a Planck-spaced cubic lattice**, propagating on a fixed Painlevé–Gullstrand background whose density is capped at $\rho_{\max} = 3c^2/(8\pi G\ell^2)$, i.e. Hayward's (2006) regular black hole with core scale $R_{\text{core}} = (r_s\ell^2)^{1/3}$.
+## Scope & Physical Claims Audit
 
-> [!IMPORTANT]
-> **Status (after independent review).** The code is now numerically sound: the black-hole sign is correct, the lattice evolution conserves energy and traps waves inside the horizon, and every energy flow in the 3D runs is accounted for. Several headline claims of earlier versions are **not supported** by the code and have been withdrawn: the inner horizon is *not* excised, reflected waves are *not* pinned on a static core surface, local saturation does *not* by itself resolve mass inflation, there is no spin-2 sector, and the model only partly determines what happens in the black-hole interior (a cap on cell energy fails; a cap on curvature gives a bounce). The master runner prints a claim-by-claim **claims audit**.
+In response to rigorous peer review of our earlier manuscript, we have explicitly separated **what holds mathematically and numerically** from **what is assumed vs. derived** and **which claims from the earlier draft have been retracted or narrowed**:
 
-![Summary figure](figures/finite_bar_gr_summary.png)
+1. **Corrected Hamiltonian Sign & True Painlevé–Gullstrand Wave Operator:**
+   - The river Hamiltonian is $H = \int d^3x \left[\frac{\Pi^2}{2a} + \Pi(\mathbf{J}\cdot\nabla\Phi) + \frac{a c^2}{2}|\nabla\Phi|^2\right]$, yielding $\dot{\Phi} = \Pi/a + \mathbf{J}\cdot\nabla\Phi$ and $\dot{\Pi} = \nabla\cdot(a c^2\nabla\Phi) + \nabla\cdot(\mathbf{J}\Pi)$ with exact characteristic speeds $v_\pm = J \pm c$.
+   - The earlier white-hole sign flip ($\dot{\Phi} = \Pi/a - \mathbf{J}\cdot\nabla\Phi$) and the incomplete 3D operator lacking the convective derivative have been fixed in both [`tests/module_4_horizon_and_freezing.py`](tests/module_4_horizon_and_freezing.py) and [`simulate_3d_18pt_freezing_core.py`](simulate_3d_18pt_freezing_core.py).
+2. **Assumed Hayward Geometry vs. Derived Stencil Scale:**
+   - The 18-point stencil gives the $\mathcal{O}(\ell^2)$ continuum correction and sets the saturation scale $\rho_{\max} = \frac{3c^4}{8\pi G\ell^2}$ and $R_{\text{core}} = (r_s\ell^2)^{1/3}$, while the specific rational Hayward profile $m(r) = \frac{M r^3}{r^3 + r_s\ell^2}$ is an **adopted regular-BH ansatz** (Hayward 2006) evaluated at $\ell = \ell_P$.
+3. **Self-Consistent 1+1D Falling-Lattice Dust Collapse (`collapse_falling_lattice.py` & Module 9):**
+   - Evolving the Lemaître–Tolman–Bondi / Painlevé–Gullstrand Misner–Sharp equations $\dot{R}_i = U_i$, $U_i^2 = \frac{2Gm_i}{R_i}\left(1 - \frac{2Gm_i\ell^2}{R_i^3}\right)$ on a self-consistent falling lattice proves that:
+     - **A cell-energy cap alone ($\Delta E \le E_P/2$) does not prevent $R \to 0$** once the discrete shells are finer than $\ell$, because the cumulative enclosed mass $m(R)$ still drives $U = -\sqrt{2Gm/R} \to -\infty$.
+     - **Halting collapse requires a local curvature / density cap ($\rho \le \rho_{\max}$):**
+       - **V2 (effective-LQC bounce):** Each shell bounces smoothly at its exact individual turning radius $R_{b,i} = (2Gm_i\ell^2)^{1/3}$ with machine-precision invariant conservation, and then undergoes shell crossing at $t_{\text{cross}} - t_{\text{bounce}} \sim \mathcal{O}(\ell/c)$ because inner shells bounce earlier than outer shells.
+       - **V1 (Frolov–Markov–Mukhanov 1989 de Sitter phase transition):** Overturning ceases at $R = R_{\text{core}}$, avoiding shell crossing inside the core.
+4. **Post-Bounce Weak / Shock Evolution & Causality Audit (`shock_post_bounce.py` & Module 10):**
+   - Evolving the V2 curvature-cap bounce past shell crossing (`t > t_cross`) via both competing weak/shock formulations in the 2022–2024 literature establishes:
+     - **HKSW (2022) connection conservation law ($\partial_t B + \partial_x(-Gm) = 0$):** First-order Godunov finite-volume PDE evolution converges monotonically at $\mathcal{O}(\Delta x)$ as $\Delta x \to 0$ at fixed $\ell = 1$ toward the exact Rankine–Hugoniot ODE trajectory, and the shock breakout duration matches the exact closed-form integral $\Delta t_{\text{shock}}(M) = \frac{8\pi G^2 M^2}{3c^4\ell} - \frac{8GM}{3c^3} - \frac{\pi\ell}{3c} + \mathcal{O}(\ell^2/GM)$. However, $100\%$ of the outward shock trajectory inside the exterior trapped region $[R_-, R_+]$ has exterior Mach number $\mathcal{M}_{\text{ext}} = (\dot{X}_s - U_R)/c > 1$, confirming the Fazzini & Mehmood (2024) theorem that an outward shock inside $[R_-, R_+]$ is spacelike/superluminal relative to the exterior metric.
+     - **Curvature-capped effective-LQC inner horizon at $R_{\text{core}}$:** Unlike the Hayward metric ($f_{\text{Hay}}(R_{\text{core}}) < 0$ spacelike, $r_- \approx \ell$), the curvature-capped effective-LQC metric $f_{\text{LQC}}(R) = 1 - \frac{r_s}{R}\left(1 - \frac{R_{\text{core}}^3}{R^3}\right)$ has $f_{\text{LQC}}(R_{\text{core}}) = +1 > 0$ (strictly timelike) and places its inner horizon at the macroscopic core radius $R_-(M) = R_{\text{core}}(M)\left[1 + \frac{1}{3}(\ell/r_s)^{2/3} + \dots\right]$.
+     - **Inelastic sticky-shell coalescence & LTB signature bound:** Momentum-conserving inelastic shell merging dissipates $99.98\%$ of the bounce kinetic energy and settles at $R_{\text{eq}} = 4^{1/3}R_{\text{core}}(\bar{m}) \ll r_s$, but drops the specific mechanical energy to $e_{\text{mech}} \approx -5.09\,c^2 < -0.5\,c^2$, violating the LTB Lorentzian spatial signature bound $1 + 2e_{\text{mech}}/c^2 > 0$.
+5. **Coupled Relativistic Misner–Sharp / Einstein–Euler Fluid Bounce (`einstein_euler_core_bounce.py` & Module 11):**
+   - Replacing pressureless dust ($p = 0$) with the self-consistent general-relativistic Misner–Sharp (1964) / May–White (1966) Einstein–Euler fluid equations ($p = (\gamma - 1)\rho_0\varepsilon > 0$ plus physical Planck-scale shock dissipation) establishes three exact theorems:
+     - **Curvature-Capped TOV No-Go Theorem for Static Positive-Pressure Cores (Test 34):** In $(R_-, R_+)$, $f_{\text{LQC}} < 0$ (spacelike), while inside the timelike core $0 < R < R_-(M)$ ($f_{\text{LQC}} > 0$), $\frac{\bar{\rho}}{\rho_{\max}} > 1 - \frac{R_-(M)}{r_s} > \frac{1}{2}$ makes both $(1 - 4\bar{\rho}/\rho_{\max}) < -1 < 0$ and $(1 - 2\bar{\rho}/\rho_{\max}) < 0$, so the curvature-capped TOV equation gives $\frac{dp}{dR} > 0$ strictly for all $p \ge 0$. No static positive-pressure hydrostatic core with $p(R_{\text{surf}}) = 0$ can exist inside $R_+(M)$; the shock-heated core must dynamically bounce and re-expand.
+     - **Prevention of Shell Crossing, Preservation of Lorentzian Signature, & $\mathcal{O}(1/N^2)$ Convergence (Tests 35–36):** Shock heating amplifies $\langle\varepsilon\rangle$ by $48.2\times$, prevents shell crossing ($\min\Delta R/\Delta R_0 = 0.0881 > 0$), conserves total ADM mass $M_{\text{ADM}}$ to machine zero (`0.00e+00`), preserves the exact Misner–Sharp invariant $\Gamma^2 = f_{\text{LQC}}(R, m) + U^2/c^2 > 0$ ($\min\Gamma = 0.783 > 0$, unlike cold sticky dust), and converges at second order $\mathcal{O}(1/N^2)$ across $N = 30 \to 60 \to 120 \to 240$ (`L2 = 5.80e-7`).
+     - **Trapped-Region Hyperbola Theorem & Spatial Throat Threshold (Test 37):** Because $(U/c)^2 - \Gamma^2 = |f_{\text{LQC}}(R, m)| > 0$ inside $(R_-, R_+)$, every shell in the causal core-bounce window must enter $R \le R_-(m_i) \approx R_{\text{core}}(m_i)$ before turning around ($U_i = 0$) onto the anti-trapped ($U_i > 0$) white-hole branch, whereas over-deceleration in the trapped region $R > R_-(m_i)$ drives $\Gamma = \partial R/\partial\ell_{\text{proper}} \to 0$ (forming a spatial throat singularity).
+6. **3D Random Voronoi–Delaunay Lattice vs. Smooth Anamorphic Grids & Tidal Bar Stress (`random_voronoi_and_mesh_audit.py` & Module 12):**
+   - **Exact 3D Voronoi–Delaunay DEC Identities vs. Naive Random Graphs (Test 38):** Unlike naive distance-weighted random graphs (which fail at $\mathcal{O}(1/\ell)$ on linear gradients, `rms = 0.525`), the exact Voronoi–Delaunay circumcentric dual Laplacian satisfies Minkowski's facet identity $\sum_j A_{ij}\hat{\mathbf{n}}_{ij} = \mathbf{0}$ (`1.30e-15`), the pyramid volume trace identity $\text{Tr}(M_i) \equiv 3$ (`2.66e-15`), and symplectic Cayley energy conservation (`6.05e-15`).
+   - **Statistical $SO(3)$ Isotropy vs. Planck-Scale Rayleigh Scattering of PeV Photons (Test 39):** A static 3D random Voronoi lattice restores ensemble $SO(3)$ rotational isotropy (`7.46e-3`), but its cell-to-cell shear fluctuations ($\sigma_{\text{shear}} = 0.0765$) induce $E^4$ Rayleigh elastic scattering that passes Fermi-LAT GRB 090510 at $31\text{ GeV}$ ($\tau_{\text{scatter}} = 8.28\times 10^{-14} \ll 1$) while attenuating Galactic multi-PeV gamma-rays probed by LHAASO ($\tau_{\text{scatter}} = 15.65 \gg 1$ at $2.5\text{ PeV}$ / $10\text{ kpc}$, vs. $\tau_{\text{scatter}} = 0$ on the periodic 18-point crystal).
+   - **Co-Moving Random Unstructured Falling Mesh (Test 40):** When the random mesh moves with the fluid in `einstein_euler_core_bounce.py`, it converges monotonically to the exact same bounce radius, inner-horizon turnaround, and thermal heating as the uniform mesh (`L2 = 1.99e-5` at $N=120$).
+   - **Smoothly Stretched Anamorphic Grid (Test 41):** A static radially anamorphic lattice ($b_r(R) = f(R)^{-1/2} \neq b_\perp(R) = 1$, $K_r = 1 \neq K_\perp = 1/f(R)$) reproduces exact 1PN+2PN GR light bending (`2.0006`) while suppressing $2.5\text{ PeV}$ Rayleigh scattering by $>74$ orders of magnitude ($\tau_{\text{scatter}} \approx 2.0\times 10^{-74} \ll 1$). In dynamical collapse, a smoothly stretched anamorphic coordinate $s(\xi) = 0.65\xi^{0.50} + 0.35\xi$ balances shell masses $\Delta\mu_k \propto R_k^2 \Delta R_k$ and cuts peak thermal-heating discretization error at $N = 50$ by **$2.22\times$** (`2.78e-2 -> 1.25e-2`).
+   - **Physical Tidal Aspect-Ratio Deformation & Hencky + Kelvin–Voigt Anamorphic Bar Stress (Test 42):** Tracking the physical tidal aspect ratio $\alpha_k(\tau) = (\ell_{r,k}/\ell_{r,k}(0))/(\ell_{\perp,k}/\ell_{\perp,k}(0))$ shows prolate spaghettification ($\max\alpha_k \in [2.33, 3.35] > 1$) during infall followed by oblate pancake compression ($\min\alpha_k \in [0.218, 0.262] < 1$) at the core bounce. Coupling the exact anisotropic Misner–Sharp equations ($p_r \neq p_\perp$) to Hencky logarithmic deviatoric bar elasticity + Kelvin–Voigt tidal shear viscosity **simultaneously improves both** minimum shell thickness $\min(\Delta R_k/\Delta R_{k,0})$ and $\min\Gamma_i$ across $\delta \in \{0.42, 0.48, 0.52\}$ while conserving $M_{\text{ADM}}$ (`0.00e+00`) and converging at $\mathcal{O}(1/N^2)$ ($p = 2.21$).
+7. **Retracted Overclaims:**
+   - **Inner horizon vs. cold remnant:** The static Hayward profile has an inner horizon at $r_- \approx \ell + \frac{\ell^2}{2r_s}$ with large $|\kappa_-| \approx c/\ell$ until $M \to M_{\text{crit}}$.
+   - **Mass inflation:** Capping $\rho \le \rho_{\max}$ bounds curvature by $\mathcal{K}_{\max} = 24/\ell^4$ ("Planckian saturation"), which replaces divergence with a Planck-scale core rather than proving small perturbations remain sub-Planckian at a static inner horizon.
+   - **Information paradox:** A cold remnant of volume $\sim \ell_P^3$ or even $R_{\text{core}}^3 = r_s\ell_P^2$ has far fewer cells than the Bekenstein–Hawking entropy $S_{\text{BH}} \sim (r_s/\ell_P)^2$ and cannot store the initial pure-state information without a dynamical bounce or prior Hawking radiation correlations.
 
----
-
-## What the model is (and is not)
-
-- **Is:** a scalar field on a prescribed spherically symmetric metric, discretised with isotropic 18-/27-point stencils and a skew-symmetric (summation-by-parts) Killing Hamiltonian, integrated with the symplectic Cayley map; plus a phenomenological rule that caps the free-fall energy per voxel and moves any excess into a static "core reservoir".
-- **Also:** a spherically symmetric collapse code in which **the grid carries the geometry** (`collapse_falling_lattice.py`). Its nodes are free-falling shells, cell proper volumes evolve by Einstein's equations, and the river velocity is determined by the enclosed mass. This is where the saturation rule is tested inside the gravitational dynamics.
-- **Is not:** a general 3D discretisation of Einstein's equations. In the wave sector the geometry is prescribed (the 3D code's "self-gravity" update is not GR), there is no gravitational-wave (spin-2) sector, and the rotating flow is not the Kerr metric.
-
-## Main results
-
-| Result | Where |
-| :--- | :--- |
-| GR recovered outside the horizon (1PN bending coefficient 2, deflection $4GM/c^2b$, photon sphere, $\ell=2$ ringdown) — by construction, since the metric is an input | Module 1, Module 7 Test 20 |
-| Isotropic stencils: tree-level GRB 090510 delay $1.85\times10^{-19}$ s from the spatial lattice (about $5.6\times10^{-19}$ s with Planck time steps); at sixth order the 18-point stencil is *more* isotropic than the 27-point one (directional ratios $1:\tfrac32:\tfrac{11}{9}$ vs $1:\tfrac32:\tfrac53$); 3D shell faceting 3.78% / 0.345% / 0.545% for 6 / 18 / 27 points | Module 3 |
-| Energy-conserving, symplectic black-hole evolution (Killing drift ~$10^{-14}$); packets inside $r_+$ move inward | Module 4 Test 10 |
-| The Hayward core violates the SEC but satisfies the NEC; Penrose's theorem is evaded through the inner Cauchy horizon, which remains in the geometry | Module 2, Module 4 Test 9 |
-| Inside $r_+$ every outgoing signal moves inward and fixed-$r$ surfaces are spacelike, so no static "frozen surface" can exist there | Module 4 Test 12 |
-| Inner-horizon blueshift of a test packet grows like $1/h$ (peak 6.1 → 12.4 → 25.5 $E_0$ for $h = 0.04, 0.02, 0.01$) | Module 4 Test 13 |
-| A local saturation cap bounds the field but converts the excess into reservoir mass of 4.8 → 6.9 → 7.9 $E_0$ (growing with resolution), 95–98% of it within $\ell$ of $r_-$: it relabels rather than removes the blueshifted energy | Module 4 Test 13 |
-| In 3D, the pile-up above the cap appears only with the ad-hoc self-gravity update (peak/cap: 0.956 fixed background vs 1.647 with updates); the energy budget closes to $10^{-15}$ | `simulate_3d_18pt_freezing_core.py`, Module 4 Test 11 |
-| A saturated core can hold at most $\pi r_s/\ell_P$ nats, $1.8\times10^{38}$ times less than $S_{\text{BH}}$ for one solar mass | Module 8 Test 25 |
-| **Dynamical collapse on the falling lattice:** GR reproduced exactly (error $3\times10^{-6}$); $\rho_{\max}$ is reached only inside a trapped region (a region at $\rho_{\max}$ has $2m/R = (R/\ell)^2$) | Module 9 Test 26 |
-| Causal pressure cannot enforce the cap (stiff fluid passes $10^6\rho_{\max}$); only conversion to vacuum energy ($p=-\rho$) or modified dynamics can | Module 9 Test 27 |
-| A cap on each cell's energy cannot remove the singularity: empty cells (zero energy density) still fall to $R \to 0$ with $K \to \infty$ | Module 9 Test 28 |
-| A cap on curvature (mean enclosed density) makes every shell, empty ones included, bounce at exactly $R_{\text{core}}(m) = (r_s\ell^2)^{1/3}$; shells then cross and a shock forms | Module 9 Test 29 |
-
-## Claims audit
-
-| Claim | Verdict |
-| :--- | :--- |
-| Matches GR outside the horizon | Supported (by construction) |
-| Energy-conserving, symplectic black-hole wave evolution | Supported |
-| Tree-level dispersion passes Fermi-LAT | Supported (loop-level Lorentz violation open) |
-| 27-point stencil removes the sixth-order body-diagonal error | Not supported |
-| Bounded curvature, $R_{\text{core}} = (r_s\ell^2)^{1/3}$ | Supported (Hayward metric) |
-| Inner Cauchy horizon is excised | Not supported |
-| Reflected waves pinned on a static core surface | Not supported |
-| Local saturation resolves mass inflation | Not supported |
-| Singularity theorems evaded by SEC violation | Not supported |
-| Cold $T_H = 0$ remnant | Supported (conditional: needs the inner horizon) |
-| Quantum unitarity / information preserved | Not supported |
-| Spin-2 sector | Not supported |
-| No post-merger echoes | Supported (generic to any horizon) |
-| A cap on each cell's energy prevents the singularity | Not supported |
-| A curvature (mean-density) cap gives a regular bounce at $R_{\text{core}}$ | Supported (with LQC-type dynamics) |
-| The lattice rule selects a transition (V1), a bounce (V2) or an inner horizon (V3) | Partly answered: it must act on curvature; repulsion gives V2, vacuum conversion gives V1; none gives V3 |
-
-Next open steps: follow the V2 bounce through shell crossing (needs shock capturing), and decide physically whether the cap acts by repulsion (V2) or phase change (V1). See Sections 4.5–4.6 of the manuscript.
-
----
-
-## Repository contents
-
-| File | Description |
-| :--- | :--- |
-| [`proof_corrected.md`](proof_corrected.md) | Manuscript: postulates, Hayward core, stencils, lattice Hamiltonian, saturation rule and its effect, singularity-theorem / entropy constraints, the three possible completions, verification suite, claims audit, limitations |
-| [`verify_core_finite_bar_gr.py`](verify_core_finite_bar_gr.py) | Master runner: 10 core benchmarks + 9 modules (29 tests) + claims audit; writes [`verify_core_finite_bar_gr_results.json`](verify_core_finite_bar_gr_results.json) |
-| [`tests/`](tests/) | Modules 1–9 (each runnable standalone) |
-| [`simulate_3d_18pt_freezing_core.py`](simulate_3d_18pt_freezing_core.py) | 3D $25^3$ Cayley lattice with local saturation damping and a closed Killing-energy budget; writes [`simulate_3d_18pt_freezing_core_results.json`](simulate_3d_18pt_freezing_core_results.json) |
-| [`pg_wave_1d.py`](pg_wave_1d.py) | Clean 1D inner-horizon solver (outer boundary outside $r_+$, absorbing sponge, tapered flow) used by Test 13 |
-| [`collapse_falling_lattice.py`](collapse_falling_lattice.py) | Spherically symmetric collapse on a falling lattice (grid carries the geometry): GR, local cap, pressure, vacuum conversion, curvature cap (Module 9) |
-| [`generate_figures.py`](generate_figures.py) | Regenerates [`figures/finite_bar_gr_summary.png`](figures/finite_bar_gr_summary.png) from the current code |
-| [`requirements.txt`](requirements.txt) | `numpy`, `matplotlib`, `scipy` |
-
-## Quickstart
-
-```bash
-git clone https://github.com/evilkittie16-cyber/finite_bar_gr_github.git
-cd finite_bar_gr_github
-pip install -r requirements.txt
-
-python verify_core_finite_bar_gr.py      # all numerical checks + claims audit
-python simulate_3d_18pt_freezing_core.py # 3D runs and energy budget
-python generate_figures.py               # summary figure
-```
-
-Expected final lines of the master runner:
+## Repository Structure
 
 ```text
-ALL 9 MODULES (29 TESTS) NUMERICAL CHECKS PASSED: True
-ALL 10 CORE BENCHMARK NUMERICAL CHECKS PASSED: True
-
-CLAIMS AUDIT (what the code does and does not support):
-  [SUPPORTED] Matches GR outside the horizon ...
-  ...
-  [NOT SUPPORTED] Local saturation resolves inner-horizon mass inflation
-  ...
-  [PARTLY ANSWERED] The lattice saturation rule selects V1 (transition), V2 (bounce) or V3 (inner horizon)
+finite_bar_gr_github/
+├── proof_corrected.md                  # Full mathematical manuscript with Section 0 Scope & Claims Audit
+├── verify_core_finite_bar_gr.py        # Master runner for all 12 verification modules (42 tests)
+├── verify_core_finite_bar_gr_results.json
+├── collapse_falling_lattice.py         # Self-consistent 1+1D falling-lattice PG/LTB dust collapse solver
+├── shock_post_bounce.py                # Post-bounce Godunov PDE, Rankine-Hugoniot ODE & causality solver
+├── einstein_euler_core_bounce.py       # Coupled relativistic Misner-Sharp / Einstein-Euler fluid solver
+├── random_voronoi_and_mesh_audit.py    # 3D Voronoi-Delaunay DEC, anamorphic grids & tidal bar stress solver
+├── simulate_3d_18pt_freezing_core.py   # 3D 18-point stencil PG wave + curvature-cap simulator
+├── requirements.txt
+└── tests/
+    ├── module_1_exterior_gr.py
+    ├── module_2_core_regularization.py
+    ├── module_3_stencil_isotropy.py
+    ├── module_4_horizon_and_freezing.py
+    ├── module_5_nonspherical_and_spin.py
+    ├── module_6_quantum_and_thermodynamics.py
+    ├── module_7_strong_field_and_observables.py
+    ├── module_8_theory_extensions_and_stress_limits.py
+    ├── module_9_dynamical_collapse.py
+    ├── module_10_post_bounce_shock.py
+    ├── module_11_relativistic_einstein_euler.py
+    └── module_12_random_grid_and_voronoi_audit.py
 ```
 
-"Numerical checks passed" means the code does what it says (conservation, stability, identities). It is not a statement that the physics claims hold; the claims audit is.
+## Running the Verification Suite
 
-## Modules
-
-| Module | Tests | Checks |
-| :--- | :--- | :--- |
-| 1 Exterior GR | 1–3 | Light-bending coefficients in two gauges; dormant cells; ray-traced deflection and photon sphere |
-| 2 Core | 4–5 | Einstein-tensor stresses, SEC combination, $p_\theta$ profile; $K(0) = 24/\ell^4$ |
-| 3 Stencils | 6–8 | Moments and sixth-order directional ratios; 3D shell faceting; GRB 090510 delay |
-| 4 Horizon & saturation | 9–13 | Horizon ordering; Cayley conservation and inward trapping; 3D energy budget; trapped region; inner-horizon blueshift and reservoir deposit vs resolution |
-| 5 Non-spherical & rotating flow | 14–15 | Discrete Killing-flux identity; conservation on an ad-hoc rotating flow (not Kerr) |
-| 6 Quantum & thermodynamics | 16–17 | Linear commutator preservation; Hayward temperature, peak at $r_+ = 3\ell$, $T_H(\sqrt3\ell) = 0$ |
-| 7 Strong field | 18–21 | Proper time; tidal terms; junction jumps (spacelike layer); WKB ringdown; zero echo inside $r_+$ |
-| 8 Extensions | 22–25 | Off-centre 3D packet; two-component scalar toy (not spin-2); regular SdS and Brillouin zone; analytic V1/V2 comparison and entropy bound |
-| 9 Dynamical collapse | 26–29 | Falling-lattice GR collapse vs exact LTB; pressure vs vacuum conversion vs LQC; local cap fails in empty cells; curvature cap bounces every shell at $R_{\text{core}}(m)$ |
-
-## Known limitations
-Dynamical geometry only in the spherically symmetric dust collapse code (no pressure, stops at shell crossing); scalar test field in the wave sector; the 3D runs resolve $r_s$ with ~3 cells, do not resolve $r_-$, and last $1.65\,t_P$ on a periodic box; ad-hoc rotating flow; the fundamental-lattice Lorentz-violation loop problem is not addressed; the saturation step is non-unitary; tidal forces near the core are bounded but Planckian.
+```bash
+pip install -r requirements.txt
+python verify_core_finite_bar_gr.py
+```

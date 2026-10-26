@@ -51,7 +51,16 @@ jobs:
       - name: Run Module 9 (Dynamical Collapse on a Falling Lattice, Tests 26-29)
         run: python tests/module_9_dynamical_collapse.py
 
-      - name: Run Master Verification Suite (10 Benchmarks + 9 Modules / 29 Tests + Claims Audit)
+      - name: Run Module 10 (Post-Bounce Shock, Causality Audit & Core Horizon, Tests 30-33)
+        run: python tests/module_10_post_bounce_shock.py
+
+      - name: Run Module 11 (Relativistic Misner-Sharp / Einstein-Euler Fluid Bounce, Tests 34-37)
+        run: python tests/module_11_relativistic_einstein_euler.py
+
+      - name: Run Module 12 (3D Random Voronoi-Delaunay Lattice & Unstructured Mesh Audit, Tests 38-40)
+        run: python tests/module_12_random_grid_and_voronoi_audit.py
+
+      - name: Run Master Verification Suite (10 Benchmarks + 12 Modules / 40 Tests + Claims Audit)
         run: python verify_core_finite_bar_gr.py
 
       - name: Run 3D Lattice Simulator (energy budget)

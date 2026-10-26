@@ -524,9 +524,377 @@
         "passed": true
       },
       "module_9_passed": true
+    },
+    "module_10_post_bounce_shock": {
+      "test_30_hksw_godunov_shock_and_convergence": {
+        "passed": true,
+        "M": 2.0,
+        "r_s": 4.0,
+        "exact_rh_t_bounce": 2.581988897471611,
+        "exact_rh_t_rs_exit": 30.560954485611937,
+        "grid_spacings_dx": [
+          0.04,
+          0.02,
+          0.01
+        ],
+        "godunov_t_rs_exit": [
+          30.556733079257416,
+          30.5587503192421,
+          30.55982534958888
+        ],
+        "godunov_t_rs_rel_errors": [
+          0.00013813071043014658,
+          7.212361023847346e-05,
+          3.694701432143187e-05
+        ],
+        "godunov_trajectory_l2_rel_errors": [
+          0.002878687425014759,
+          0.0014412747928148927,
+          0.0007217326010371696
+        ],
+        "finest_grid_interior_theta_over_pi": 0.9930379862740484,
+        "finest_grid_interior_mean_mass": 0.002798795423721301
+      },
+      "test_31_hksw_lifetime_M2_scaling_and_superluminal_audit": {
+        "passed": true,
+        "masses": [
+          2.0,
+          5.0,
+          10.0,
+          20.0,
+          50.0
+        ],
+        "ode_shock_durations_to_rs": [
+          27.978965588140326,
+          195.90156222371712,
+          810.8832495249105,
+          3297.488734311538,
+          20810.4063450141
+        ],
+        "closed_form_asymptotic_durations": [
+          27.185879134774073,
+          195.08123502997483,
+          810.0552920209175,
+          3296.6571890210876,
+          20809.57271530298
+        ],
+        "relative_diff_ode_vs_closed_form": [
+          0.028345810386300546,
+          0.004187445901046381,
+          0.0010210563659788765,
+          0.0002521753241482825,
+          4.0058310121356074e-05
+        ],
+        "high_mass_scaling_exponent_dlogT_dlogM": 2.0105976339045912,
+        "fraction_of_trapped_path_superluminal_each_M": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "min_exterior_mach_inside_trapped_region_each_M": [
+          1.051715714607382,
+          1.0167922603989532,
+          1.008127878819572,
+          1.0040158546850504,
+          1.0015969527386637
+        ],
+        "max_exterior_mach_inside_trapped_region_each_M": [
+          1.2273568765004421,
+          1.6657714598024687,
+          2.09798578778469,
+          2.575924283375619,
+          2.7885882091956975
+        ],
+        "finding_hksw_shock_is_spacelike_inside_trapped_region": true
+      },
+      "test_32_sticky_shell_dissipation_and_ltb_signature_bound": {
+        "passed": true,
+        "M": 100.0,
+        "r_s": 200.0,
+        "R_core_of_M": 5.848035476425731,
+        "initial_shells": 120,
+        "final_shells": 2,
+        "inelastic_mergers": 118,
+        "main_shell_mass_fraction": 0.9992612666258884,
+        "initial_mech_energy": -3.519703264468273e-16,
+        "final_mech_energy": -508.82961930489506,
+        "potential_well_minimum_energy": -508.8277601867389,
+        "fraction_of_well_depth_dissipated": 1.0000036537278458,
+        "settled_radius_min": 7.369248532200895,
+        "settled_radius_max": 7.370505398320469,
+        "settled_radius_mean": 7.369878566969585,
+        "expected_equilibrium_radius_4_1_3_Rb": 7.369876895371269,
+        "escapes_horizon": false,
+        "specific_mech_energy_e_over_c2": -5.088296193048951,
+        "ltb_signature_factor_1_plus_2e": -9.176592386097902,
+        "violates_dust_ltb_signature_without_pressure": true,
+        "settled_vs_expected_equilibrium_rel_err": 2.268149576306427e-07,
+        "finding_inelastic_collisions_trap_shell_at_R_eq": true,
+        "finding_causal_continuation_requires_shock_pressure": true
+      },
+      "test_33_lqc_effective_metric_vs_hayward_inner_horizon_at_Rcore": {
+        "passed": true,
+        "M50_comparison": {
+          "M": 50.0,
+          "r_s": 100.0,
+          "R_core": 4.641588833612778,
+          "f_hayward_at_R_core_negative_means_spacelike": -9.77217345015942,
+          "f_lqc_at_R_core_positive_means_timelike": 1.0,
+          "U_lqc_at_R_core": 0.0,
+          "r_minus_hayward_over_ell": 1.0050635184041479,
+          "r_minus_lqc_over_R_core": 1.0162364925790532,
+          "r_minus_lqc_asymptotic_over_R_core": 1.0154719627787092,
+          "r_minus_lqc_asymptotic_rel_err": 0.0007523148459310227,
+          "f_lqc_at_R_eq_4_1_3_R_core_negative_means_trapped": -9.179066062230902
+        },
+        "M500_asymptotic_inner_horizon_rel_err": 3.3658539389722166e-05,
+        "finding_lqc_metric_is_timelike_at_R_core": true,
+        "finding_lqc_inner_horizon_is_at_macroscopic_R_core_scale": true
+      },
+      "module_10_passed": true
+    },
+    "module_11_relativistic_einstein_euler": {
+      "module": "Module 11: Relativistic Misner-Sharp / Einstein-Euler Fluid Collapse & Core Bounce",
+      "test_34_curvature_capped_tov_no_go_for_static_positive_pressure_core": {
+        "passed": true,
+        "all_R_eq_spacelike_f_LQC_negative": true,
+        "all_timelike_cores_have_dp_dR_strictly_positive": true,
+        "sample_M50": {
+          "M": 50.0,
+          "R_core": 4.641588833612778,
+          "R_minus": 4.71695195626475,
+          "R_eq": 7.368062997280772,
+          "f_LQC_at_R_eq_negative": -9.179066062230898,
+          "min_f_LQC_in_timelike_core": 0.05978157805529272,
+          "min_bar_rho_over_rho_max_at_R_minus": 0.952830480437352,
+          "max_mass_factor_1_minus_4ratio": -2.8227787936166577,
+          "max_pressure_factor_1_minus_2ratio": -0.9113893968083289,
+          "min_dp_dR_in_timelike_core_for_positive_p": 0.1504494529722979,
+          "dp_dR_strictly_positive_in_timelike_core": true,
+          "dp_dR_de_sitter_vacuum": 0.0
+        },
+        "sample_M100": {
+          "M": 100.0,
+          "R_core": 5.848035476425731,
+          "R_minus": 5.906767355133308,
+          "R_eq": 9.283177667225555,
+          "f_LQC_at_R_eq_negative": -15.158260175239128,
+          "min_f_LQC_in_timelike_core": 0.0978737635353385,
+          "min_bar_rho_over_rho_max_at_R_minus": 0.9704661632243332,
+          "max_mass_factor_1_minus_4ratio": -2.8935335769208996,
+          "max_pressure_factor_1_minus_2ratio": -0.9467667884604498,
+          "min_dp_dR_in_timelike_core_for_positive_p": 0.1198115934183527,
+          "dp_dR_strictly_positive_in_timelike_core": true,
+          "dp_dR_de_sitter_vacuum": 0.0
+        }
+      },
+      "test_35_einstein_euler_shock_prevents_shell_crossing_and_preserves_signature": {
+        "passed": true,
+        "dust_min_dR_negative_shell_crossing": -0.007106145072950376,
+        "euler_min_dR_positive": 0.008812136475802923,
+        "euler_min_compression_ratio_dR": 0.08812136475802955,
+        "euler_min_Gamma_positive": 0.7829015521476936,
+        "euler_min_Gamma2_positive": 0.6129348403552679,
+        "max_misner_sharp_constraint_err": 2.3651245850686564e-08,
+        "adm_mass_relative_drift": 0.0,
+        "max_interior_pdV_mass_transfer_fraction": 0.05526705643164202,
+        "max_mean_thermal_energy_eps": 0.024087473904757323,
+        "shock_heating_amplification_factor": 48.17494780951464,
+        "max_sound_speed_over_c": 0.1716317912620298,
+        "R_core_M": 3.4199518933533937,
+        "R_minus_M": 3.5268101203884776,
+        "R_surf_min_inside_R_minus": 3.458763136765166,
+        "R_surf_final_reexpanding": 7.61933317535202,
+        "all_shells_turn_inside_R_minus": true
+      },
+      "test_36_continuum_convergence_of_relativistic_einstein_euler_bounce": {
+        "passed": true,
+        "resolutions_N": [
+          30,
+          60,
+          120,
+          240
+        ],
+        "half_mass_L2_errors_vs_N240": [
+          1.1390997088731494e-05,
+          2.727903551403849e-06,
+          5.804775327203061e-07
+        ],
+        "max_mean_eps_rel_errors_vs_N240": [
+          0.07073581589101659,
+          0.01943914651245744,
+          0.0035128843110346494
+        ],
+        "min_ratio_dR_rel_errors_vs_N240": [
+          0.019996598965867474,
+          0.005617994952388066,
+          0.0014433185150527332
+        ],
+        "empirical_convergence_order_half_mass": 2.1472549984652805,
+        "empirical_convergence_order_compression_ratio": 1.8961465144220775,
+        "min_ratio_dR_by_N": [
+          0.08648406121344462,
+          0.08775295484009268,
+          0.08812136475802955,
+          0.08824873579232861
+        ],
+        "max_mean_eps_by_N": [
+          0.025701036257118937,
+          0.02446975442270052,
+          0.024087473904757323,
+          0.024003153603049814
+        ]
+      },
+      "test_37_trapped_region_hyperbola_and_throat_threshold_audit": {
+        "passed": true,
+        "gamma_4_3_min_Gamma": 0.7804660903547308,
+        "gamma_4_3_R_surf_min_inside_R_minus": 3.451914594605811,
+        "gamma_4_3_R_surf_final": 7.5442499498083615,
+        "gamma_4_3_max_cs": 0.17307040222463327,
+        "gamma_5_3_min_Gamma": 0.6927442399610563,
+        "gamma_5_3_R_surf_min_inside_R_minus": 3.4685906883034834,
+        "gamma_5_3_R_surf_final": 8.69741602059345,
+        "gamma_5_3_max_cs": 0.34115934188347985,
+        "overpressurized_trapped_R_surf_min_outside_R_minus": 3.562260383517945,
+        "R_minus_M": 3.5268101203884776,
+        "overpressurized_trapped_min_Gamma_throat_crossing": -0.19446518210515376
+      },
+      "module_11_passed": true,
+      "all_passed": true
+    },
+    "module_12_random_grid_and_voronoi_audit": {
+      "module": "Module 12: Random Voronoi-Delaunay vs. Smooth Anamorphic Grids & Tidal Bar Stress Audit",
+      "test_38_random_voronoi_delaunay_vs_naive_random_laplacian_consistency": {
+        "passed": true,
+        "n_interior_voronoi_cells": 83,
+        "max_minkowski_facet_vector_err": 1.2963666416073434e-15,
+        "voronoi_dec_linear_laplacian_max_err": 5.1920443131603676e-15,
+        "naive_random_linear_laplacian_rms_err": 0.5254828063207755,
+        "max_pyramid_trace_identity_err_TrM_minus_3": 2.6645352591003757e-15,
+        "voronoi_stiffness_symmetry_err": 0.0,
+        "cayley_energy_drift_100_steps": 6.0464768659836174e-15,
+        "volume_averaged_second_moment_isotropy_err": 0.007460721284527683,
+        "cell_to_cell_directional_shear_std": 0.07653843394068659,
+        "cell_to_cell_volume_std": 0.15527670233551114
+      },
+      "test_39_random_grid_rotational_isotropy_vs_rayleigh_scattering_bound": {
+        "passed": true,
+        "volume_averaged_isotropy_err": 0.007460721284527683,
+        "cell_to_cell_shear_std": 0.07653843394068659,
+        "cell_to_cell_volume_std": 0.15527670233551114,
+        "sigma_shear_used": 0.07653843394068659,
+        "grb090510_31GeV_l_scatter_m": 8.341039576423738e+38,
+        "grb090510_31GeV_optical_depth_tau": 8.279543499014282e-14,
+        "lhaaso_1p4PeV_1p4kpc_l_scatter_m": 2.0051866958190415e+20,
+        "lhaaso_1p4PeV_1p4kpc_optical_depth_tau": 0.2154412857918672,
+        "galactic_2p5PeV_10kpc_l_scatter_m": 1.9720000539285578e+19,
+        "galactic_2p5PeV_10kpc_optical_depth_tau": 15.649086793137586,
+        "periodic_18pt_crystal_bloch_optical_depth_tau": 0.0,
+        "finding_static_3d_random_grid_scatters_multi_PeV_photons": true
+      },
+      "test_40_random_unstructured_falling_lattice_einstein_euler_invariance": {
+        "passed": true,
+        "resolutions_N": [
+          40,
+          80,
+          120
+        ],
+        "random_vs_uniform_R_mean_L2_errors": [
+          0.0009319591833823516,
+          0.00015244389992068516,
+          1.9935961909242035e-05
+        ],
+        "random_vs_uniform_max_mean_eps_rel_errors": [
+          0.024876625399098864,
+          0.003243812820227856,
+          0.0020212504579618933
+        ],
+        "random_vs_uniform_R_surf_min_rel_errors": [
+          0.002294604691028254,
+          0.00022076109116571575,
+          0.000355058524402068
+        ],
+        "all_random_runs_prevent_crossing_and_preserve_Gamma_positive": true
+      },
+      "test_41_static_and_stretched_anamorphic_grid_light_bending_and_zero_scattering": {
+        "passed": true,
+        "anamorphic_1PN_coeff_raw": 2.003583098331596,
+        "anamorphic_1PN_coeff_after_2PN_subtraction": 2.000637855218856,
+        "delta_A_cell_solar_horizon": 2.73640057563701e-39,
+        "rayleigh_suppression_factor_vs_random_voronoi": 1.2794887625010145e-75,
+        "tau_2p5PeV_10kpc_anamorphic": 2.0023999133140876e-74,
+        "N50_uniform_rel_err_max_eps": 0.02784111489132539,
+        "N50_anamorphic_rel_err_max_eps": 0.012529325062724986,
+        "thermal_heating_error_reduction_factor": 2.222076189415287,
+        "N50_uniform_rel_err_Rsurf_min": 0.004701649310631435,
+        "N50_anamorphic_rel_err_Rsurf_min": 0.0035344885331296777,
+        "N50_uniform_L2_Rsurf": 0.054832013728651,
+        "N50_anamorphic_L2_Rsurf": 0.04309789988611691
+      },
+      "test_42_tidal_aspect_ratio_and_hencky_anamorphic_bar_stress_in_bounce": {
+        "passed": true,
+        "comparisons": [
+          {
+            "delta": 0.42,
+            "iso_min_dR_ratio": 0.0795802101771679,
+            "anam_min_dR_ratio": 0.08561217802837934,
+            "iso_min_alpha_pancake": 0.262118447205573,
+            "anam_min_alpha_pancake": 0.2842309580038845,
+            "iso_max_alpha_spaghetti": 2.328522890826808,
+            "anam_max_alpha_spaghetti": 1.7340785271696262,
+            "iso_min_Gamma": 0.7954940391448679,
+            "anam_min_Gamma": 0.802963670633161,
+            "anam_adm_mass_rel_err": 0.0,
+            "anam_max_constraint_err": 2.631486717419307e-08,
+            "anam_all_turns_inside_R_minus": true
+          },
+          {
+            "delta": 0.48,
+            "iso_min_dR_ratio": 0.066218025943474,
+            "anam_min_dR_ratio": 0.07243304822517321,
+            "iso_min_alpha_pancake": 0.2323855735442206,
+            "anam_min_alpha_pancake": 0.25529247432340363,
+            "iso_max_alpha_spaghetti": 2.9069035386014486,
+            "anam_max_alpha_spaghetti": 2.011377534919552,
+            "iso_min_Gamma": 0.7126725066892898,
+            "anam_min_Gamma": 0.7296840284782679,
+            "anam_adm_mass_rel_err": 0.0,
+            "anam_max_constraint_err": 1.7189953904761524e-08,
+            "anam_all_turns_inside_R_minus": true
+          },
+          {
+            "delta": 0.52,
+            "iso_min_dR_ratio": 0.0590613784881365,
+            "anam_min_dR_ratio": 0.06532943572858332,
+            "iso_min_alpha_pancake": 0.21823948511971922,
+            "anam_min_alpha_pancake": 0.2419643461028063,
+            "iso_max_alpha_spaghetti": 3.3534956979361743,
+            "anam_max_alpha_spaghetti": 2.3492965622351956,
+            "iso_min_Gamma": 0.6559453538875131,
+            "anam_min_Gamma": 0.678290449891828,
+            "anam_adm_mass_rel_err": 0.0,
+            "anam_max_constraint_err": 8.20774874454866e-09,
+            "anam_all_turns_inside_R_minus": true
+          }
+        ],
+        "all_improve_min_dR_ratio": true,
+        "all_improve_min_alpha_pancake": true,
+        "all_reduce_max_alpha_spaghetti": true,
+        "all_improve_min_Gamma": true,
+        "l2_half_errors_vs_N240": {
+          "30": 3.746606123894059e-06,
+          "60": 8.929434124466816e-07,
+          "120": 1.7537077627037585e-07
+        },
+        "empirical_convergence_order_mean": 2.208552027095724
+      },
+      "module_12_passed": true,
+      "all_passed": true
     }
   },
-  "number_of_module_tests": 29,
+  "number_of_module_tests": 42,
   "ALL_MODULE_NUMERICAL_CHECKS_PASSED": true,
   "ALL_NUMERICAL_CHECKS_PASSED": true,
   "CLAIMS_AUDIT": [
@@ -609,6 +977,36 @@
       "claim": "The lattice saturation rule selects V1 (transition), V2 (bounce) or V3 (inner horizon)",
       "verdict": "PARTLY ANSWERED",
       "note": "The rule must act on curvature, not cell energy. Repulsive enforcement gives V2, conversion to vacuum energy gives V1 (homogeneous case); the postulate itself does not choose. No tested mechanism produces V3."
+    },
+    {
+      "claim": "Post-bounce HKSW (2022) shock wave exits horizon in time T ~ (8 pi / 3) M^2",
+      "verdict": "SUPPORTED (conditional: spacelike inside horizon)",
+      "note": "Module 10 (Tests 30-31): Godunov PDE converges at O(dx) to the exact Rankine-Hugoniot ODE (rel_err 3.7e-5 at dx=0.01) and confirms Delta t = (8 pi M^2)/(3 ell) - 8M/3 - pi ell/3; HOWEVER, the shock has exterior Mach number M_ext = (dX_s/dt - U_R)/c > 1 across 100% of [R_-, R_+] (spacelike/superluminal relative to exterior metric; Fazzini & Mehmood 2024)."
+    },
+    {
+      "claim": "Causal post-bounce shock / inelastic shell coalescence & inner horizon at R_core",
+      "verdict": "PARTLY ANSWERED (requires relativistic shock pressure)",
+      "note": "Module 10 (Tests 32-33): Any exterior-causal shock (dX_s/dt - U_R <= c) must move inward across [R_-, R_+] down to the effective-LQC inner horizon R_-(M) = R_core(M)[1 + (1/3)(ell/r_s)^(2/3)] (where f_LQC(R_core) = +1 is timelike, unlike Hayward); cold inelastic coalescence dissipates 99.98% of kinetic energy (e_mech = -5.09 c^2 < -0.5 c^2, violating LTB signature 1+2e > 0), proving that the next step requires relativistic shock pressure p > 0 (Einstein-Euler system)."
+    },
+    {
+      "claim": "Static positive-pressure hydrostatic core inside R_+(M) under curvature-capped TOV",
+      "verdict": "NOT SUPPORTED",
+      "note": "Module 11 (Test 34): By the Curvature-Capped TOV Theorem, in [R_-, R_+] f_LQC < 0 (spacelike), while inside the timelike core R < R_-(M) bar_rho/rho_max > 1/2 makes both (1 - 4 bar_rho/rho_max) < 0 and (1 - 2 bar_rho/rho_max) < 0, so dp/dR > 0 strictly for all p >= 0. No static positive-pressure core with p(R_surf)=0 can exist inside R_+; the shock-heated core must bounce dynamically."
+    },
+    {
+      "claim": "Coupled relativistic Misner-Sharp / Einstein-Euler shock pressure prevents shell crossing & preserves Lorentzian signature",
+      "verdict": "SUPPORTED (in causal core-bounce window; O(1/N^2) convergent)",
+      "note": "Module 11 (Tests 35-37): Replacing dust (p=0) with relativistic Einstein-Euler fluid (p=(gamma-1)rho_0 eps > 0) prevents shell crossing (min dR/dR_0 = 0.088 > 0), heats the core by 48.2x, conserves ADM mass to machine zero, preserves Gamma >= 0.783 > 0 and |Gamma^2 - f_LQC - U^2| < 2.4e-8, converges at O(1/N^2) (L2 err 5.8e-7 at N=120 vs 240), and proves via the trapped-region hyperbola (U/c)^2 - Gamma^2 = |f_LQC| that every shell must enter R <= R_-(m_i) before rebounding (whereas over-deceleration in R > R_-(m_i) drives a Gamma -> 0 spatial throat)."
+    },
+    {
+      "claim": "3D random Voronoi-Delaunay grid vs. regular 18-pt crystal & unstructured falling mesh",
+      "verdict": "PARTLY SUPPORTED (co-moving random mesh works; static 3D random grid scatters PeV photons)",
+      "note": "Module 12 (Tests 38-40): Exact 3D Voronoi-Delaunay DEC weights satisfy Minkowski's facet identity (1.3e-15), Tr(M_i)==3 (2.7e-15), Cayley conservation (6.0e-15), and statistical SO(3) isotropy (unlike naive random graphs which fail at O(1/ell)). However, static 3D Voronoi cell-to-cell shear fluctuations (sigma_shear = 0.0765) cause E^4 Rayleigh scattering that passes GRB 090510 at 31 GeV (tau = 8.3e-14) but attenuates Galactic multi-PeV photons (tau = 15.6 at 2.5 PeV / 10 kpc vs. tau = 0 on the 18-pt crystal). By contrast, a co-moving random unstructured falling mesh in the Einstein-Euler solver converges to the exact same bounce and heating (L2 err 2.0e-5 at N=120)."
+    },
+    {
+      "claim": "Smoothly stretched anamorphic grid & physical tidal aspect-ratio (Hencky + Kelvin-Voigt) bar stress",
+      "verdict": "SUPPORTED (zero PeV scattering, 2.22x lower heating error, simultaneous improvement in min_dR and min_Gamma)",
+      "note": "Module 12 (Tests 41-42): (1) A static radially anamorphic lattice (b_r = 1/sqrt(f) != b_perp = 1) reproduces exact 1PN+2PN GR light bending (2.0006) while suppressing 2.5 PeV Rayleigh scattering by > 70 orders of magnitude (tau ~ 2e-74 << 1 vs. 15.65 on random Voronoi). (2) A smoothly stretched anamorphic falling radial coordinate s(xi) = 0.65 xi^0.5 + 0.35 xi reduces peak thermal-heating discretization error at N=50 by 2.22x (2.78e-2 -> 1.25e-2). (3) Tracking physical tidal aspect ratio alpha_k = (ell_r/ell_r0)/(ell_perp/ell_perp0) (prolate spaghettification alpha > 1 during infall -> oblate pancake alpha < 1 at bounce) with Hencky logarithmic deviatoric bar elasticity + Kelvin-Voigt tidal viscosity (p_r != p_perp) simultaneously increases min(dR/dR_0), increases min(alpha_k), reduces max(alpha_k), AND increases min(Gamma_i) across delta in {0.42, 0.48, 0.52} while conserving ADM mass to 0.0 and converging at O(1/N^2) (p = 2.21)."
     }
   ]
 }
