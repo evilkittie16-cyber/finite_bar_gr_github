@@ -104,5 +104,189 @@
     "symplectic_cayley_energy_drift_50steps": 6.451515520750494e-15,
     "lense_thirring_azimuthal_frame_drag_y_shift": -0.20598893815259722
   },
+  "modular_17_test_suite": {
+    "module_1_exterior_gr": {
+      "test_01_dual_gauge_refractive_index_and_light_bending": {
+        "passed": true,
+        "max_conformal_weight_identity_err": 3.3306690738754696e-16,
+        "isotropic_1PN_coeff_raw_at_r1000": 2.0017509970744474,
+        "isotropic_1PN_coeff_after_exact_2PN_subtraction": 2.0000009970744475,
+        "painleve_gullstrand_1PN_coeff_raw_at_r1000": 2.004008016031511,
+        "painleve_gullstrand_1PN_coeff_after_exact_2PN_subtraction": 2.000008016031511,
+        "expected_1915_GR_coefficient": 2.0,
+        "einstein_1911_time_only_coefficient": 1.0
+      },
+      "test_02_dormant_empty_space_efficiency": {
+        "passed": true,
+        "max_dormant_dPhi_dt": 0.0,
+        "max_dormant_dPi_dt": 0.0,
+        "max_dormant_H_i": 0.0
+      },
+      "test_03_geodesic_deflection_and_eht_photon_sphere": {
+        "passed": true,
+        "impact_parameter_over_rs": 500.0,
+        "numerical_deflection_angle_rad": 0.004011823803687697,
+        "einstein_1PN_deflection_angle_rad": 0.004,
+        "normalized_deflection_coeff_4GM_raw": 4.011823803687697,
+        "normalized_deflection_coeff_4GM_after_2PN": 4.000042831236735,
+        "normalized_deflection_coeff_4GM_after_3PN": 4.000000164570069,
+        "eht_photon_sphere_radius_over_rs": 1.5,
+        "eht_photon_sphere_GR_error": 0.0
+      },
+      "module_1_passed": true
+    },
+    "module_2_core_regularization": {
+      "test_04_einstein_tensor_and_sec_violation": {
+        "passed": true,
+        "de_sitter_core_p_r_constant_error": 1.7763568394002505e-15,
+        "strong_energy_condition_ratio_at_origin": -2.0,
+        "bianchi_stress_conservation_error": 4.499425831916426e-11,
+        "p_theta_at_zero_crossing_0p794Rcore": 6.579099405186112e-17,
+        "p_theta_at_Rcore_over_rho_max_c2": 0.125
+      },
+      "test_05_kretschmann_curvature_bound_and_cusp_removal": {
+        "passed": true,
+        "kretschmann_at_r0_times_ell4": 24.000000000000007,
+        "expected_de_sitter_bound_24": 24.0,
+        "origin_kretschmann_error": 7.105427357601002e-15,
+        "far_field_schwarzschild_rel_diff": 4.9999842501039765e-06,
+        "frozen_core_interior_grad_rho": 0.0,
+        "frozen_core_interior_laplacian_rho": 0.0
+      },
+      "module_2_passed": true
+    },
+    "module_3_stencil_isotropy": {
+      "test_06_taylor_moments_and_sixth_order_body_diagonal": {
+        "passed": true,
+        "stencil_18_second_moment": 2.0,
+        "stencil_18_fourth_order_sphere_cross_coeff": 2.0,
+        "stencil_18_advection_1_over_4ell_norm": 1.0,
+        "stencil_18_sixth_order_body_diag_residual": -12.0,
+        "stencil_27_second_moment": 2.0,
+        "stencil_27_fourth_order_sphere_cross_coeff": 2.0,
+        "stencil_27_advection_1_over_4ell_norm": 1.0,
+        "stencil_27_sixth_order_body_diag_residual": 0.0,
+        "fourier_axial_vs_diag_anisotropy_6pt": 0.00013306688878333972,
+        "fourier_axial_vs_diag_anisotropy_18pt": 1.7733382697004973e-07,
+        "fourier_axial_vs_diag_anisotropy_27pt": 1.773338270116831e-07
+      },
+      "test_07_3d_euclidean_shell_angular_faceting": {
+        "passed": true,
+        "shell_R3_anisotropy_6pt": 0.0668441077406753,
+        "shell_R3_anisotropy_18pt": 0.0054849409086249875,
+        "shell_R3_anisotropy_27pt": 0.004041523553640882,
+        "faceting_reduction_factor_18pt": 12.186841910286388,
+        "faceting_reduction_factor_27pt": 16.539333955002572
+      },
+      "test_08_fermi_lat_grb090510_dispersion": {
+        "passed": true,
+        "linear_dispersion_coefficient": 0.0,
+        "fermi_lat_linear_model_delay_s": 0.0929346625,
+        "fermi_lat_isotropic_group_velocity_delay_s": 1.8530936416658285e-19,
+        "fermi_lat_upper_bound_s": 0.8,
+        "axis_vs_diagonal_anisotropy_31GeV": 2.6656281148658848e-74
+      },
+      "module_3_passed": true
+    },
+    "module_4_horizon_and_freezing": {
+      "test_09_supersonic_river_and_inner_horizon_excision": {
+        "passed": true,
+        "r_s_over_ell": 27.0,
+        "R_core_over_ell": 3.0,
+        "J_over_c_at_event_horizon": 1.0,
+        "J_over_c_at_core_boundary_supersonic": 3.0,
+        "J_over_c_at_origin": 0.0,
+        "smooth_inner_cauchy_horizon_r_minus_over_ell": 1.0194303223034948,
+        "smooth_inner_horizon_asymptotic_over_ell": 1.0185185185185186,
+        "smooth_outer_event_horizon_r_plus_over_ell": 26.962860861707227,
+        "inner_horizon_strictly_inside_frozen_core_all_masses": true
+      },
+      "test_10_cayley_symplectic_and_skew_symmetric_conservation": {
+        "passed": true,
+        "river_matrix_skew_symmetry_error": 0.0,
+        "cayley_symplectic_condition_error": 6.661338147750939e-16,
+        "relative_energy_drift_200_steps": 1.334325679152003e-14
+      },
+      "test_11_dynamic_3d_stefan_cell_freezing": {
+        "passed": true,
+        "initial_frozen_cells": 27,
+        "final_frozen_cells_18pt": 57,
+        "final_frozen_cells_27pt": 57,
+        "relative_total_energy_drift_18pt": 1.2906804263259785e-08,
+        "relative_total_energy_drift_27pt": 1.4008180392812535e-08,
+        "peak_ratio_to_ceiling_27pt": 0.992981989154839,
+        "frozen_core_interior_activity_27pt": 0.0
+      },
+      "test_12_vaidya_horizon_vise_and_bounced_wave_trapping": {
+        "passed": true,
+        "v_bounce_subcritical_star_positive": 0.2062994740159002,
+        "v_bounce_at_core_with_wave_dM_negative": -0.14017542509913805,
+        "R_core_after_5_shells": 2.7144176165949063,
+        "r_s_after_5_shells": 5.0,
+        "interior_quadratic_metric_identity_error": 3.3306690738754696e-16
+      },
+      "test_13_unfrozen_mass_inflation_vs_frozen_core_stability": {
+        "passed": true,
+        "e_voxel_max_cap": 2.6,
+        "unfrozen_3d_peak_density_over_rho_max": 2.155173627555087,
+        "frozen_3d_peak_active_density_over_rho_max": 0.992981989154839,
+        "unfrozen_run_frozen_cells": 0,
+        "frozen_run_final_frozen_cells": 57,
+        "inner_horizon_r_minus_over_ell": 1.0466896417150413,
+        "stefan_boundary_R_core_over_ell": 2.2894284851066637,
+        "inner_horizon_surface_gravity_kappa_minus": 0.8303930412089138,
+        "unfrozen_inner_horizon_blueshift_amplification_at_t15": 65925505454.29548
+      },
+      "module_4_passed": true
+    },
+    "module_5_nonspherical_and_spin": {
+      "test_14_3d_asymmetric_discrete_gauss_poynting_flux": {
+        "passed": true,
+        "link_flux_antisymmetry_error_Fij_plus_Fji": 1.3877787807814457e-17,
+        "volume_dE_dt_inside_R3p2": -5.3452707837357485,
+        "minus_surface_poynting_flux_across_R3p2": -5.34527078373575,
+        "discrete_gauss_poynting_conservation_residual": 1.7763568394002505e-15
+      },
+      "test_15_3d_spinning_kerr_doran_whirlpool_and_frame_dragging": {
+        "passed": true,
+        "ergosphere_supersonic_cell_count": 16,
+        "origin_flow_speed_regular": 0.0,
+        "kerr_doran_27pt_skew_symmetry_error": 0.0,
+        "symplectic_cayley_energy_drift_50steps": 6.451515520750494e-15,
+        "lense_thirring_azimuthal_frame_drag_y_shift": -0.20598893815259722
+      },
+      "module_5_passed": true
+    },
+    "module_6_quantum_and_thermodynamics": {
+      "test_16_heisenberg_unitarity_ehrenfest_and_entanglement": {
+        "passed": true,
+        "canonical_commutator_drift_200_steps": 4.121708483190903e-14,
+        "ehrenfest_quantum_vs_classical_GR_diff": 0.0,
+        "superposition_branch_isotropic_1PN_coeffs": [
+          2.0000009970744475,
+          2.0000016870161272
+        ],
+        "superposition_branch_PG_1PN_coeffs": [
+          2.000008016031511,
+          2.000013555243028
+        ],
+        "superposition_max_1PN_err_after_2PN": 1.3555243028040564e-05,
+        "horizon_cut_entanglement_entropy_S": 1.1099023388407945
+      },
+      "test_17_hawking_surface_gravity_specific_heat_and_remnant": {
+        "passed": true,
+        "kappa_forms_algebraic_equivalence_error": 2.7755575615628914e-17,
+        "kappa_vs_finite_difference_error": 1.3206291026024441e-09,
+        "kappa_at_extremal_remnant_sqrt3_ell": -6.409875621278547e-17,
+        "peak_temperature_horizon_radius_over_ell": 3.0,
+        "dkappa_dr_at_peak_temperature_radius": 0.0,
+        "specific_heat_positive_in_cooling_regime": true,
+        "first_law_TdS_reg_minus_dM_max_residual": 2.220446049250313e-16,
+        "remnant_entropy_S_reg_at_sqrt3_ell": -3.139081648207769e-15
+      },
+      "module_6_passed": true
+    }
+  },
+  "ALL_6_MODULES_17_TESTS_PASSED": true,
   "ALL_CORE_GR_TESTS_PASSED": true
 }

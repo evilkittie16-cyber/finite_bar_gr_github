@@ -966,6 +966,13 @@ def test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere():
 
 
 def main():
+    from tests.module_1_exterior_gr import run_module_1
+    from tests.module_2_core_regularization import run_module_2
+    from tests.module_3_stencil_isotropy import run_module_3
+    from tests.module_4_horizon_and_freezing import run_module_4
+    from tests.module_5_nonspherical_and_spin import run_module_5
+    from tests.module_6_quantum_and_thermodynamics import run_module_6
+
     results = {
         "test_1_equivalence_principle_and_gr_bending": test_1_equivalence_principle_and_gr_bending(),
         "test_2_spherical_core_and_three_zones": test_2_spherical_core_and_three_zones(),
@@ -978,7 +985,30 @@ def main():
         "test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical": test_9_discrete_gauss_poynting_flux_identity_3d_non_spherical(),
         "test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere": test_10_3d_spinning_kerr_doran_whirlpool_and_river_ergosphere(),
     }
-    all_passed = all(v["passed"] for v in results.values())
+    core_passed = all(v["passed"] for v in results.values())
+
+    modules = {
+        "module_1_exterior_gr": run_module_1(),
+        "module_2_core_regularization": run_module_2(),
+        "module_3_stencil_isotropy": run_module_3(),
+        "module_4_horizon_and_freezing": run_module_4(),
+        "module_5_nonspherical_and_spin": run_module_5(),
+        "module_6_quantum_and_thermodynamics": run_module_6(),
+    }
+    modules_passed = all(
+        modules[f"module_{k}_{name}"][f"module_{k}_passed"]
+        for k, name in [
+            (1, "exterior_gr"),
+            (2, "core_regularization"),
+            (3, "stencil_isotropy"),
+            (4, "horizon_and_freezing"),
+            (5, "nonspherical_and_spin"),
+            (6, "quantum_and_thermodynamics"),
+        ]
+    )
+    all_passed = bool(core_passed and modules_passed)
+    results["modular_17_test_suite"] = modules
+    results["ALL_6_MODULES_17_TESTS_PASSED"] = bool(modules_passed)
     results["ALL_CORE_GR_TESTS_PASSED"] = bool(all_passed)
 
     out_path = os.path.join(
@@ -989,7 +1019,8 @@ def main():
         json.dump(results, f, indent=2)
 
     print(json.dumps(results, indent=2))
-    print(f"\nALL CORE FINITE-BAR GR TESTS PASSED: {all_passed}")
+    print(f"\nALL 6 MODULES (17 TESTS) PASSED: {modules_passed}")
+    print(f"ALL CORE FINITE-BAR GR TESTS PASSED: {all_passed}")
 
 
 if __name__ == "__main__":

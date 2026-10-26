@@ -24,7 +24,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run 7 Core Analytical & Numerical GR Benchmarks
+      - name: Run Module 1 (Weak-Field & Exterior GR Tests 1-3)
+        run: python tests/module_1_exterior_gr.py
+
+      - name: Run Module 2 (Core Regularization, SEC Violation, & Kretschmann Tests 4-5)
+        run: python tests/module_2_core_regularization.py
+
+      - name: Run Module 3 (18-Pt & 27-Pt Stencil Isotropy & Fermi-LAT Tests 6-8)
+        run: python tests/module_3_stencil_isotropy.py
+
+      - name: Run Module 4 (Horizon Crossing, Cayley Symplectic, & Stefan Core Freezing Tests 9-13)
+        run: python tests/module_4_horizon_and_freezing.py
+
+      - name: Run Module 5 (Non-Spherical 3D Gauss-Poynting Flux & Spinning Kerr-Doran Tests 14-15)
+        run: python tests/module_5_nonspherical_and_spin.py
+
+      - name: Run Module 6 (Quantum Unitarity & Remnant Thermodynamics Tests 16-17)
+        run: python tests/module_6_quantum_and_thermodynamics.py
+
+      - name: Run Master Verification Suite (10 Core Benchmarks + 6 Modules / 17 Tests)
         run: python verify_core_finite_bar_gr.py
 
       - name: Run 3D 25x25x25 Isotropic Lattice Freezing-Core Simulator
