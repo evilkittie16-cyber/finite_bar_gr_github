@@ -30,18 +30,30 @@ Lattice artefacts found, explained geometrically, and resolved:
     every triangle (v_0, v_k, v_4) touching the hyperdiagonal is a right triangle with (1,1,1,1)
     as its hypotenuse (s_04 = s_0k + s_k4). By Heron's formula, d|A_t|/ds_04 = +-(s_0k + s_k4 - s_04)/(8|A_t|) == 0
     identically on every simplex, so the hyperdiagonal row and column of H(k) vanish identically.
-  * Exact 14-edge hypercube parallelogram elimination: because (1,1,1,1) lies strictly inside one
-    hypercube [0,1]^4, telescoping the parallelogram identity delta s_{x->y} = 2<y-x, xi(y)-xi(x)>_G
-    across the faces of [0,1]^4 expresses delta s_(1,1,1,1) as an exact rational linear combination
-    of the other 14 edges (weights +1/2 on 3D body diagonals, -1/6 and -1/3 on 2D face diagonals,
-    +1/6 on interior-vertex axis edges). Eliminating s_(1,1,1,1) with this rule reduces H(k) to a
-    14x14 matrix H_14(k) with null-space dimension 4 (only the 4 exact diffeomorphism modes),
-    preserves exact vertex-translation invariance of all 50 deficit angles across all k in [-pi,pi]^4,
-    restores O(k^2) Riemann-curvature scaling of graviton deficit angles, and fits all 15 edges to
-    M(k)h + g(k)xi without any hyperdiagonal crutch.
+    Because s_(1,1,1,1) only enters the Regge action at cubic/quartic order (where d^2|A_t|/ds_04^2 != 0),
+    the quadratic action alone leaves s_(1,1,1,1) undetermined.
+  * S_4-symmetric 14-edge hypercube parallelogram closure: among all 64 non-hyperdiagonal edges of [0,1]^4,
+    requiring exact vertex-translation gauge invariance for all k leaves a 10-dimensional asymmetric null
+    space across which on-shell graviton deficit norms vary by ~12%. Imposing S_4 hypercube permutation
+    symmetry reduces this ambiguity to a 2-dimensional null space (spanned by the 3D-cube parallelogram
+    identities of the two 3D body-diagonal orbits), across which on-shell graviton deficit angles are
+    invariant to < 2e-8. Imposing this S_4-symmetric hypercube parallelogram closure as an added geometric
+    constraint reduces H(k) to a 14x14 matrix H_14(k) with null-space dimension 4, preserves exact
+    vertex-translation invariance of all 50 deficit angles across all k in [-pi,pi]^4, and restores O(k^2)
+    Riemann-curvature scaling of graviton deficit angles.
+  * Anamorphic BCC / Sommerville disphenoid comparison (gamma = -1/3): compressing spatial axes along (1,1,1)
+    makes neither (1,1,1,1) nor the spatial body diagonal (0,1,1,1) a right-triangle hypotenuse, removing
+    the 5th hyperdiagonal zero mode automatically (null_dim = 4) and cutting directional dispersion
+    anisotropy by >5x. Evolving all 11 non-gauge unknowns per step (4 Y_n edges including (1,1,1,1) and all
+    7 spatial edges X_{n+1} including (0,1,1,1)) gives a spectrally bounded time stepper (|lambda|_max = 1)
+    that propagates graviton plane waves to ~4.7e-8 over 2000 steps; however, making (1,1,1,1) dynamical
+    causes one negative eigenvalue of H_red to cross zero near the Brillouin zone edge (k_t ~ 3.08,
+    n_neg: 4 -> 2 -> 1 with positive slope d_lambda/d_kt > 0), introducing an extra high-frequency optical
+    cutoff mode with the same kinetic sign as the graviton.
   * Free (unconstrained) slice-by-slice evolution has no exponentially growing mode (all transfer
     eigenvalues |lambda| <= 1), while residual coordinate shifts linear in time (Delta_t^2 xi = 0 at
-    k_t = 0) form a 2x2 Jordan block at lambda = 1 (sub-linear to linear growth on gauge-dependent edges).
+    k_t = 0) form a 2x2 Jordan block at lambda = 1 that causes linear growth in gauge-dependent edge norms
+    ||s_n|| while leaving gauge-invariant deficit angles ||delta eps_n|| bounded and constant.
 """
 
 from __future__ import annotations
@@ -218,6 +230,17 @@ class LorentzianReggeLattice:
         np.add.at(D, (self._tk, self._te), self._tv * np.exp(1j * (self._tp @ k)))
         return D
 
+    def deficit_time_blocks(self, k_space):
+        """D_tau(k_space), tau = -1, 0, +1, with D(k_t, k) = sum_tau D_tau exp(i k_t tau)."""
+        out = {}
+        ph = np.exp(1j * (self._tp[:, 1:] @ np.asarray(k_space, float)))
+        for tau in (-1, 0, 1):
+            m = self._tp[:, 0] == tau
+            D = np.zeros((self.n_triangle_types, 15), dtype=complex)
+            np.add.at(D, (self._tk[m], self._te[m]), self._tv[m] * ph[m])
+            out[tau] = D
+        return out
+
     def gauge_vectors(self, k):
         """Vertex translations xi(x) = xi exp(ik.x): delta s_d = 2 <d, xi> (exp(ik.d) - 1)."""
         g = np.zeros((15, 4), dtype=complex)
@@ -319,14 +342,16 @@ def polarisation_content(lat, k, n_null: int):
 # ---------------------------------------------------------------------------------------------
 # Discrete-time (Lorentzian) Regge evolution of the linearised equations, per spatial Fourier mode
 # ---------------------------------------------------------------------------------------------
-I_HYPER = DID[(1, 1, 1, 1)]          # 4D hyperdiagonal: drops out of the quadratic action
-I_BODY3 = DID[(0, 1, 1, 1)]          # spatial body diagonal: first enters one step later
+I_HYPER = DID[(1, 1, 1, 1)]          # 4D hyperdiagonal: drops out of the quadratic action at gamma = 0
+I_BODY3 = DID[(0, 1, 1, 1)]          # spatial body diagonal: lagged by one step at gamma = 0
 NON_HYPER_DIRS = [i for i in range(15) if i != I_HYPER]
 Y_DIRS = [i for i, d in enumerate(DIRS) if d[0] == 1]
 X_DIRS = [i for i, d in enumerate(DIRS) if d[0] == 0]
-FIX_DIRS = [DID[d] for d in GAUGE_FIX_DIRS] + [I_HYPER]       # lapse/shift edges + hyperdiagonal
-Y_FREE = [i for i in Y_DIRS if i not in FIX_DIRS]              # 3
-X_FREE = [i for i in X_DIRS if i != I_BODY3]                   # 6
+FIX_LAPSE_SHIFT = [DID[d] for d in GAUGE_FIX_DIRS]            # 4 lapse/shift edges
+FIX_DIRS = FIX_LAPSE_SHIFT + [I_HYPER]                        # 4 lapse/shift edges + hyperdiagonal (gamma = 0)
+Y_FREE = [i for i in Y_DIRS if i not in FIX_DIRS]             # 3 non-gauge, non-hyperdiagonal Y edges (gamma = 0)
+Y_FREE_4 = [i for i in Y_DIRS if i not in FIX_LAPSE_SHIFT]    # 4 non-gauge Y edges including I_HYPER (gamma != 0)
+X_FREE = [i for i in X_DIRS if i != I_BODY3]                  # 6 non-body-diagonal spatial edges (gamma = 0)
 
 
 def _build_hyperdiagonal_parallelogram_terms():
@@ -405,82 +430,227 @@ class ReggeTimeStepper:
     """
     Solves the linearised Lorentzian Regge equations E_n = A_-1 s_{n-1} + A_0 s_n + A_+1 s_{n+1} = 0
     (one equation per edge owned by time slice n) slice by slice for one spatial wavevector.
-    Unknowns at step n: Y_n (slice-connecting edges, minus 4 gauge-fixed lapse/shift edges and the
-    hyperdiagonal), X_{n+1} (spatial edges of the next slice, minus the body diagonal) and the lagged
-    body diagonal X_n(0,1,1,1): 10 unknowns, 14 non-trivial equations, of which 4 are Bianchi-redundant
-    constraints. When reconstruct_hyperdiagonal=True (default for gamma=0), s_n[I_HYPER] is closed
-    locally from (s_n, s_{n+1}) via the exact hypercube parallelogram identity.
+      * At gamma = 0 (orthogonal hypercubes), both (1,1,1,1) (I_HYPER) and (0,1,1,1) (I_BODY3) on slice
+        n+1 are right-triangle hypotenuses, so A[*][:, I_HYPER] == 0 and A[+1][:, I_BODY3] == 0. The
+        action determines 10 unknowns per step (3 Y_n edges, 6 X_{n+1} edges, and 1 lagged X_n[(0,1,1,1)]
+        edge); when reconstruct_hyperdiagonal=True (default for gamma=0), s_n[I_HYPER] is closed locally
+        from (s_n, s_{n+1}) via the S_4-symmetric hypercube parallelogram identity.
+      * At gamma != 0 (e.g. gamma = -1/3 BCC disphenoids) with force_10_unknowns=False (default),
+        neither (1,1,1,1) nor (0,1,1,1) is a right-triangle hypotenuse, so A[0][:, I_HYPER] != 0 and
+        A[+1][:, I_BODY3] != 0. The action directly determines all 11 non-gauge unknowns per step
+        (all 4 free Y_n edges including I_HYPER, plus all 7 spatial edges X_{n+1} including I_BODY3).
     """
 
-    def __init__(self, lat, k_space, reconstruct_hyperdiagonal: bool | None = None):
+    def __init__(
+        self,
+        lat,
+        k_space,
+        reconstruct_hyperdiagonal: bool | None = None,
+        force_10_unknowns: bool = False,
+    ):
         self.A = lat.time_blocks(k_space)
         A = self.A
-        self.K = np.hstack([A[0][:, Y_FREE], A[1][:, X_FREE], A[0][:, [I_BODY3]]])
+        self.use_11_unknowns = bool((abs(lat.gamma) > 1e-12) and (not force_10_unknowns))
+        if self.use_11_unknowns:
+            self.n_unknowns = 11
+            self.x_next_dirs = X_DIRS
+            self.fix_dirs = FIX_LAPSE_SHIFT
+            self.K = np.hstack([A[0][:, Y_FREE_4], A[1][:, X_DIRS]])
+        else:
+            self.n_unknowns = 10
+            self.x_next_dirs = X_FREE
+            self.fix_dirs = FIX_DIRS
+            self.K = np.hstack([A[0][:, Y_FREE], A[1][:, X_FREE], A[0][:, [I_BODY3]]])
         sv = np.linalg.svd(self.K, compute_uv=False)
         self.rank_ratio = float(sv[-1] / sv[0])
         self.K_pinv = np.linalg.pinv(self.K)   # full column rank -> unique least-squares solution
         if reconstruct_hyperdiagonal is None:
-            reconstruct_hyperdiagonal = (lat.gamma == 0.0)
+            reconstruct_hyperdiagonal = (not self.use_11_unknowns) and (abs(lat.gamma) <= 1e-12)
         self.reconstruct_hyperdiagonal = bool(reconstruct_hyperdiagonal)
         self.r_hyper_cur, self.r_hyper_next = hyperdiagonal_slice_rule(k_space)
 
     def step(self, s_prev, s_cur_partial):
         """
-        s_prev: complete s_{n-1}; s_cur_partial: s_n with X_n (except body diagonal) known and the
-        gauge-fixed components zero. Returns complete s_n, partial s_{n+1}, relative residual of E_n.
+        s_prev: complete s_{n-1}; s_cur_partial: s_n with known spatial edges (X_FREE for 10-unknown
+        mode, X_DIRS for 11-unknown mode) and gauge-fixed components zero. Returns complete s_n,
+        partial s_{n+1}, relative residual of E_n.
         """
         A = self.A
         known = A[-1] @ s_prev + A[0] @ s_cur_partial
         x = -(self.K_pinv @ known)
         s_cur = s_cur_partial.copy()
-        s_cur[Y_FREE] = x[:3]
-        s_cur[I_BODY3] = x[9]
         s_next = np.zeros(15, dtype=complex)
-        s_next[X_FREE] = x[3:9]
-        if self.reconstruct_hyperdiagonal:
-            s_cur[I_HYPER] = self.r_hyper_cur @ s_cur + self.r_hyper_next @ s_next
+        if self.use_11_unknowns:
+            s_cur[Y_FREE_4] = x[:4]
+            s_next[X_DIRS] = x[4:11]
+        else:
+            s_cur[Y_FREE] = x[:3]
+            s_cur[I_BODY3] = x[9]
+            s_next[X_FREE] = x[3:9]
+            if self.reconstruct_hyperdiagonal:
+                s_cur[I_HYPER] = self.r_hyper_cur @ s_cur + self.r_hyper_next @ s_next
         res = np.linalg.norm(A[-1] @ s_prev + A[0] @ s_cur + A[1] @ s_next) / max(np.linalg.norm(known), 1e-300)
         return s_cur, s_next, float(res)
+
+    def transfer_matrix(self):
+        """One-step linear transfer matrix T mapping (s_{n-1}, s_n[x_next_dirs]) -> (s_n, s_{n+1}[x_next_dirs])."""
+        n_x = len(self.x_next_dirs)
+        dim = 15 + n_x
+        T = np.zeros((dim, dim), dtype=complex)
+        for j in range(dim):
+            zv = np.zeros(dim, dtype=complex)
+            zv[j] = 1.0
+            sp = zv[:15].copy()
+            sp[self.fix_dirs] = 0.0
+            sc = np.zeros(15, dtype=complex)
+            sc[self.x_next_dirs] = zv[15:]
+            a, b, _ = self.step(sp, sc)
+            T[:15, j] = a
+            T[15:, j] = b[self.x_next_dirs]
+        return T
 
 
 def gauge_adjusted_plane_waves(lat, k, reconstruct_hyperdiagonal: bool = True):
     """The two exact on-shell graviton null vectors of H(k), shifted by lattice gauge vectors so that
-    the 4 lapse/shift edges vanish (stepper gauge), with s[I_HYPER] reconstructed from the 14 active
-    edges via the exact hypercube parallelogram identity (when reconstruct_hyperdiagonal=True).
+    the 4 lapse/shift edges vanish (stepper gauge). At gamma = 0 (where I_HYPER is an extra zero mode
+    of H(k)), s[I_HYPER] is reconstructed from the 14 active edges via the S_4-symmetric hypercube
+    parallelogram identity when reconstruct_hyperdiagonal=True; at gamma != 0, s[I_HYPER] is already
+    uniquely fixed by the Regge equations H(k) v = 0.
     """
     H = lat.hessian(k)
     g = lat.gauge_vectors(k)
     w, V = np.linalg.eigh(0.5 * (H + H.conj().T))
-    N = V[:, np.argsort(np.abs(w))[:7]]
-    e_h = np.zeros((15, 1), dtype=complex)
-    e_h[I_HYPER, 0] = 1.0
-    B = np.column_stack([g, e_h])
+    if abs(lat.gamma) <= 1e-12:
+        N = V[:, np.argsort(np.abs(w))[:7]]
+        e_h = np.zeros((15, 1), dtype=complex)
+        e_h[I_HYPER, 0] = 1.0
+        B = np.column_stack([g, e_h])
+        fix = FIX_DIRS
+    else:
+        N = V[:, np.argsort(np.abs(w))[:6]]
+        B = g
+        fix = FIX_LAPSE_SHIFT
     Bq, _ = np.linalg.qr(B)
     R = N - Bq @ (Bq.conj().T @ N)
     U, S, _ = np.linalg.svd(R)
-    rk = hyperdiagonal_parallelogram_rule(k) if reconstruct_hyperdiagonal else None
+    rk = hyperdiagonal_parallelogram_rule(k) if (reconstruct_hyperdiagonal and abs(lat.gamma) <= 1e-12) else None
     out = []
     for j in range(2):
         v = U[:, j]
-        coef = np.linalg.solve(B[FIX_DIRS, :], -v[FIX_DIRS])
+        coef = np.linalg.solve(B[fix, :], -v[fix])
         vj = v + B @ coef
-        if reconstruct_hyperdiagonal:
+        if rk is not None:
             vj[I_HYPER] = rk @ vj
         out.append(vj)
     return out, float(S[2] / S[0])
 
 
 # ---------------------------------------------------------------------------------------------
-# Audits used by tests/module_15_lorentzian_regge_4d.py (Tests 56-58)
+# Audits used by tests/module_15_lorentzian_regge_4d.py (Tests 56-59)
 # ---------------------------------------------------------------------------------------------
 def _extra_free_null_count(H, rel=1e-12):
     sv = np.linalg.svd(H, compute_uv=False)
     return int(np.sum(sv < rel * sv[0]))
 
 
+def _audit_hyperdiagonal_closure_uniqueness(lat):
+    """Quantify the uniqueness of hyperdiagonal closure rules inside [0,1]^4:
+      1. Among all 64 non-hyperdiagonal edges inside [0,1]^4, exact vertex-translation gauge invariance
+         for all k has rank 54, leaving a 10-dimensional asymmetric null space across which on-shell
+         graviton deficit norms vary by ~12%.
+      2. Restricting to the 9 S_4-permutation-symmetric orbits (weights depending only on (|d|, |p|))
+         reduces the gauge-exact null space to 2 dimensions (the 3D-cube parallelogram identities of
+         the two 3D body-diagonal orbits), across which on-shell graviton deficit angles are invariant
+         to < 2e-8.
+    """
+    edge_instances = []
+    for i, d in enumerate(DIRS):
+        if i == I_HYPER:
+            continue
+        free_axes = [m for m in range(4) if d[m] == 0]
+        for bits in itertools.product((0, 1), repeat=len(free_axes)):
+            p = [0, 0, 0, 0]
+            for ax, b in zip(free_axes, bits):
+                p[ax] = b
+            edge_instances.append((i, tuple(p), sum(d), sum(p)))
+    rng = np.random.default_rng(5601)
+    rows_asym = []
+    b_asym = []
+    for _ in range(30):
+        k = rng.uniform(-math.pi, math.pi, 4)
+        g = lat.gauge_vectors(k)
+        Phi = np.array([
+            np.exp(1j * (k @ np.array(p, float))) * g[i, :]
+            for (i, p, _, _) in edge_instances
+        ])  # (64, 4)
+        for mu in range(4):
+            rows_asym.append(Phi[:, mu].real)
+            b_asym.append(float(g[I_HYPER, mu].real))
+            rows_asym.append(Phi[:, mu].imag)
+            b_asym.append(float(g[I_HYPER, mu].imag))
+    A_asym = np.array(rows_asym)
+    b_vec = np.array(b_asym)
+    _, S_asym, Vt_asym = np.linalg.svd(A_asym, full_matrices=True)
+    rank_asym = int(np.sum(S_asym > 1e-10 * S_asym[0]))
+    null_dim_asym = len(edge_instances) - rank_asym
+    Null_asym = Vt_asym[rank_asym:].T  # (64, 10)
+
+    # S_4-symmetric subspace: 9 orbits indexed by (|d|, |p|)
+    orbits = sorted({(deg_d, deg_p) for (_, _, deg_d, deg_p) in edge_instances})
+    T_sym = np.zeros((len(edge_instances), len(orbits)))
+    for idx, (_, _, deg_d, deg_p) in enumerate(edge_instances):
+        T_sym[idx, orbits.index((deg_d, deg_p))] = 1.0
+    A_sym = A_asym @ T_sym
+    _, S_sym, Vt_sym = np.linalg.svd(A_sym, full_matrices=True)
+    rank_sym = int(np.sum(S_sym > 1e-10 * S_sym[0]))
+    null_dim_sym = len(orbits) - rank_sym
+    Null_sym = T_sym @ Vt_sym[rank_sym:].T  # (64, 2)
+
+    # Measure on-shell graviton deficit sensitivity at |k| = 0.1 along z
+    km = 0.1
+    kt = propagating_modes(lat, [0.0, 0.0, km], n_grid=601)[0][0]
+    kg = np.array([kt, 0.0, 0.0, km])
+    vv_para, _ = gauge_adjusted_plane_waves(lat, kg, reconstruct_hyperdiagonal=True)
+    Dg = lat.deficit_map(kg)
+    v_ref = vv_para[0] / np.linalg.norm(vv_para[0][NON_HYPER_DIRS])
+    def_ref = Dg @ v_ref
+    def_ref_norm = float(np.linalg.norm(def_ref))
+
+    def _eval_rule_w(w64):
+        rk = np.zeros(15, dtype=complex)
+        for val, (i, p, _, _) in zip(w64, edge_instances):
+            rk[i] += val * np.exp(1j * (kg @ np.array(p, float)))
+        v = v_ref.copy()
+        v[I_HYPER] = rk @ v
+        return Dg @ v
+
+    w_min, *_ = np.linalg.lstsq(A_asym, b_vec, rcond=None)
+    asym_rel_diffs = []
+    for j in range(null_dim_asym):
+        def_j = _eval_rule_w(w_min + Null_asym[:, j])
+        asym_rel_diffs.append(float(np.linalg.norm(def_j - def_ref) / def_ref_norm))
+
+    w_sym_min = T_sym @ np.linalg.lstsq(A_sym, b_vec, rcond=None)[0]
+    sym_rel_diffs = []
+    for j in range(null_dim_sym):
+        def_j = _eval_rule_w(w_sym_min + Null_sym[:, j])
+        sym_rel_diffs.append(float(np.linalg.norm(def_j - def_ref) / def_ref_norm))
+
+    return {
+        "n_unit_hypercube_non_hyper_edges": len(edge_instances),
+        "asymmetric_gauge_exact_rank": rank_asym,
+        "asymmetric_gauge_exact_null_space_dim": null_dim_asym,
+        "asymmetric_null_space_graviton_deficit_variation_rel": float(max(asym_rel_diffs)),
+        "n_s4_symmetric_orbits_in_hypercube": len(orbits),
+        "s4_symmetric_gauge_exact_rank": rank_sym,
+        "s4_symmetric_gauge_exact_null_space_dim": null_dim_sym,
+        "s4_symmetric_null_space_graviton_deficit_variation_rel": float(max(sym_rel_diffs)),
+    }
+
+
 def audit_lorentzian_regge_structure(alpha: float = 0.5, n_random: int = 20) -> dict:
     """Test 56: Lorentzian Schlafli hinge weights, gauge invariance, Bianchi identity, zero-mode content,
-    and exact 14-edge hypercube parallelogram elimination of the (1,1,1,1) hyperdiagonal."""
+    and S_4-symmetric 14-edge hypercube parallelogram closure of the (1,1,1,1) hyperdiagonal."""
     lat = LorentzianReggeLattice(alpha, lorentzian=True)
     rng = np.random.default_rng(56)
     herm = gauge = bianchi = hyper_col = deficit_gauge = 0.0
@@ -526,6 +696,7 @@ def audit_lorentzian_regge_structure(alpha: float = 0.5, n_random: int = 20) -> 
         v_z = vv_zero[0] / np.linalg.norm(vv_zero[0][NON_HYPER_DIRS])
         def_norms_para.append(float(np.linalg.norm(Dg @ v_p)))
         def_norms_zero.append(float(np.linalg.norm(Dg @ v_z)))
+    closure_uniqueness = _audit_hyperdiagonal_closure_uniqueness(lat)
     pattern = {}
     for c, kd in zip(lat.hinge_weights, lat.hinge_kinds):
         for ci, kname in zip(c, kd):
@@ -559,6 +730,7 @@ def audit_lorentzian_regge_structure(alpha: float = 0.5, n_random: int = 20) -> 
         "graviton_deficit_norm_parallelogram_k01_k005": def_norms_para,
         "graviton_deficit_norm_s_hyper_zero_k01_k005": def_norms_zero,
         "graviton_deficit_parallelogram_scaling_ratio": float(def_norms_para[0] / def_norms_para[1]),
+        **closure_uniqueness,
     }
 
 
@@ -592,8 +764,6 @@ def audit_graviton_dispersion(alphas=(0.5, 0.3), kmags=(0.025, 0.05, 0.1, 0.2)) 
     vs, sep = gauge_adjusted_plane_waves(lat, k)
     M = metric_map(k)
     g = lat.gauge_vectors(k)
-    e_h = np.zeros((15, 1), dtype=complex)
-    e_h[I_HYPER, 0] = 1.0
     C = continuum_gauge(lat.G, k)
     Qc, _ = np.linalg.qr(C)
     ep = np.zeros(10, dtype=complex)
@@ -625,7 +795,7 @@ def audit_graviton_dispersion(alphas=(0.5, 0.3), kmags=(0.025, 0.05, 0.1, 0.2)) 
 
 
 def audit_regge_time_evolution(alpha: float = 0.5) -> dict:
-    """Test 58: slice-by-slice Lorentzian Regge evolution (plane waves, stability, wave packet)."""
+    """Test 58: slice-by-slice Lorentzian Regge evolution (plane waves, stability, gauge-only Jordan growth, wave packet)."""
     lat = LorentzianReggeLattice(alpha)
     # (a) exact plane wave, 2000 steps
     km = 0.2
@@ -642,23 +812,13 @@ def audit_regge_time_evolution(alpha: float = 0.5) -> dict:
             pw_res = max(pw_res, res)
             pw_err = max(pw_err, float(np.linalg.norm(s_c - v * np.exp(1j * kt * n)) / np.linalg.norm(v)))
             s_prev, s_cur = s_c, s_next
-    # (b) one-step transfer map: spectrum and boundedness
+    # (b) one-step transfer map: spectrum, boundedness, and direct test that lambda=1 Jordan growth is pure gauge
     max_lam = 0.0
     growth = 0.0
     unit_phases_ok = True
     for ks in ([0, 0, 0.2], [0.4, -0.3, 0.9], [math.pi, math.pi, math.pi], [0.0, 0.0, 0.01]):
         stp = ReggeTimeStepper(lat, ks)
-        T = np.zeros((21, 21), dtype=complex)
-        for j in range(21):
-            zv = np.zeros(21, dtype=complex)
-            zv[j] = 1.0
-            sp = zv[:15].copy()
-            sp[FIX_DIRS] = 0.0
-            sc = np.zeros(15, dtype=complex)
-            sc[X_FREE] = zv[15:]
-            a, b, _ = stp.step(sp, sc)
-            T[:15, j] = a
-            T[15:, j] = b[X_FREE]
+        T = stp.transfer_matrix()
         lam = np.linalg.eigvals(T)
         max_lam = max(max_lam, float(np.max(np.abs(lam))))
         allowed = [0.0, -ks[0], -ks[1], -ks[2]] + [m[0] for m in propagating_modes(lat, ks, n_grid=601)]
@@ -667,13 +827,56 @@ def audit_regge_time_evolution(alpha: float = 0.5) -> dict:
             ph = np.angle(l)
             if min(abs(np.angle(np.exp(1j * (ph - a)))) for a in allowed) > 1e-7:
                 unit_phases_ok = False
-        Tn = np.eye(21, dtype=complex)
+        Tn = np.eye(T.shape[0], dtype=complex)
         n1000 = None
         for n in range(1, 4001):
             Tn = T @ Tn
             if n == 1000:
                 n1000 = np.linalg.norm(Tn, 2)
         growth = max(growth, float(np.linalg.norm(Tn, 2) / n1000))
+
+    # Direct check at ks = (0, 0, 0.01) that 4000-step linear growth in ||s_n|| leaves deficit angles ||delta eps_n|| constant
+    ks_jg = [0.0, 0.0, 0.01]
+    stp_jg = ReggeTimeStepper(lat, ks_jg)
+    D_blocks = lat.deficit_time_blocks(ks_jg)
+    # Build the 8-dimensional exact constraint-satisfying initial state space (res < 1e-12)
+    valid_cols = []
+    for j in range(21):
+        zv = np.zeros(21, dtype=complex)
+        zv[j] = 1.0
+        sp = zv[:15].copy()
+        sp[FIX_DIRS] = 0.0
+        sc = np.zeros(15, dtype=complex)
+        sc[X_FREE] = zv[15:]
+        s_c, s_n, _ = stp_jg.step(sp, sc)
+        valid_cols.append(np.concatenate([sp, sc[X_FREE], s_c, s_n[X_FREE]]))
+    M_step = np.column_stack(valid_cols)
+    # Project onto states whose step-1 residual A_-1 sp + A_0 s_c + A_+1 s_n == 0
+    R_mat = np.zeros((15, 21), dtype=complex)
+    for j in range(21):
+        sp = M_step[:15, j]
+        s_c = M_step[21:36, j]
+        s_n = np.zeros(15, dtype=complex)
+        s_n[X_FREE] = M_step[36:, j]
+        R_mat[:, j] = stp_jg.A[-1] @ sp + stp_jg.A[0] @ s_c + stp_jg.A[1] @ s_n
+    _, S_r, Vt_r = np.linalg.svd(R_mat)
+    Null_constraint = Vt_r[np.sum(S_r > 1e-10 * S_r[0]):].conj().T
+    rng_jg = np.random.default_rng(5801)
+    z0 = Null_constraint @ (rng_jg.standard_normal(Null_constraint.shape[1]) + 1j * rng_jg.standard_normal(Null_constraint.shape[1]))
+    sp_jg = z0[:15].copy()
+    sp_jg[FIX_DIRS] = 0.0
+    sc_jg = np.zeros(15, dtype=complex)
+    sc_jg[X_FREE] = z0[15:]
+    s_hist = [sp_jg.copy()]
+    for _ in range(4001):
+        s_c, s_n, _ = stp_jg.step(sp_jg, sc_jg)
+        s_hist.append(s_c.copy())
+        sp_jg, sc_jg = s_c, s_n
+    edge_norm_10 = float(np.linalg.norm(s_hist[10]))
+    edge_norm_4000 = float(np.linalg.norm(s_hist[4000]))
+    def_norm_10 = float(np.linalg.norm(D_blocks[-1] @ s_hist[9] + D_blocks[0] @ s_hist[10] + D_blocks[1] @ s_hist[11]))
+    def_norm_4000 = float(np.linalg.norm(D_blocks[-1] @ s_hist[3999] + D_blocks[0] @ s_hist[4000] + D_blocks[1] @ s_hist[4001]))
+
     # (c) cross-polarised wave packet in real space (Nz = 1024, k0 = 0.2)
     Nz, k0, sk, nsteps = 1024, 0.2, 0.025, 1200
     ixx, iyy, ixy = SYM.index((1, 1)), SYM.index((2, 2)), SYM.index((1, 2))
@@ -720,6 +923,8 @@ def audit_regge_time_evolution(alpha: float = 0.5) -> dict:
         "transfer_map_max_abs_eigenvalue": max_lam,
         "transfer_map_unit_modulus_only_graviton_or_residual_gauge": unit_phases_ok,
         "transfer_map_norm_growth_T4000_over_T1000_linear_bound_4": growth,
+        "jordan_gauge_growth_edge_norm_ratio_4000_over_10": float(edge_norm_4000 / edge_norm_10),
+        "jordan_gauge_growth_deficit_norm_ratio_4000_over_10": float(def_norm_4000 / def_norm_10),
         "packet_k0": k0,
         "packet_steps": nsteps,
         "packet_max_equation_residual": pk_res,
@@ -729,21 +934,49 @@ def audit_regge_time_evolution(alpha: float = 0.5) -> dict:
     }
 
 
+def _crossing_eigenvalue_slope(lat, k_space, kt_star, dk=1e-5):
+    """Derivative d(lambda_cross)/d(k_t) of the zero-crossing eigenvalue of H_red(k_t, k_space)."""
+    Hr_m, _ = lat.reduced_hessian(np.array([kt_star - dk, *k_space]))
+    Hr_p, _ = lat.reduced_hessian(np.array([kt_star + dk, *k_space]))
+    ev_m = np.linalg.eigvalsh(Hr_m)
+    ev_p = np.linalg.eigvalsh(Hr_p)
+    idx = int(np.argmin(np.abs(0.5 * (ev_m + ev_p))))
+    return float((ev_p[idx] - ev_m[idx]) / (2.0 * dk))
+
+
+def _fibonacci_sphere_directions(n_dirs: int = 32):
+    """Quasi-uniform directions on the upper hemisphere of S^2 (since dispersion is even in k)."""
+    dirs = []
+    golden = (1.0 + math.sqrt(5.0)) / 2.0
+    for i in range(n_dirs):
+        z = 1.0 - (i + 0.5) / n_dirs
+        r = math.sqrt(max(0.0, 1.0 - z * z))
+        phi = 2.0 * math.pi * i / golden
+        dirs.append(np.array([r * math.cos(phi), r * math.sin(phi), z], dtype=float))
+    return dirs
+
+
 def audit_anamorphic_bcc_lattice_comparison(alpha: float = 0.5, kmag: float = 0.2) -> dict:
     """Test 59: compare unstretched Freudenthal lattice (gamma = 0) against the anamorphic
     BCC / Sommerville tetragonal disphenoid stretch (gamma = -1/3).
 
-    Proves two diagnostic facts:
+    Proves three diagnostic facts:
       1. Compressing the spatial metric along (1,1,1) by gamma = -1/3 turns each spatial Kuhn
          tetrahedron (edges^2 in {1, 2, 3}) into a congruent BCC disphenoid (edges^2 in {1, 4/3}),
-         removes the 5th hyperdiagonal zero mode (null_dims: 5 -> 4), equalises axis and body-diagonal
-         graviton speeds (ratio 9.0 -> 1.0), and reduces directional dispersion anisotropy by >5x.
-      2. Making the hyperdiagonal dynamical at gamma = -1/3 causes one of the two remaining negative
+         removes the 5th hyperdiagonal zero mode automatically (null_dims: 5 -> 4), equalises axis and
+         body-diagonal graviton speeds (ratio 9.0 -> 1.0), and reduces directional dispersion anisotropy
+         across both the 8 crystal symmetry directions (>5.4x) and a 32-direction Fibonacci hemisphere (>4.5x).
+      2. Because neither (1,1,1,1) nor (0,1,1,1) is a right-triangle hypotenuse at gamma = -1/3, evolving
+         gamma = -1/3 with the proper 11-unknown time stepper (solving for all 4 free Y_n edges including
+         I_HYPER and all 7 spatial edges X_{n+1} including I_BODY3) is spectrally bounded (max |lambda| <= 1)
+         and propagates exact graviton plane waves for 2000 steps with error ~4.7e-8 (whereas misapplying
+         the 10-unknown gamma=0 stepper to gamma=-1/3 artificially clamps I_HYPER and lags I_BODY3,
+         producing a spurious |lambda|_max ~ 1.0116).
+      3. Making the hyperdiagonal dynamical at gamma = -1/3 causes one of the two remaining negative
          eigenvalues (above the graviton crossing n_neg: 4 -> 2) to cross zero near the Brillouin zone
-         edge (k_t ~ 3.08, n_neg: 2 -> 1 vs staying 2 to k_t = pi at gamma = 0), creating a high-frequency
-         lattice-cutoff optical mode and raising the unweighted least-squares time-stepper spectral radius
-         slightly above 1 (1.0116 vs 1.0000 at gamma = 0), confirming why gamma = 0 is the superior
-         baseline for ghost-free, unconditionally stable time evolution.
+         edge (k_t ~ 3.08, n_neg: 2 -> 1 vs staying 2 to k_t = pi at gamma = 0) with positive slope
+         d_lambda/d_kt > 0 (same kinetic sign as the graviton), introducing an extra high-frequency
+         lattice optical cutoff mode rather than a negative-energy ghost.
     """
     phys_dirs = {
         "x": [1, 0, 0],
@@ -755,6 +988,7 @@ def audit_anamorphic_bcc_lattice_comparison(alpha: float = 0.5, kmag: float = 0.
         "(1,1,-1)": [1, 1, -1],
         "(1,2,3)": [1, 2, 3],
     }
+    fib_dirs = _fibonacci_sphere_directions(32)
     rng = np.random.default_rng(59)
     k_rand = rng.uniform(-math.pi, math.pi, 4)
 
@@ -798,30 +1032,57 @@ def audit_anamorphic_bcc_lattice_comparison(alpha: float = 0.5, kmag: float = 0.
         aniso = float((max(vals) - min(vals)) / mean_err)
         axis_over_body_ratio = float(speed_errors["x"] / speed_errors["(1,1,1)"])
 
-        # Check negative-eigenvalue count at k_t -> 0+ along x
+        # 32-direction Fibonacci hemisphere anisotropy check
+        fib_errs = []
+        for dvec in fib_dirs:
+            n = dvec / math.sqrt(float(dvec @ gs @ dvec))
+            k_cov = kmag * (gs @ n)
+            modes = propagating_modes(lat, k_cov, n_grid=241)
+            grav = [m for m in modes if abs(m[0] - alpha * kmag) < 0.2 * alpha * kmag]
+            fib_errs.append(float(1.0 - grav[0][0] / (alpha * kmag)))
+        fib_aniso = float((max(fib_errs) - min(fib_errs)) / np.mean(fib_errs))
+
+        # Check negative-eigenvalue count and crossing slopes along x
         nx = np.array([1.0, 0.0, 0.0])
         nx = nx / math.sqrt(float(nx @ gs @ nx))
         kx_cov = kmag * (gs @ nx)
         n_neg_static = count_negative(lat, np.array([1e-4, *kx_cov]))
         n_neg_zone_edge = count_negative(lat, np.array([math.pi, *kx_cov]))
+        modes_x = propagating_modes(lat, kx_cov, n_grid=601)
+        grav_slope_x = _crossing_eigenvalue_slope(lat, kx_cov, modes_x[0][0])
+        uv_slope_x = _crossing_eigenvalue_slope(lat, kx_cov, modes_x[1][0]) if len(modes_x) > 1 else None
 
-        # Check 10-unknown time-stepper spectral radius at k_s = (0, 0, 0.2)
-        stp = ReggeTimeStepper(lat, [0.0, 0.0, kmag])
-        T = np.zeros((21, 21), dtype=complex)
-        for j in range(21):
-            zv = np.zeros(21, dtype=complex)
-            zv[j] = 1.0
-            sp = zv[:15].copy()
-            sp[FIX_DIRS] = 0.0
-            sc = np.zeros(15, dtype=complex)
-            sc[X_FREE] = zv[15:]
-            a, b, _ = stp.step(sp, sc)
-            T[:15, j] = a
-            T[15:, j] = b[X_FREE]
-        max_lam = float(np.max(np.abs(np.linalg.eigvals(T))))
+        # Check proper time-stepper spectral radius across 4 spatial wavevectors + 2000-step plane wave
+        max_lam = 0.0
+        for ks in ([0.0, 0.0, kmag], [0.4, -0.3, 0.9], [math.pi, math.pi, math.pi], [0.0, 0.0, 0.01]):
+            stp = ReggeTimeStepper(lat, ks)
+            T = stp.transfer_matrix()
+            max_lam = max(max_lam, float(np.max(np.abs(np.linalg.eigvals(T)))))
+
+        nz = np.array([0.0, 0.0, 1.0])
+        nz = nz / math.sqrt(float(nz @ gs @ nz))
+        ks_z = kmag * (gs @ nz)
+        kt_z = propagating_modes(lat, ks_z, n_grid=601)[0][0]
+        vs_z, _ = gauge_adjusted_plane_waves(lat, np.array([kt_z, *ks_z]))
+        stp_z = ReggeTimeStepper(lat, ks_z)
+        pw_err = pw_res = 0.0
+        for v in vs_z:
+            s_prev = v.copy()
+            s_cur = np.zeros(15, dtype=complex)
+            s_cur[stp_z.x_next_dirs] = (v * np.exp(1j * kt_z))[stp_z.x_next_dirs]
+            for n in range(1, 2001):
+                s_c, s_next, res = stp_z.step(s_prev, s_cur)
+                pw_res = max(pw_res, res)
+                pw_err = max(pw_err, float(np.linalg.norm(s_c - v * np.exp(1j * kt_z * n)) / np.linalg.norm(v)))
+                s_prev, s_cur = s_c, s_next
+
+        # Also record naive 10-unknown stepper spectral radius at k_s = (0, 0, kmag) for diagnostic comparison
+        stp_naive10 = ReggeTimeStepper(lat, [0.0, 0.0, kmag], force_10_unknowns=True)
+        naive10_max_lam = float(np.max(np.abs(np.linalg.eigvals(stp_naive10.transfer_matrix()))))
 
         comparison[label] = {
             "gamma": gamma,
+            "stepper_n_unknowns": stp_z.n_unknowns,
             "spatial_edge_length_sq_set": spatial_edge_sq,
             "spacetime_edge_length_sq_set": all_edge_sq,
             "max_schlafli_rel_residual": max(lat.schlafli_rel_residuals),
@@ -832,11 +1093,17 @@ def audit_anamorphic_bcc_lattice_comparison(alpha: float = 0.5, kmag: float = 0.
             "speed_error_1_minus_v_by_direction": speed_errors,
             "mean_speed_error": mean_err,
             "directional_anisotropy_spread_over_mean": aniso,
+            "fibonacci_32_directional_anisotropy_spread_over_mean": fib_aniso,
             "axis_to_body_diagonal_error_ratio": axis_over_body_ratio,
             "extra_uv_cutoff_modes_by_direction": extra_uv_modes,
             "n_neg_eigenvalues_static_limit": n_neg_static,
             "n_neg_eigenvalues_zone_edge": n_neg_zone_edge,
+            "graviton_crossing_d_eig_d_kt_x": grav_slope_x,
+            "uv_cutoff_crossing_d_eig_d_kt_x": uv_slope_x,
             "stepper_max_abs_eigenvalue": max_lam,
+            "naive_10_unknown_stepper_max_abs_eigenvalue": naive10_max_lam,
+            "plane_wave_2000_steps_max_rel_error": pw_err,
+            "plane_wave_max_equation_residual": pw_res,
         }
 
     g0 = comparison["unstretched_gamma_0"]
@@ -844,12 +1111,17 @@ def audit_anamorphic_bcc_lattice_comparison(alpha: float = 0.5, kmag: float = 0.
     aniso_reduction = float(
         g0["directional_anisotropy_spread_over_mean"] / gbcc["directional_anisotropy_spread_over_mean"]
     )
+    fib_aniso_reduction = float(
+        g0["fibonacci_32_directional_anisotropy_spread_over_mean"]
+        / gbcc["fibonacci_32_directional_anisotropy_spread_over_mean"]
+    )
     return {
         "alpha": alpha,
         "kmag": kmag,
         "unstretched_gamma_0": g0,
         "bcc_disphenoid_gamma_minus_1_3": gbcc,
         "anisotropy_reduction_factor": aniso_reduction,
+        "fibonacci_32_anisotropy_reduction_factor": fib_aniso_reduction,
         "hyperdiagonal_artefact_removed_by_bcc_stretch": bool(
             g0["null_space_dimension"] == 5 and gbcc["null_space_dimension"] == 4
         ),
@@ -858,7 +1130,14 @@ def audit_anamorphic_bcc_lattice_comparison(alpha: float = 0.5, kmag: float = 0.
         ),
         "unstretched_has_zero_spurious_uv_modes": len(g0["extra_uv_cutoff_modes_by_direction"]) == 0,
         "bcc_stretch_introduces_uv_cutoff_mode": len(gbcc["extra_uv_cutoff_modes_by_direction"]) == len(phys_dirs),
+        "bcc_uv_cutoff_mode_same_kinetic_sign_as_graviton": bool(
+            gbcc["graviton_crossing_d_eig_d_kt_x"] > 0.0
+            and gbcc["uv_cutoff_crossing_d_eig_d_kt_x"] is not None
+            and gbcc["uv_cutoff_crossing_d_eig_d_kt_x"] > 0.0
+        ),
         "unstretched_stepper_spectrally_bounded": g0["stepper_max_abs_eigenvalue"] <= 1.0 + 1e-8,
-        "bcc_unweighted_stepper_exceeds_unit_circle": gbcc["stepper_max_abs_eigenvalue"] > 1.005,
+        "bcc_11_unknown_stepper_spectrally_bounded": gbcc["stepper_max_abs_eigenvalue"] <= 1.0 + 1e-8,
+        "bcc_naive_10_unknown_stepper_exceeds_unit_circle": gbcc["naive_10_unknown_stepper_max_abs_eigenvalue"] > 1.005,
     }
+
 

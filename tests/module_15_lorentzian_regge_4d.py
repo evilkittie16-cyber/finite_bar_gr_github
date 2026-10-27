@@ -7,18 +7,30 @@ polarisations is put in; the relative signs of timelike/spacelike hinge terms ar
 Lorentzian Schlafli identity of each simplex.
 
   - Test 56: Lorentzian Schlafli hinge weights, exact gauge invariance (vertex translations),
-             contracted Bianchi identity, zero-mode content (incl. the hyperdiagonal artefact).
+             contracted Bianchi identity, zero-mode content, and S_4-symmetric hypercube
+             parallelogram closure of the hyperdiagonal (1,1,1,1) (including proof that general
+             asymmetric gauge-exact closures have a 10D null space with ~12% graviton deficit
+             ambiguity, whereas S_4 permutation symmetry reduces the null space to 2D with
+             < 2e-8 graviton deficit ambiguity).
   - Test 57: Propagating modes over the whole temporal Brillouin zone: exactly one doubly
-             degenerate mode (2 polarisations), speed -> c at O(k^2), independent of dt/dx and of
-             direction, transverse-traceless; no real modes in Euclidean signature (control).
+             degenerate mode (2 polarisations), speed -> c at O(k^2) for every dt/dx and every
+             direction (with O(k^2) coefficient depending mildly on alpha), transverse-traceless;
+             no real modes in Euclidean signature (control).
   - Test 58: Slice-by-slice Lorentzian Regge evolution: exact plane waves for 2000 steps, no
-             exponentially growing mode, real-space graviton wave packet moving at the lattice
-             group velocity (-> c).
+             exponentially growing mode, direct verification that the lambda = 1 Jordan-block
+             linear growth on unconstrained edge norms ||s_n|| leaves gauge-invariant deficit
+             angles ||delta eps_n|| constant, and real-space graviton wave packet moving at the
+             lattice group velocity (-> c).
   - Test 59: Anamorphic BCC / Sommerville disphenoid comparison (gamma = 0 vs gamma = -1/3):
-             compressing along (1,1,1) removes the 5th hyperdiagonal zero mode and cuts
-             directional dispersion anisotropy by >5.4x, but turns the 5th mode into a UV cutoff
-             optical mode and pushes unweighted stepper |lambda|_max above 1, confirming why
-             gamma = 0 is kept as the time-evolution baseline.
+             compressing along (1,1,1) removes the 5th hyperdiagonal zero mode automatically and
+             cuts directional dispersion anisotropy across both 8 crystal symmetry directions (>5.4x)
+             and a 32-direction Fibonacci hemisphere (>4.5x). Evolving all 11 non-gauge unknowns
+             per step at gamma = -1/3 gives a spectrally bounded time stepper (|lambda|_max = 1)
+             that propagates graviton plane waves for 2000 steps to ~4.7e-8; however, making the
+             hyperdiagonal dynamical causes one negative eigenvalue of H_red to cross zero near
+             the Brillouin zone edge (k_t ~ 3.08, n_neg: 4 -> 2 -> 1 with positive slope
+             d_lambda/d_kt > 0), introducing an extra high-frequency optical cutoff mode with the
+             same kinetic sign as the graviton.
 Scope: linearised theory on flat space only; no nonlinear 3+1D evolution.
 """
 
@@ -56,6 +68,10 @@ def test_56_lorentzian_regge_schlafli_gauge_bianchi() -> dict:
         and res["max_parallelogram_rule_gauge_identity_error"] < 1e-13
         and res["max_14_edge_deficit_gauge_change_rel"] < 1e-13
         and 3.5 < res["graviton_deficit_parallelogram_scaling_ratio"] < 4.8
+        and res["asymmetric_gauge_exact_null_space_dim"] == 10
+        and res["asymmetric_null_space_graviton_deficit_variation_rel"] > 0.05
+        and res["s4_symmetric_gauge_exact_null_space_dim"] == 2
+        and res["s4_symmetric_null_space_graviton_deficit_variation_rel"] < 1e-7
     )
     return {"passed": passed, **res}
 
@@ -81,6 +97,8 @@ def test_58_lorentzian_regge_time_evolution_and_wave_packet() -> dict:
         and res["transfer_map_max_abs_eigenvalue"] < 1 + 1e-8
         and res["transfer_map_unit_modulus_only_graviton_or_residual_gauge"]
         and res["transfer_map_norm_growth_T4000_over_T1000_linear_bound_4"] < 4.5
+        and res["jordan_gauge_growth_edge_norm_ratio_4000_over_10"] > 10.0
+        and 0.8 < res["jordan_gauge_growth_deficit_norm_ratio_4000_over_10"] < 1.2
         and res["packet_max_equation_residual"] < 1e-11
         and abs(res["packet_group_velocity_over_c"] - res["dispersion_group_velocity_over_c"]) < 1e-3
         and abs(res["packet_group_velocity_over_c"] - 1.0) < 1e-2
@@ -104,15 +122,20 @@ def test_59_anamorphic_bcc_lattice_comparison() -> dict:
         and gbcc["bianchi_identity_error"] < 1e-13
         and res["hyperdiagonal_artefact_removed_by_bcc_stretch"]
         and res["anisotropy_reduction_factor"] > 5.0
+        and res["fibonacci_32_anisotropy_reduction_factor"] > 4.0
         and res["axis_and_body_diagonal_speeds_equalised_at_bcc"]
         and res["unstretched_has_zero_spurious_uv_modes"]
         and res["bcc_stretch_introduces_uv_cutoff_mode"]
+        and res["bcc_uv_cutoff_mode_same_kinetic_sign_as_graviton"]
         and g0["n_neg_eigenvalues_static_limit"] == 4
         and g0["n_neg_eigenvalues_zone_edge"] == 2
         and gbcc["n_neg_eigenvalues_static_limit"] == 4
         and gbcc["n_neg_eigenvalues_zone_edge"] == 1
         and res["unstretched_stepper_spectrally_bounded"]
-        and res["bcc_unweighted_stepper_exceeds_unit_circle"]
+        and res["bcc_11_unknown_stepper_spectrally_bounded"]
+        and res["bcc_naive_10_unknown_stepper_exceeds_unit_circle"]
+        and gbcc["plane_wave_2000_steps_max_rel_error"] < 1e-6
+        and gbcc["plane_wave_max_equation_residual"] < 1e-11
     )
     return {"passed": passed, **res}
 
