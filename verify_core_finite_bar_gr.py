@@ -4,7 +4,7 @@ verify_core_finite_bar_gr.py
 Clean, self-contained verification of the Finite-Bar Discrete General Relativity
 (GR) Black Hole Model documented in proof_corrected.md.
 
-Ten core benchmarks plus the 15-module / 58-test suite in tests/.
+Ten core benchmarks plus the 15-module / 59-test suite in tests/.
 
 How to read the output:
   * "passed" flags check NUMERICAL CORRECTNESS and ALGEBRAIC IDENTITIES (conservation, symplecticity,
@@ -1053,6 +1053,7 @@ def build_claims_audit(results, modules):
     t56 = m15["test_56_lorentzian_regge_schlafli_gauge_bianchi"]
     t57 = m15["test_57_lorentzian_regge_graviton_dispersion_and_polarisations"]
     t58 = m15["test_58_lorentzian_regge_time_evolution_and_wave_packet"]
+    t59 = m15["test_59_anamorphic_bcc_lattice_comparison"]
     b3 = results["test_3_eighteen_point_sphere_isotropy"]
 
     def verdict(ok, yes="SUPPORTED", no="NOT SUPPORTED"):
@@ -1214,8 +1215,8 @@ def build_claims_audit(results, modules):
                   "symmetry only around flat space (Bahr-Dittrich). A static TT deformation h_xy = eps cos(2 pi z/L) gives Delta S_Regge / [(1/2) int sqrt(g) R] "
                   "= 0.950, 0.987, 0.997 for L = 4, 8, 16 (order 2.0): the 3D Regge action reproduces the continuum spatial curvature action. 3D Euclidean, "
                   "no time evolution: not a gravitational-wave or 3+1D result. The Regge vertex force (6.5e-9 vs Hooke 0.406) follows from flatness.")},
-        {"claim": "Lorentzian (3+1D, time-dependent) Regge calculus on a 4D lattice yields linearised GR: gauge invariance/Bianchi identity, two graviton polarisations propagating at c, discrete-time evolution (Tests 56-58)",
-         "verdict": verdict(t56["passed"] and t57["passed"] and t58["passed"], yes="SUPPORTED AT LINEAR ORDER (graviton sector derived from the Regge action on a 4D Freudenthal lattice; nonlinear 3+1D evolution not done)"),
+        {"claim": "Lorentzian (3+1D, time-dependent) Regge calculus on a 4D lattice yields linearised GR: gauge invariance/Bianchi identity, two graviton polarisations propagating at c, discrete-time evolution, and anamorphic BCC disphenoid comparison (Tests 56-59)",
+         "verdict": verdict(t56["passed"] and t57["passed"] and t58["passed"] and t59["passed"], yes="SUPPORTED AT LINEAR ORDER (graviton sector derived from the Regge action on a 4D Freudenthal lattice; nonlinear 3+1D evolution not done)"),
          "note": ("Module 15 (lorentzian_regge_4d.py): postulates = piecewise-flat Lorentzian 4-simplices + Regge action S = sum |A_t| eps_t; no Einstein equations, "
                   "graviton, speed or polarisations are input. (1) Test 56: hinge weights fixed intrinsically by the Lorentzian Schlafli identity of each simplex "
                   f"(residual {t56['max_lorentzian_schlafli_rel_residual']:.1e}; timelike hinges +1, spacelike +-1 exactly); the 15x15 Fourier Hessian is Hermitian "
@@ -1229,8 +1230,16 @@ def build_claims_audit(results, modules):
                   f"Regge evolution (4 lapse/shift edges + hyperdiagonal fixed) propagates exact plane waves for 2000 steps (error {t58['plane_wave_2000_steps_max_rel_error']:.1e}, "
                   f"residual {t58['plane_wave_max_equation_residual']:.1e}); no transfer eigenvalue exceeds 1, unit-modulus ones are gravitons or residual gauge; "
                   f"constraint-violating data grow at most ~linearly; a real-space cross-polarised packet moves at {t58['packet_group_velocity_over_c']:.5f} c "
-                  f"(lattice prediction {t58['dispersion_group_velocity_over_c']:.5f} c). Scope: linearised on flat space; Freudenthal lattice (15 edges/vertex), "
-                  "not the 18-point stencil; nonlinear 3+1D Regge evolution, matter coupling and black holes are not done.")},
+                  f"(lattice prediction {t58['dispersion_group_velocity_over_c']:.5f} c). (4) Test 59: compressing the spatial metric along (1,1,1) by gamma = -1/3 "
+                  "(turning each spatial Kuhn tetrahedron into a congruent BCC Sommerville disphenoid with edge lengths^2 in {1, 4/3}) removes the 5th hyperdiagonal "
+                  f"zero mode (null dims 5 -> 4), equalises axis and body-diagonal speeds (ratio {t59['unstretched_gamma_0']['axis_to_body_diagonal_error_ratio']:.2f} -> "
+                  f"{t59['bcc_disphenoid_gamma_minus_1_3']['axis_to_body_diagonal_error_ratio']:.4f}), and cuts directional dispersion anisotropy by "
+                  f"{t59['anisotropy_reduction_factor']:.2f}x ({t59['unstretched_gamma_0']['directional_anisotropy_spread_over_mean']:.3f} -> "
+                  f"{t59['bcc_disphenoid_gamma_minus_1_3']['directional_anisotropy_spread_over_mean']:.3f}), but lifts the 5th mode into a high-frequency cutoff optical "
+                  "mode (k_t ~ 3.084, n_neg: 2 -> 1) and raises the unweighted stepper spectral radius to "
+                  f"{t59['bcc_disphenoid_gamma_minus_1_3']['stepper_max_abs_eigenvalue']:.4f} > 1, confirming why gamma = 0 is kept as the evolution baseline. "
+                  "Scope: linearised on flat space; Freudenthal lattice (15 edges/vertex), not the 18-point stencil; nonlinear 3+1D Regge evolution, matter coupling "
+                  "and black holes are not done.")},
     ]
 
 

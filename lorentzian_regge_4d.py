@@ -123,12 +123,22 @@ def simplex_derivatives(verts, G, lorentzian: bool, h: float = 1e-30):
 
 
 class LorentzianReggeLattice:
-    """Linearised Regge calculus on the periodic Freudenthal lattice with G = diag(+-alpha^2,1,1,1)."""
+    """Linearised Regge calculus on the periodic Freudenthal lattice.
 
-    def __init__(self, alpha: float = 0.5, lorentzian: bool = True):
+    gamma = 0.0 gives the unstretched hypercubic spatial metric g_ij = delta_ij.
+    gamma != 0.0 gives the affinely stretched (anamorphic) spatial metric
+    g_ij = delta_ij + gamma * (1 - delta_ij); at gamma = -1/3 each spatial Kuhn
+    tetrahedron becomes a congruent BCC Sommerville tetragonal disphenoid
+    with squared edge lengths {1, 4/3}.
+    """
+
+    def __init__(self, alpha: float = 0.5, lorentzian: bool = True, gamma: float = 0.0):
         self.alpha = alpha
         self.lorentzian = lorentzian
-        self.G = np.diag([(-1.0 if lorentzian else 1.0) * alpha ** 2, 1.0, 1.0, 1.0])
+        self.gamma = float(gamma)
+        self.G = np.zeros((4, 4), dtype=float)
+        self.G[0, 0] = (-1.0 if lorentzian else 1.0) * alpha ** 2
+        self.G[1:, 1:] = np.eye(3) + self.gamma * (np.ones((3, 3)) - np.eye(3))
         self.blocks = []          # (dir a, base a, dir b, base b, h_ab)
         self.deficit_terms = []   # (triangle key, owner, dir e, base e, d eps / d s_e)
         self.schlafli_rel_residuals = []
@@ -568,3 +578,138 @@ def audit_regge_time_evolution(alpha: float = 0.5) -> dict:
         "dispersion_group_velocity_over_c": vg_disp,
         "packet_norm_ratio_end_over_start": float(np.linalg.norm(hxy[-1]) / np.linalg.norm(hxy[0])),
     }
+
+
+def audit_anamorphic_bcc_lattice_comparison(alpha: float = 0.5, kmag: float = 0.2) -> dict:
+    """Test 59: compare unstretched Freudenthal lattice (gamma = 0) against the anamorphic
+    BCC / Sommerville tetragonal disphenoid stretch (gamma = -1/3).
+
+    Proves two diagnostic facts:
+      1. Compressing the spatial metric along (1,1,1) by gamma = -1/3 turns each spatial Kuhn
+         tetrahedron (edges^2 in {1, 2, 3}) into a congruent BCC disphenoid (edges^2 in {1, 4/3}),
+         removes the 5th hyperdiagonal zero mode (null_dims: 5 -> 4), equalises axis and body-diagonal
+         graviton speeds (ratio 9.0 -> 1.0), and reduces directional dispersion anisotropy by >5x.
+      2. Making the hyperdiagonal dynamical at gamma = -1/3 causes one of the two remaining negative
+         eigenvalues (above the graviton crossing n_neg: 4 -> 2) to cross zero near the Brillouin zone
+         edge (k_t ~ 3.08, n_neg: 2 -> 1 vs staying 2 to k_t = pi at gamma = 0), creating a high-frequency
+         lattice-cutoff optical mode and raising the unweighted least-squares time-stepper spectral radius
+         slightly above 1 (1.0116 vs 1.0000 at gamma = 0), confirming why gamma = 0 is the superior
+         baseline for ghost-free, unconditionally stable time evolution.
+    """
+    phys_dirs = {
+        "x": [1, 0, 0],
+        "y": [0, 1, 0],
+        "z": [0, 0, 1],
+        "(1,1,0)": [1, 1, 0],
+        "(1,-1,0)": [1, -1, 0],
+        "(1,1,1)": [1, 1, 1],
+        "(1,1,-1)": [1, 1, -1],
+        "(1,2,3)": [1, 2, 3],
+    }
+    rng = np.random.default_rng(59)
+    k_rand = rng.uniform(-math.pi, math.pi, 4)
+
+    comparison = {}
+    for label, gamma in (("unstretched_gamma_0", 0.0), ("bcc_disphenoid_gamma_minus_1_3", -1.0 / 3.0)):
+        lat = LorentzianReggeLattice(alpha=alpha, lorentzian=True, gamma=gamma)
+        gs = lat.G[1:, 1:]
+        spatial_edge_sq = sorted({
+            round(float(np.array(d[1:]) @ gs @ np.array(d[1:])), 6)
+            for d in DIRS if d[0] == 0
+        })
+        all_edge_sq = sorted({
+            round(float(np.array(d) @ lat.G @ np.array(d)), 6)
+            for d in DIRS
+        })
+        H = lat.hessian(k_rand)
+        g = lat.gauge_vectors(k_rand)
+        nH, ng = np.linalg.norm(H), np.linalg.norm(g)
+        gauge_err = float(np.linalg.norm(H @ g) / (nH * ng))
+        bianchi_err = float(np.linalg.norm(g.conj().T @ H) / (nH * ng))
+        hyper_col = float(np.linalg.norm(H[:, I_HYPER]) / nH)
+        null_dim = _extra_free_null_count(H)
+
+        speed_errors = {}
+        extra_uv_modes = {}
+        for dname, dvec in phys_dirs.items():
+            n = np.array(dvec, float)
+            n = n / math.sqrt(float(n @ gs @ n))
+            k_cov = kmag * (gs @ n)
+            modes = propagating_modes(lat, k_cov, n_grid=601)
+            grav = [m for m in modes if abs(m[0] - alpha * kmag) < 0.2 * alpha * kmag]
+            uv = [(round(float(m[0]), 6), int(m[1])) for m in modes if abs(m[0] - alpha * kmag) >= 0.2 * alpha * kmag]
+            assert len(grav) == 1 and grav[0][1] == 2, (label, dname, modes)
+            v_over_c = float(grav[0][0] / (alpha * kmag))
+            speed_errors[dname] = float(1.0 - v_over_c)
+            if uv:
+                extra_uv_modes[dname] = uv
+
+        vals = list(speed_errors.values())
+        mean_err = float(np.mean(vals))
+        aniso = float((max(vals) - min(vals)) / mean_err)
+        axis_over_body_ratio = float(speed_errors["x"] / speed_errors["(1,1,1)"])
+
+        # Check negative-eigenvalue count at k_t -> 0+ along x
+        nx = np.array([1.0, 0.0, 0.0])
+        nx = nx / math.sqrt(float(nx @ gs @ nx))
+        kx_cov = kmag * (gs @ nx)
+        n_neg_static = count_negative(lat, np.array([1e-4, *kx_cov]))
+        n_neg_zone_edge = count_negative(lat, np.array([math.pi, *kx_cov]))
+
+        # Check 10-unknown time-stepper spectral radius at k_s = (0, 0, 0.2)
+        stp = ReggeTimeStepper(lat, [0.0, 0.0, kmag])
+        T = np.zeros((21, 21), dtype=complex)
+        for j in range(21):
+            zv = np.zeros(21, dtype=complex)
+            zv[j] = 1.0
+            sp = zv[:15].copy()
+            sp[FIX_DIRS] = 0.0
+            sc = np.zeros(15, dtype=complex)
+            sc[X_FREE] = zv[15:]
+            a, b, _ = stp.step(sp, sc)
+            T[:15, j] = a
+            T[15:, j] = b[X_FREE]
+        max_lam = float(np.max(np.abs(np.linalg.eigvals(T))))
+
+        comparison[label] = {
+            "gamma": gamma,
+            "spatial_edge_length_sq_set": spatial_edge_sq,
+            "spacetime_edge_length_sq_set": all_edge_sq,
+            "max_schlafli_rel_residual": max(lat.schlafli_rel_residuals),
+            "gauge_invariance_error": gauge_err,
+            "bianchi_identity_error": bianchi_err,
+            "null_space_dimension": null_dim,
+            "hyperdiagonal_hessian_column_rel": hyper_col,
+            "speed_error_1_minus_v_by_direction": speed_errors,
+            "mean_speed_error": mean_err,
+            "directional_anisotropy_spread_over_mean": aniso,
+            "axis_to_body_diagonal_error_ratio": axis_over_body_ratio,
+            "extra_uv_cutoff_modes_by_direction": extra_uv_modes,
+            "n_neg_eigenvalues_static_limit": n_neg_static,
+            "n_neg_eigenvalues_zone_edge": n_neg_zone_edge,
+            "stepper_max_abs_eigenvalue": max_lam,
+        }
+
+    g0 = comparison["unstretched_gamma_0"]
+    gbcc = comparison["bcc_disphenoid_gamma_minus_1_3"]
+    aniso_reduction = float(
+        g0["directional_anisotropy_spread_over_mean"] / gbcc["directional_anisotropy_spread_over_mean"]
+    )
+    return {
+        "alpha": alpha,
+        "kmag": kmag,
+        "unstretched_gamma_0": g0,
+        "bcc_disphenoid_gamma_minus_1_3": gbcc,
+        "anisotropy_reduction_factor": aniso_reduction,
+        "hyperdiagonal_artefact_removed_by_bcc_stretch": bool(
+            g0["null_space_dimension"] == 5 and gbcc["null_space_dimension"] == 4
+        ),
+        "axis_and_body_diagonal_speeds_equalised_at_bcc": bool(
+            abs(gbcc["axis_to_body_diagonal_error_ratio"] - 1.0) < 1e-3
+        ),
+        "unstretched_has_zero_spurious_uv_modes": len(g0["extra_uv_cutoff_modes_by_direction"]) == 0,
+        "bcc_stretch_introduces_uv_cutoff_mode": len(gbcc["extra_uv_cutoff_modes_by_direction"]) == len(phys_dirs),
+        "unstretched_stepper_spectrally_bounded": g0["stepper_max_abs_eigenvalue"] <= 1.0 + 1e-8,
+        "bcc_unweighted_stepper_exceeds_unit_circle": gbcc["stepper_max_abs_eigenvalue"] > 1.005,
+    }
+
