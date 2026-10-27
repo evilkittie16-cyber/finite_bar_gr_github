@@ -23,13 +23,25 @@ sector of GR (gauge invariance / Bianchi identity, 2 polarisations, propagation 
 propagating mode) from the lattice action and evolves it in discrete time. It does not perform
 nonlinear 3+1D Regge evolution, and the Freudenthal complex is not the 18-point stencil.
 
-Lattice artefacts found and reported (not hidden):
-  * The 4D hyperdiagonal edge (1,1,1,1) drops out of the quadratic Regge action identically (its
-    Hessian column vanishes at every k), although it changes deficit angles. It is undetermined by
-    the linearised equations and is fixed by hand together with the 4 lapse/shift edges.
+Lattice artefacts found, explained geometrically, and resolved:
+  * Why the 4D hyperdiagonal edge (1,1,1,1) decouples at gamma = 0: in every Freudenthal 4-simplex
+    0 = v_0 < v_1 < v_2 < v_3 < v_4 = (1,1,1,1) of an orthogonal hypercube, the step vectors
+    (v_k - v_0) and (v_4 - v_k) lie along disjoint coordinate axes and are strictly orthogonal, so
+    every triangle (v_0, v_k, v_4) touching the hyperdiagonal is a right triangle with (1,1,1,1)
+    as its hypotenuse (s_04 = s_0k + s_k4). By Heron's formula, d|A_t|/ds_04 = +-(s_0k + s_k4 - s_04)/(8|A_t|) == 0
+    identically on every simplex, so the hyperdiagonal row and column of H(k) vanish identically.
+  * Exact 14-edge hypercube parallelogram elimination: because (1,1,1,1) lies strictly inside one
+    hypercube [0,1]^4, telescoping the parallelogram identity delta s_{x->y} = 2<y-x, xi(y)-xi(x)>_G
+    across the faces of [0,1]^4 expresses delta s_(1,1,1,1) as an exact rational linear combination
+    of the other 14 edges (weights +1/2 on 3D body diagonals, -1/6 and -1/3 on 2D face diagonals,
+    +1/6 on interior-vertex axis edges). Eliminating s_(1,1,1,1) with this rule reduces H(k) to a
+    14x14 matrix H_14(k) with null-space dimension 4 (only the 4 exact diffeomorphism modes),
+    preserves exact vertex-translation invariance of all 50 deficit angles across all k in [-pi,pi]^4,
+    restores O(k^2) Riemann-curvature scaling of graviton deficit angles, and fits all 15 edges to
+    M(k)h + g(k)xi without any hyperdiagonal crutch.
   * Free (unconstrained) slice-by-slice evolution has no exponentially growing mode (all transfer
-    eigenvalues |lambda| <= 1), but constraint-violating perturbations can grow polynomially
-    (sub-linearly to linearly in n), the usual behaviour of free evolution without constraint damping.
+    eigenvalues |lambda| <= 1), while residual coordinate shifts linear in time (Delta_t^2 xi = 0 at
+    k_t = 0) form a 2x2 Jordan block at lambda = 1 (sub-linear to linear growth on gauge-dependent edges).
 """
 
 from __future__ import annotations
@@ -220,6 +232,21 @@ class LorentzianReggeLattice:
         Q = Qg[:, 4:]
         return Q.conj().T @ self.hessian(k) @ Q, Q
 
+    def hessian_14(self, k):
+        """14x14 Fourier Hessian on the 14 active (non-hyperdiagonal) edges."""
+        H = self.hessian(k)
+        return H[np.ix_(NON_HYPER_DIRS, NON_HYPER_DIRS)]
+
+    def gauge_vectors_14(self, k):
+        """14x4 vertex-translation gauge vectors on the 14 non-hyperdiagonal edges."""
+        return self.gauge_vectors(k)[NON_HYPER_DIRS, :]
+
+    def deficit_map_14(self, k):
+        """50x14 deficit-angle map after eliminating s_(1,1,1,1) via the exact hypercube parallelogram rule."""
+        D = self.deficit_map(k)
+        rk = hyperdiagonal_parallelogram_rule(k)
+        return D[:, NON_HYPER_DIRS] + np.outer(D[:, I_HYPER], rk[NON_HYPER_DIRS])
+
 
 def metric_map(k):
     """15x10 map from a constant-amplitude metric perturbation h_mu_nu to delta s_d (edge midpoint)."""
@@ -294,11 +321,84 @@ def polarisation_content(lat, k, n_null: int):
 # ---------------------------------------------------------------------------------------------
 I_HYPER = DID[(1, 1, 1, 1)]          # 4D hyperdiagonal: drops out of the quadratic action
 I_BODY3 = DID[(0, 1, 1, 1)]          # spatial body diagonal: first enters one step later
+NON_HYPER_DIRS = [i for i in range(15) if i != I_HYPER]
 Y_DIRS = [i for i, d in enumerate(DIRS) if d[0] == 1]
 X_DIRS = [i for i, d in enumerate(DIRS) if d[0] == 0]
 FIX_DIRS = [DID[d] for d in GAUGE_FIX_DIRS] + [I_HYPER]       # lapse/shift edges + hyperdiagonal
 Y_FREE = [i for i in Y_DIRS if i not in FIX_DIRS]              # 3
 X_FREE = [i for i in X_DIRS if i != I_BODY3]                   # 6
+
+
+def _build_hyperdiagonal_parallelogram_terms():
+    """Exact rational hypercube parallelogram weights expressing s_(1,1,1,1) in terms of the 14
+    other edge directions inside [0,1]^4 (with the p_0 = 1 spatial body diagonal (0,1,1,1) expanded
+    into the 6 spatial edges X_FREE on slice n+1 via the 3D cube parallelogram identity).
+    """
+    terms = []
+    for i, d in enumerate(DIRS):
+        if i == I_HYPER:
+            continue
+        deg_d = sum(d)
+        free_axes = [m for m in range(4) if d[m] == 0]
+        for bits in itertools.product((0, 1), repeat=len(free_axes)):
+            p = [0, 0, 0, 0]
+            for ax, b in zip(free_axes, bits):
+                p[ax] = b
+            deg_p = sum(p)
+            if deg_d == 3:
+                w = 0.5
+            elif deg_d == 2:
+                w = -1.0 / 6.0 if deg_p in (0, 2) else -1.0 / 3.0
+            else:
+                w = 1.0 / 6.0 if deg_p in (1, 2) else 0.0
+            if w == 0.0:
+                continue
+            if i == I_BODY3 and p[0] == 1:
+                for j in X_FREE:
+                    dj = DIRS[j]
+                    deg_dj = sum(dj)
+                    fa3 = [m for m in (1, 2, 3) if dj[m] == 0]
+                    for b3 in itertools.product((0, 1), repeat=len(fa3)):
+                        p3 = [1, 0, 0, 0]
+                        for ax3, bit3 in zip(fa3, b3):
+                            p3[ax3] = bit3
+                        w3 = 0.5 if deg_dj == 2 else (-0.5 if sum(p3[1:]) == 1 else 0.0)
+                        if w3 != 0.0:
+                            terms.append((j, tuple(p3), w * w3))
+            else:
+                terms.append((i, tuple(p), w))
+    return terms
+
+
+HYPER_PARALLELOGRAM_TERMS = _build_hyperdiagonal_parallelogram_terms()
+
+
+def hyperdiagonal_parallelogram_rule(k):
+    """Length-15 Fourier weight vector r(k) (with r[I_HYPER] = 0) such that s_hyper(k) = r(k) . s(k)
+    is exact for all 4 vertex-translation gauge modes at every k in [-pi, pi]^4 and exact through
+    O(k) for any smooth metric perturbation h_{mu nu}.
+    """
+    k = np.asarray(k, float)
+    r = np.zeros(15, dtype=complex)
+    for i, p, w in HYPER_PARALLELOGRAM_TERMS:
+        r[i] += w * np.exp(1j * (k @ np.array(p, float)))
+    return r
+
+
+def hyperdiagonal_slice_rule(k_space):
+    """Time-slice decomposition (r_cur, r_next) of hyperdiagonal_parallelogram_rule(k) so that on
+    time slice n, s_n[I_HYPER] = r_cur . s_n + r_next . s_{n+1}.
+    """
+    ks = np.asarray(k_space, float)
+    r_cur = np.zeros(15, dtype=complex)
+    r_next = np.zeros(15, dtype=complex)
+    for i, p, w in HYPER_PARALLELOGRAM_TERMS:
+        ph = w * np.exp(1j * (ks @ np.array(p[1:], float)))
+        if p[0] == 0:
+            r_cur[i] += ph
+        else:
+            r_next[i] += ph
+    return r_cur, r_next
 
 
 class ReggeTimeStepper:
@@ -307,17 +407,22 @@ class ReggeTimeStepper:
     (one equation per edge owned by time slice n) slice by slice for one spatial wavevector.
     Unknowns at step n: Y_n (slice-connecting edges, minus 4 gauge-fixed lapse/shift edges and the
     hyperdiagonal), X_{n+1} (spatial edges of the next slice, minus the body diagonal) and the lagged
-    body diagonal X_n(0,1,1,1): 10 unknowns, 15 equations, of which 4 are Bianchi-redundant
-    constraints and 1 (the hyperdiagonal equation) is identically zero.
+    body diagonal X_n(0,1,1,1): 10 unknowns, 14 non-trivial equations, of which 4 are Bianchi-redundant
+    constraints. When reconstruct_hyperdiagonal=True (default for gamma=0), s_n[I_HYPER] is closed
+    locally from (s_n, s_{n+1}) via the exact hypercube parallelogram identity.
     """
 
-    def __init__(self, lat, k_space):
+    def __init__(self, lat, k_space, reconstruct_hyperdiagonal: bool | None = None):
         self.A = lat.time_blocks(k_space)
         A = self.A
         self.K = np.hstack([A[0][:, Y_FREE], A[1][:, X_FREE], A[0][:, [I_BODY3]]])
         sv = np.linalg.svd(self.K, compute_uv=False)
         self.rank_ratio = float(sv[-1] / sv[0])
         self.K_pinv = np.linalg.pinv(self.K)   # full column rank -> unique least-squares solution
+        if reconstruct_hyperdiagonal is None:
+            reconstruct_hyperdiagonal = (lat.gamma == 0.0)
+        self.reconstruct_hyperdiagonal = bool(reconstruct_hyperdiagonal)
+        self.r_hyper_cur, self.r_hyper_next = hyperdiagonal_slice_rule(k_space)
 
     def step(self, s_prev, s_cur_partial):
         """
@@ -332,13 +437,17 @@ class ReggeTimeStepper:
         s_cur[I_BODY3] = x[9]
         s_next = np.zeros(15, dtype=complex)
         s_next[X_FREE] = x[3:9]
+        if self.reconstruct_hyperdiagonal:
+            s_cur[I_HYPER] = self.r_hyper_cur @ s_cur + self.r_hyper_next @ s_next
         res = np.linalg.norm(A[-1] @ s_prev + A[0] @ s_cur + A[1] @ s_next) / max(np.linalg.norm(known), 1e-300)
         return s_cur, s_next, float(res)
 
 
-def gauge_adjusted_plane_waves(lat, k):
-    """The two exact on-shell graviton null vectors of H(k), shifted by lattice gauge vectors and the
-    hyperdiagonal so that the 4 lapse/shift edges and the hyperdiagonal vanish (stepper gauge)."""
+def gauge_adjusted_plane_waves(lat, k, reconstruct_hyperdiagonal: bool = True):
+    """The two exact on-shell graviton null vectors of H(k), shifted by lattice gauge vectors so that
+    the 4 lapse/shift edges vanish (stepper gauge), with s[I_HYPER] reconstructed from the 14 active
+    edges via the exact hypercube parallelogram identity (when reconstruct_hyperdiagonal=True).
+    """
     H = lat.hessian(k)
     g = lat.gauge_vectors(k)
     w, V = np.linalg.eigh(0.5 * (H + H.conj().T))
@@ -349,11 +458,15 @@ def gauge_adjusted_plane_waves(lat, k):
     Bq, _ = np.linalg.qr(B)
     R = N - Bq @ (Bq.conj().T @ N)
     U, S, _ = np.linalg.svd(R)
+    rk = hyperdiagonal_parallelogram_rule(k) if reconstruct_hyperdiagonal else None
     out = []
     for j in range(2):
         v = U[:, j]
         coef = np.linalg.solve(B[FIX_DIRS, :], -v[FIX_DIRS])
-        out.append(v + B @ coef)
+        vj = v + B @ coef
+        if reconstruct_hyperdiagonal:
+            vj[I_HYPER] = rk @ vj
+        out.append(vj)
     return out, float(S[2] / S[0])
 
 
@@ -366,25 +479,53 @@ def _extra_free_null_count(H, rel=1e-12):
 
 
 def audit_lorentzian_regge_structure(alpha: float = 0.5, n_random: int = 20) -> dict:
-    """Test 56: Lorentzian Schlafli hinge weights, gauge invariance, Bianchi identity, zero-mode content."""
+    """Test 56: Lorentzian Schlafli hinge weights, gauge invariance, Bianchi identity, zero-mode content,
+    and exact 14-edge hypercube parallelogram elimination of the (1,1,1,1) hyperdiagonal."""
     lat = LorentzianReggeLattice(alpha, lorentzian=True)
     rng = np.random.default_rng(56)
     herm = gauge = bianchi = hyper_col = deficit_gauge = 0.0
+    para_gauge_err = deficit_14_gauge = 0.0
     null_counts = set()
+    null_counts_14 = set()
     hyper_curv = []
+    # Check that d|A_t|/ds_(0,4) == 0 identically on every simplex (right-triangle hypotenuse identity)
+    max_dA_hyper = 0.0
+    for v in freudenthal_simplices():
+        _, _, _, _, dA, _ = simplex_derivatives(v, lat.G, True)
+        max_dA_hyper = max(max_dA_hyper, float(np.max(np.abs(dA[:, PAIRS.index((0, 4))]))))
     for _ in range(n_random):
         k = rng.uniform(-math.pi, math.pi, 4)
         H = lat.hessian(k)
+        H14 = lat.hessian_14(k)
         g = lat.gauge_vectors(k)
+        g14 = lat.gauge_vectors_14(k)
         D = lat.deficit_map(k)
+        D14 = lat.deficit_map_14(k)
+        rk = hyperdiagonal_parallelogram_rule(k)
         nH, ng = np.linalg.norm(H), np.linalg.norm(g)
         herm = max(herm, float(np.linalg.norm(H - H.conj().T) / nH))
         gauge = max(gauge, float(np.linalg.norm(H @ g) / (nH * ng)))
         bianchi = max(bianchi, float(np.linalg.norm(g.conj().T @ H) / (nH * ng)))
         hyper_col = max(hyper_col, float(np.linalg.norm(H[:, I_HYPER]) / nH))
         deficit_gauge = max(deficit_gauge, float(np.linalg.norm(D @ g) / (np.linalg.norm(D) * ng)))
+        para_gauge_err = max(para_gauge_err, float(np.linalg.norm(rk @ g - g[I_HYPER, :]) / ng))
+        deficit_14_gauge = max(deficit_14_gauge, float(np.linalg.norm(D14 @ g14) / (np.linalg.norm(D14) * np.linalg.norm(g14))))
         hyper_curv.append(float(np.linalg.norm(D[:, I_HYPER]) / np.linalg.norm(D)))
         null_counts.add(_extra_free_null_count(H))
+        null_counts_14.add(_extra_free_null_count(H14))
+    # Compare graviton deficit-angle scaling O(k^2) with parallelogram hyperdiagonal vs s_hyper = 0
+    def_norms_para = []
+    def_norms_zero = []
+    for km in (0.1, 0.05):
+        kt = propagating_modes(lat, [0, 0, km], n_grid=601)[0][0]
+        kg = np.array([kt, 0, 0, km])
+        vv_para, _ = gauge_adjusted_plane_waves(lat, kg, reconstruct_hyperdiagonal=True)
+        vv_zero, _ = gauge_adjusted_plane_waves(lat, kg, reconstruct_hyperdiagonal=False)
+        Dg = lat.deficit_map(kg)
+        v_p = vv_para[0] / np.linalg.norm(vv_para[0][NON_HYPER_DIRS])
+        v_z = vv_zero[0] / np.linalg.norm(vv_zero[0][NON_HYPER_DIRS])
+        def_norms_para.append(float(np.linalg.norm(Dg @ v_p)))
+        def_norms_zero.append(float(np.linalg.norm(Dg @ v_z)))
     pattern = {}
     for c, kd in zip(lat.hinge_weights, lat.hinge_kinds):
         for ci, kname in zip(c, kd):
@@ -395,6 +536,7 @@ def audit_lorentzian_regge_structure(alpha: float = 0.5, n_random: int = 20) -> 
         "alpha": alpha,
         "n_simplices_per_hypercube": len(lat.hinge_weights),
         "n_edge_directions": 15,
+        "n_active_edge_directions_after_parallelogram_closure": 14,
         "n_triangle_types": lat.n_triangle_types,
         "max_lorentzian_schlafli_rel_residual": max(lat.schlafli_rel_residuals),
         "max_abs_hinge_weight_minus_1": float(max(np.max(np.abs(np.abs(c) - 1.0)) for c in lat.hinge_weights)),
@@ -407,9 +549,16 @@ def audit_lorentzian_regge_structure(alpha: float = 0.5, n_random: int = 20) -> 
         "max_gauge_invariance_error_H_g": gauge,
         "max_bianchi_identity_error_gH_H": bianchi,
         "null_space_dimensions_seen": sorted(null_counts),
+        "null_space_dimensions_14_edge_reduced": sorted(null_counts_14),
+        "max_right_triangle_hypotenuse_dA_ds_hyper": max_dA_hyper,
         "max_hyperdiagonal_hessian_column_rel": hyper_col,
         "min_hyperdiagonal_deficit_coupling_rel": float(min(hyper_curv)),
         "max_gauge_deficit_change_rel": deficit_gauge,
+        "max_parallelogram_rule_gauge_identity_error": para_gauge_err,
+        "max_14_edge_deficit_gauge_change_rel": deficit_14_gauge,
+        "graviton_deficit_norm_parallelogram_k01_k005": def_norms_para,
+        "graviton_deficit_norm_s_hyper_zero_k01_k005": def_norms_zero,
+        "graviton_deficit_parallelogram_scaling_ratio": float(def_norms_para[0] / def_norms_para[1]),
     }
 
 
@@ -454,7 +603,7 @@ def audit_graviton_dispersion(alphas=(0.5, 0.3), kmags=(0.025, 0.05, 0.1, 0.2)) 
     TTq, _ = np.linalg.qr(np.column_stack([ep, ec]))
     tt_fracs, nonmetric = [], []
     for v in vs:
-        X = np.column_stack([M, e_h, g])
+        X = np.column_stack([M, g])
         coef, *_ = np.linalg.lstsq(X, v, rcond=None)
         nonmetric.append(float(np.linalg.norm(v - X @ coef) / np.linalg.norm(v)))
         hp = coef[:10] - Qc @ (Qc.conj().T @ coef[:10])

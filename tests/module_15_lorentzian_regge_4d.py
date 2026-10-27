@@ -48,9 +48,14 @@ def test_56_lorentzian_regge_schlafli_gauge_bianchi() -> dict:
         and res["max_gauge_invariance_error_H_g"] < 1e-13
         and res["max_bianchi_identity_error_gH_H"] < 1e-13
         and res["null_space_dimensions_seen"] == [5]
+        and res["null_space_dimensions_14_edge_reduced"] == [4]
+        and res["max_right_triangle_hypotenuse_dA_ds_hyper"] < 1e-14
         and res["max_hyperdiagonal_hessian_column_rel"] < 1e-13
         and res["min_hyperdiagonal_deficit_coupling_rel"] > 1e-2
         and res["max_gauge_deficit_change_rel"] < 1e-13
+        and res["max_parallelogram_rule_gauge_identity_error"] < 1e-13
+        and res["max_14_edge_deficit_gauge_change_rel"] < 1e-13
+        and 3.5 < res["graviton_deficit_parallelogram_scaling_ratio"] < 4.8
     )
     return {"passed": passed, **res}
 
