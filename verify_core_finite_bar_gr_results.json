@@ -1206,9 +1206,132 @@
         "curved_background_gauge_breaking_scaling_2x_sigma": 2.546483568066648
       },
       "module_14_passed": true
+    },
+    "module_15_lorentzian_regge_4d": {
+      "test_56_lorentzian_regge_schlafli_gauge_bianchi": {
+        "passed": true,
+        "alpha": 0.5,
+        "n_simplices_per_hypercube": 24,
+        "n_edge_directions": 15,
+        "n_triangle_types": 50,
+        "max_lorentzian_schlafli_rel_residual": 2.021681160626129e-17,
+        "max_abs_hinge_weight_minus_1": 1.6653345369377348e-14,
+        "all_timelike_hinge_weights_plus_1": true,
+        "hinge_weight_pattern": {
+          "S_same:+1": 24,
+          "S_mixed:-1": 144,
+          "T:+1": 72
+        },
+        "euclidean_control_max_abs_weight_minus_1": 1.687538997430238e-14,
+        "max_hermiticity_error": 3.755351316216135e-15,
+        "max_gauge_invariance_error_H_g": 5.086220086983699e-16,
+        "max_bianchi_identity_error_gH_H": 8.231735232673115e-16,
+        "null_space_dimensions_seen": [
+          5
+        ],
+        "max_hyperdiagonal_hessian_column_rel": 1.0741828809133797e-15,
+        "min_hyperdiagonal_deficit_coupling_rel": 0.2330544368901074,
+        "max_gauge_deficit_change_rel": 4.548012404272186e-16
+      },
+      "test_57_lorentzian_regge_graviton_dispersion_and_polarisations": {
+        "passed": true,
+        "kmags": [
+          0.025,
+          0.05,
+          0.1,
+          0.2
+        ],
+        "one_minus_v_over_c": {
+          "alpha=0.5,dir=z": [
+            1.9563024910573823e-05,
+            7.813594396133272e-05,
+            0.000312550781192078,
+            0.0012507806317890724
+          ],
+          "alpha=0.5,dir=xy": [
+            6.527564189395818e-06,
+            2.6047353544833562e-05,
+            0.0001041905199122839,
+            0.0004170316667689855
+          ],
+          "alpha=0.5,dir=xyz": [
+            2.1802255012470795e-06,
+            8.683589316160756e-06,
+            3.473117104602075e-05,
+            0.00013902225777684407
+          ],
+          "alpha=0.5,dir=123": [
+            6.52396049538595e-06,
+            2.6046116803901675e-05,
+            0.0001041848285179281,
+            0.00041694404870085133
+          ],
+          "alpha=0.3,dir=z": [
+            2.3792342867201555e-05,
+            9.481472119010625e-05,
+            0.00037916354861000645,
+            0.0015165231010664249
+          ],
+          "alpha=0.3,dir=xy": [
+            1.0723958523972676e-05,
+            4.2720457416489666e-05,
+            0.00017084287725044334,
+            0.000683439818388365
+          ],
+          "alpha=0.3,dir=xyz": [
+            6.36500527373407e-06,
+            2.535464658315334e-05,
+            0.00010139669079367586,
+            0.0004056526152894646
+          ],
+          "alpha=0.3,dir=123": [
+            1.0713992721678167e-05,
+            4.271762072194374e-05,
+            0.0001708367870998373,
+            0.0006833521712620305
+          ]
+        },
+        "exactly_one_doubly_degenerate_mode_in_full_kt_zone": true,
+        "max_abs_one_minus_v_at_smallest_k": 2.3792342867201555e-05,
+        "convergence_orders_last_pair": [
+          2.0006662710443868,
+          2.000932921399612,
+          2.0010129195391584,
+          2.0007085895036036,
+          1.9998752939629443,
+          2.000144203682526,
+          2.0002342206804276,
+          2.0000106043209027
+        ],
+        "graviton_polarisation_TT_fractions_k005_z": [
+          0.9999999986901968,
+          0.9999999979637211
+        ],
+        "graviton_non_metric_residuals_k005_z": [
+          3.232844835766602e-05,
+          3.947059038842808e-05
+        ],
+        "graviton_vs_other_null_separation": 4.045224923360453e-12,
+        "euclidean_control_real_crossings": 0
+      },
+      "test_58_lorentzian_regge_time_evolution_and_wave_packet": {
+        "passed": true,
+        "plane_wave_2000_steps_max_rel_error": 9.943111630714719e-08,
+        "plane_wave_max_equation_residual": 3.00482874729365e-13,
+        "transfer_map_max_abs_eigenvalue": 1.0000000000486313,
+        "transfer_map_unit_modulus_only_graviton_or_residual_gauge": true,
+        "transfer_map_norm_growth_T4000_over_T1000_linear_bound_4": 2.8228190762650254,
+        "packet_k0": 0.2,
+        "packet_steps": 1200,
+        "packet_max_equation_residual": 1.8349171900165707e-13,
+        "packet_group_velocity_over_c": 0.9962163260564402,
+        "dispersion_group_velocity_over_c": 0.9962440622771879,
+        "packet_norm_ratio_end_over_start": 0.9999999997335992
+      },
+      "module_15_passed": true
     }
   },
-  "number_of_module_tests": 55,
+  "number_of_module_tests": 58,
   "ALL_MODULE_NUMERICAL_CHECKS_PASSED": true,
   "ALL_NUMERICAL_CHECKS_PASSED": true,
   "CLAIMS_AUDIT": [
@@ -1341,6 +1464,11 @@
       "claim": "Outcome 5 pieces (Tests 53-55): polymerised-holonomy bounce, variational interior star & de Sitter region, 3D Kuhn Regge gauge zero modes and static TT curvature",
       "verdict": "PARTLY SUPPORTED (numerics correct; Tests 53-54 are continuum effective-LQC / minisuperspace Einstein-Hilbert computations with postulated inputs, not a lattice derivation of GR; Test 55 is genuine 3D Euclidean Regge calculus, static only)",
       "note": "Module 14 (Tests 53-55), after independent symbolic/numerical audit: (1) Test 53: with the POSTULATED effective-LQC substitution beta^2 -> sin^2(ell*beta)/ell^2, Hamilton's equations (finite-difference gradients) reproduce the Module 9 V2 law (Rdot/R)^2 = (2Gm/R^3)(1 - 2Gm ell^2/R^3) (residual 5.2e-8) and reach R_core = (2Gm ell^2)^(1/3) (1.5e-7, dt-limited) at ell*beta = -pi/2. R_core and rho_max follow algebraically from sin^2 <= 1 and are fixed by the chosen normalisation (4 sin^2(ell*beta/2)/ell^2 gives rho_max 4x larger); 'Bragg reflection' is an analogy (H periodic in beta). Standard effective LQC (Ashtekar-Pawlowski-Singh 2006; Kelly-Santacruz-Wilson-Ewing 2020). (2) Test 54: the action L = -2a(R/A)' + a(A + 1/A) is exactly 1/2 of the reduced sqrt(-g) R (verified symbolically: EL equations = -R^2 A G^t_t, -R^2 a G^r_r); it is a discretised minisuperspace Einstein-Hilbert action, not simplicial Regge, so its stationary points are Einstein's equations by construction. Matter = kappa sqrt(-g) p (Schutz 1970) with p = -rho_max (de Sitter) or incompressible p(a) = rho_0(a_surf/a - 1) (input EOS). O(1/N^2): de Sitter (R <= 0.8 ell only; static patch ends at R = ell) err_A 1.0e-5, err_a 6.2e-6; 1916 star (compaction 0.5, outer BC a(R_star) = a_surf only) err_A 5.4e-6, err_a 1.1e-5, err_p 7.4e-5, orders 2.01/2.00/2.00. (3) Test 55: periodic Kuhn complex (384 tets, 448 edges, vertex degree 14 - not the 18-pt stencil). Finite vertex shifts of flat space leave deficits (3.6e-15) and S (1.2e-13) unchanged; on a curved TT background the same shifts change S (6.3e-6), i.e. exact gauge symmetry only around flat space (Bahr-Dittrich). A static TT deformation h_xy = eps cos(2 pi z/L) gives Delta S_Regge / [(1/2) int sqrt(g) R] = 0.950, 0.987, 0.997 for L = 4, 8, 16 (order 2.0): the 3D Regge action reproduces the continuum spatial curvature action. 3D Euclidean, no time evolution: not a gravitational-wave or 3+1D result. The Regge vertex force (6.5e-9 vs Hooke 0.406) follows from flatness."
+    },
+    {
+      "claim": "Lorentzian (3+1D, time-dependent) Regge calculus on a 4D lattice yields linearised GR: gauge invariance/Bianchi identity, two graviton polarisations propagating at c, discrete-time evolution (Tests 56-58)",
+      "verdict": "SUPPORTED AT LINEAR ORDER (graviton sector derived from the Regge action on a 4D Freudenthal lattice; nonlinear 3+1D evolution not done)",
+      "note": "Module 15 (lorentzian_regge_4d.py): postulates = piecewise-flat Lorentzian 4-simplices + Regge action S = sum |A_t| eps_t; no Einstein equations, graviton, speed or polarisations are input. (1) Test 56: hinge weights fixed intrinsically by the Lorentzian Schlafli identity of each simplex (residual 2.0e-17; timelike hinges +1, spacelike +-1 exactly); the 15x15 Fourier Hessian is Hermitian (3.8e-15), annihilates the 4 vertex-translation (diffeomorphism) vectors (5.1e-16) and obeys the contracted Bianchi identity (8.2e-16). Lattice artefact: the hyperdiagonal (1,1,1,1) drops out of the quadratic action (5th zero mode) although it changes deficits; it is fixed by hand. (2) Test 57: over the whole temporal zone k_t in (0, pi] there is exactly one doubly degenerate propagating mode for every direction and dt/dx in {0.5, 0.3}; its speed -> c with 1 - v/c = O(k^2) (orders 2.000-2.001; max 2.4e-05 at |k| = 0.025); both modes are transverse-traceless (TT fraction > 0.999999998); Euclidean control has no real modes. (3) Test 58: slice-by-slice Regge evolution (4 lapse/shift edges + hyperdiagonal fixed) propagates exact plane waves for 2000 steps (error 9.9e-08, residual 3.0e-13); no transfer eigenvalue exceeds 1, unit-modulus ones are gravitons or residual gauge; constraint-violating data grow at most ~linearly; a real-space cross-polarised packet moves at 0.99622 c (lattice prediction 0.99624 c). Scope: linearised on flat space; Freudenthal lattice (15 edges/vertex), not the 18-point stencil; nonlinear 3+1D Regge evolution, matter coupling and black holes are not done."
     }
   ]
 }

@@ -4,7 +4,7 @@ verify_core_finite_bar_gr.py
 Clean, self-contained verification of the Finite-Bar Discrete General Relativity
 (GR) Black Hole Model documented in proof_corrected.md.
 
-Ten core benchmarks plus the 14-module / 55-test suite in tests/.
+Ten core benchmarks plus the 15-module / 58-test suite in tests/.
 
 How to read the output:
   * "passed" flags check NUMERICAL CORRECTNESS and ALGEBRAIC IDENTITIES (conservation, symplecticity,
@@ -1049,6 +1049,10 @@ def build_claims_audit(results, modules):
     t53 = m14["test_53_bounded_holonomy_regge_core_bounce_bragg_reflection"]
     t54 = m14["test_54_variational_regge_interior_star_and_desitter_core"]
     t55 = m14["test_55_3d_kuhn_regge_diffeomorphism_invariance_vs_spin2"]
+    m15 = modules["module_15_lorentzian_regge_4d"]
+    t56 = m15["test_56_lorentzian_regge_schlafli_gauge_bianchi"]
+    t57 = m15["test_57_lorentzian_regge_graviton_dispersion_and_polarisations"]
+    t58 = m15["test_58_lorentzian_regge_time_evolution_and_wave_packet"]
     b3 = results["test_3_eighteen_point_sphere_isotropy"]
 
     def verdict(ok, yes="SUPPORTED", no="NOT SUPPORTED"):
@@ -1210,6 +1214,23 @@ def build_claims_audit(results, modules):
                   "symmetry only around flat space (Bahr-Dittrich). A static TT deformation h_xy = eps cos(2 pi z/L) gives Delta S_Regge / [(1/2) int sqrt(g) R] "
                   "= 0.950, 0.987, 0.997 for L = 4, 8, 16 (order 2.0): the 3D Regge action reproduces the continuum spatial curvature action. 3D Euclidean, "
                   "no time evolution: not a gravitational-wave or 3+1D result. The Regge vertex force (6.5e-9 vs Hooke 0.406) follows from flatness.")},
+        {"claim": "Lorentzian (3+1D, time-dependent) Regge calculus on a 4D lattice yields linearised GR: gauge invariance/Bianchi identity, two graviton polarisations propagating at c, discrete-time evolution (Tests 56-58)",
+         "verdict": verdict(t56["passed"] and t57["passed"] and t58["passed"], yes="SUPPORTED AT LINEAR ORDER (graviton sector derived from the Regge action on a 4D Freudenthal lattice; nonlinear 3+1D evolution not done)"),
+         "note": ("Module 15 (lorentzian_regge_4d.py): postulates = piecewise-flat Lorentzian 4-simplices + Regge action S = sum |A_t| eps_t; no Einstein equations, "
+                  "graviton, speed or polarisations are input. (1) Test 56: hinge weights fixed intrinsically by the Lorentzian Schlafli identity of each simplex "
+                  f"(residual {t56['max_lorentzian_schlafli_rel_residual']:.1e}; timelike hinges +1, spacelike +-1 exactly); the 15x15 Fourier Hessian is Hermitian "
+                  f"({t56['max_hermiticity_error']:.1e}), annihilates the 4 vertex-translation (diffeomorphism) vectors ({t56['max_gauge_invariance_error_H_g']:.1e}) "
+                  f"and obeys the contracted Bianchi identity ({t56['max_bianchi_identity_error_gH_H']:.1e}). Lattice artefact: the hyperdiagonal (1,1,1,1) drops "
+                  "out of the quadratic action (5th zero mode) although it changes deficits; it is fixed by hand. (2) Test 57: over the whole temporal zone "
+                  "k_t in (0, pi] there is exactly one doubly degenerate propagating mode for every direction and dt/dx in {0.5, 0.3}; its speed -> c with "
+                  f"1 - v/c = O(k^2) (orders {min(t57['convergence_orders_last_pair']):.3f}-{max(t57['convergence_orders_last_pair']):.3f}; "
+                  f"max {t57['max_abs_one_minus_v_at_smallest_k']:.1e} at |k| = 0.025); both modes are transverse-traceless "
+                  f"(TT fraction > {min(t57['graviton_polarisation_TT_fractions_k005_z']):.9f}); Euclidean control has no real modes. (3) Test 58: slice-by-slice "
+                  f"Regge evolution (4 lapse/shift edges + hyperdiagonal fixed) propagates exact plane waves for 2000 steps (error {t58['plane_wave_2000_steps_max_rel_error']:.1e}, "
+                  f"residual {t58['plane_wave_max_equation_residual']:.1e}); no transfer eigenvalue exceeds 1, unit-modulus ones are gravitons or residual gauge; "
+                  f"constraint-violating data grow at most ~linearly; a real-space cross-polarised packet moves at {t58['packet_group_velocity_over_c']:.5f} c "
+                  f"(lattice prediction {t58['dispersion_group_velocity_over_c']:.5f} c). Scope: linearised on flat space; Freudenthal lattice (15 edges/vertex), "
+                  "not the 18-point stencil; nonlinear 3+1D Regge evolution, matter coupling and black holes are not done.")},
     ]
 
 
@@ -1228,6 +1249,7 @@ def main():
     from tests.module_12_random_grid_and_voronoi_audit import run_module_12
     from tests.module_13_emergent_anamorphic_gr import run_module_13
     from tests.module_14_non_gr_grid_mechanisms import run_module_14
+    from tests.module_15_lorentzian_regge_4d import run_module_15
 
     results = {
         "test_1_equivalence_principle_and_gr_bending": test_1_equivalence_principle_and_gr_bending(),
@@ -1258,6 +1280,7 @@ def main():
         "module_12_random_grid_and_voronoi_audit": run_module_12(),
         "module_13_emergent_anamorphic_gr": run_module_13(),
         "module_14_non_gr_grid_mechanisms": run_module_14(),
+        "module_15_lorentzian_regge_4d": run_module_15(),
     }
     n_tests = sum(len([k for k in m if k.startswith("test_")]) for m in modules.values())
     modules_passed = all(
@@ -1277,6 +1300,7 @@ def main():
             (12, "random_grid_and_voronoi_audit"),
             (13, "emergent_anamorphic_gr"),
             (14, "non_gr_grid_mechanisms"),
+            (15, "lorentzian_regge_4d"),
         ]
     )
     all_passed = bool(core_passed and modules_passed)
@@ -1295,7 +1319,7 @@ def main():
         json.dump(results, f, indent=2)
 
     print(json.dumps({k: v for k, v in results.items() if k != "CLAIMS_AUDIT"}, indent=2))
-    print(f"\nALL 14 MODULES ({n_tests} TESTS) NUMERICAL CHECKS PASSED: {modules_passed}")
+    print(f"\nALL 15 MODULES ({n_tests} TESTS) NUMERICAL CHECKS PASSED: {modules_passed}")
     print(f"ALL 10 CORE BENCHMARK NUMERICAL CHECKS PASSED: {core_passed}")
     print("\nCLAIMS AUDIT (what the code does and does not support):")
     for item in audit:
